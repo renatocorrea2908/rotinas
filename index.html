@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rotinas">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230b1120'/%3E%3Cpath d='M143 266 l87 87 l142 -170' fill='none' stroke='%2322c55e' stroke-width='46' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Rotinas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0b1120; --card:#111c33; --card2:#16233d; --line:#22304d;
+  --txt:#e8eefb; --mut:#93a4c4; --acc:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:96px}
+header{position:sticky;top:0;z-index:10;background:rgba(11,17,32,.92);backdrop-filter:blur(10px);padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:20px;letter-spacing:-.3px}
+.sub{color:var(--mut);font-size:13px;margin-top:2px}
+main{padding:14px 16px;max-width:900px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.mut{color:var(--mut);font-size:13px}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 14px;font-size:15px;font-weight:600;cursor:pointer}
+.btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.btn.sm{padding:7px 10px;font-size:13px}
+.btn.danger{background:#3a1620;color:#fca5a5;border:1px solid #5b2130}
+input,select{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px;font-size:16px;width:100%}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.5px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(17,28,51,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:12px 4px;font-size:11px;font-weight:600;cursor:pointer}
+nav button .ic{display:block;font-size:19px;margin-bottom:2px}
+nav button.on{color:var(--acc)}
+.item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card)}
+.item.done{opacity:.55}
+.item.done .nm{text-decoration:line-through}
+.chk{width:28px;height:28px;min-width:28px;border-radius:9px;border:2px solid var(--line);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;cursor:pointer}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.nm{font-size:15px;font-weight:600}
+.tag{font-size:11px;padding:2px 7px;border-radius:99px;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+.late{color:var(--bad)}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--card2);border-radius:12px;padding:12px}
+.kpi b{display:block;font-size:24px;margin-top:3px}
+.pill{display:inline-block;padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card2);font-size:13px;margin:0 6px 6px 0;cursor:pointer;user-select:none}
+.pill.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.hide{display:none}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.empty{text-align:center;color:var(--mut);padding:34px 10px;font-size:14px}
+.mono{font-variant-numeric:tabular-nums}
+.hm{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hm div{aspect-ratio:1;border-radius:5px;background:var(--card2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="row between">
+    <div><h1 id="ttl">Hoje</h1><div class="sub" id="sub"></div></div>
+    <button class="btn sm ghost" id="btnExp">⋯</button>
+  </div>
+</header>
+
+<main>
+  <!-- HOJE -->
+  <section id="v-hoje">
+    <div class="card">
+      <div class="row between"><b id="prgTxt">0 de 0</b><span class="mut" id="prgPct">0%</span></div>
+      <div class="bar" style="margin-top:8px"><i id="prgBar" style="width:0%"></i></div>
+    </div>
+    <div id="listaHoje"></div>
+  </section>
+
+  <!-- ROTINAS -->
+  <section id="v-rotinas" class="hide">
+    <button class="btn" style="width:100%;margin-bottom:12px" onclick="abrirForm()">+ Nova rotina</button>
+    <div id="listaRotinas"></div>
+  </section>
+
+  <!-- FORM -->
+  <section id="v-form" class="hide">
+    <div class="card">
+      <label>Nome da rotina</label>
+      <input id="fNome" placeholder="Ex.: Academia, Ler 30min, Revisar caixa">
+      <label>Categoria</label>
+      <select id="fCat">
+        <option>Saúde</option><option>Trabalho</option><option>Pessoal</option>
+        <option>Financeiro</option><option>Família</option><option>Estudo</option>
+      </select>
+      <label>Dias da semana</label>
+      <div id="fDias"></div>
+      <label>Horários (quantas vezes por dia)</label>
+      <div id="fHoras"></div>
+      <button class="btn ghost sm" onclick="addHora()">+ Adicionar horário</button>
+      <div class="hr"></div>
+      <div class="row">
+        <button class="btn" style="flex:1" onclick="salvarRotina()">Salvar</button>
+        <button class="btn ghost" onclick="ir('rotinas')">Cancelar</button>
+      </div>
+      <div id="fDel"></div>
+    </div>
+  </section>
+
+  <!-- RELATÓRIOS -->
+  <section id="v-rel" class="hide">
+    <div class="card">
+      <div id="periodos"></div>
+      <div class="grid" style="margin-top:10px">
+        <div class="kpi"><span class="mut">Aderência</span><b id="kAd">–</b></div>
+        <div class="kpi"><span class="mut">Sequência atual</span><b id="kSt">–</b></div>
+        <div class="kpi"><span class="mut">Concluídas</span><b id="kCo">–</b></div>
+        <div class="kpi"><span class="mut">Dias 100%</span><b id="kPf">–</b></div>
+      </div>
+    </div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Aderência por dia (%)</div><canvas id="cLinha" height="150"></canvas></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Desempenho por rotina (%)</div><canvas id="cRot" height="200"></canvas></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Por categoria (%)</div><canvas id="cCat" height="180"></canvas></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Por dia da semana (%)</div><canvas id="cSem" height="150"></canvas></div>
+    <div class="card">
+      <div class="row between"><b style="color:var(--ok)">✔ Faço bem</b></div>
+      <div id="bons" style="margin-top:8px"></div>
+      <div class="hr"></div>
+      <div class="row between"><b style="color:var(--bad)">✖ Faço mal</b></div>
+      <div id="ruins" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- DADOS -->
+  <section id="v-dados" class="hide">
+    <div class="card">
+      <b>Dados</b>
+      <p class="mut">Tudo fica salvo neste aparelho/navegador. Faça backup de vez em quando.</p>
+      <button class="btn ghost" style="width:100%;margin-bottom:8px" onclick="exportar()">⬇ Exportar backup (.json)</button>
+      <button class="btn ghost" style="width:100%;margin-bottom:8px" onclick="document.getElementById('imp').click()">⬆ Importar backup</button>
+      <input type="file" id="imp" accept=".json" class="hide">
+      <button class="btn danger" style="width:100%" onclick="zerar()">Apagar tudo</button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button id="n-hoje" class="on" onclick="ir('hoje')"><span class="ic">✓</span>Hoje</button>
+  <button id="n-rotinas" onclick="ir('rotinas')"><span class="ic">☰</span>Rotinas</button>
+  <button id="n-rel" onclick="ir('rel')"><span class="ic">▥</span>Relatórios</button>
+  <button id="n-dados" onclick="ir('dados')"><span class="ic">⚙</span>Dados</button>
+</nav>
+
+<script>
+const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const K='rotinasApp.v1';
+let db={rotinas:[],log:{}}, editId=null, periodo=30, charts={};
+
+function load(){try{const r=localStorage.getItem(K);if(r)db=JSON.parse(r)}catch(e){}}
+function save(){localStorage.setItem(K,JSON.stringify(db))}
+function hoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function uid(){return 'r'+Math.random().toString(36).slice(2,9)}
+function agora(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+/* ---------- navegação ---------- */
+function ir(v){
+  ['hoje','rotinas','rel','form','dados'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.classList.add('hide')});
+  document.getElementById('v-'+v).classList.remove('hide');
+  ['hoje','rotinas','rel','dados'].forEach(x=>document.getElementById('n-'+x).classList.remove('on'));
+  const n=document.getElementById('n-'+(v==='form'?'rotinas':v)); if(n)n.classList.add('on');
+  const t={hoje:'Hoje',rotinas:'Minhas rotinas',rel:'Relatórios',form:editId?'Editar rotina':'Nova rotina',dados:'Dados'};
+  document.getElementById('ttl').textContent=t[v];
+  const d=new Date();
+  document.getElementById('sub').textContent=v==='hoje'?DIAS[d.getDay()]+', '+d.toLocaleDateString('pt-BR'):'';
+  if(v==='hoje')renderHoje(); if(v==='rotinas')renderRotinas(); if(v==='rel')renderRel();
+  window.scrollTo(0,0);
+}
+document.getElementById('btnExp').onclick=()=>ir('dados');
+
+/* ---------- rotinas ativas no dia ---------- */
+function ativasEm(dateStr){
+  const dow=new Date(dateStr+'T12:00:00').getDay();
+  return db.rotinas.filter(r=>!r.arq && r.dias.includes(dow));
+}
+function slots(r){return r.horas.length?r.horas:['--:--']}
+function feito(dateStr,rid,i){return !!(db.log[dateStr]&&db.log[dateStr][rid+'#'+i])}
+function toggle(dateStr,rid,i){
+  db.log[dateStr]=db.log[dateStr]||{};
+  const k=rid+'#'+i;
+  if(db.log[dateStr][k])delete db.log[dateStr][k]; else db.log[dateStr][k]=agora();
+  save();renderHoje();
+}
+
+/* ---------- HOJE ---------- */
+function renderHoje(){
+  const d=hoje(), lista=[], rs=ativasEm(d);
+  rs.forEach(r=>slots(r).forEach((h,i)=>lista.push({r,h,i})));
+  lista.sort((a,b)=>a.h.localeCompare(b.h));
+  const el=document.getElementById('listaHoje');
+  if(!lista.length){el.innerHTML='<div class="empty">Nenhuma rotina para hoje.<br>Cadastre em <b>Rotinas</b>.</div>';}
+  else{
+    el.innerHTML=lista.map(x=>{
+      const ok=feito(d,x.r.id,x.i);
+      const atrasado=!ok&&x.h!=='--:--'&&x.h<agora();
+      return `<div class="item ${ok?'done':''}">
+        <div class="chk ${ok?'on':''}" onclick="toggle('${d}','${x.r.id}',${x.i})">${ok?'✓':''}</div>
+        <div style="flex:1">
+          <div class="nm">${esc(x.r.nome)}</div>
+          <div class="mut mono">${x.h} ${atrasado?'<span class="late">• atrasado</span>':''} ${ok?'• feito '+db.log[d][x.r.id+'#'+x.i]:''}</div>
+        </div>
+        <span class="tag">${x.r.cat}</span>
+      </div>`}).join('');
+  }
+  const tot=lista.length, ok=lista.filter(x=>feito(d,x.r.id,x.i)).length;
+  const p=tot?Math.round(ok/tot*100):0;
+  document.getElementById('prgTxt').textContent=ok+' de '+tot;
+  document.getElementById('prgPct').textContent=p+'%';
+  const b=document.getElementById('prgBar');b.style.width=p+'%';
+  b.style.background=p>=80?'var(--ok)':p>=50?'var(--warn)':'var(--bad)';
+}
+
+/* ---------- LISTA ROTINAS ---------- */
+function renderRotinas(){
+  const el=document.getElementById('listaRotinas');
+  if(!db.rotinas.length){el.innerHTML='<div class="empty">Nenhuma rotina cadastrada ainda.</div>';return}
+  el.innerHTML=db.rotinas.map(r=>`<div class="card" onclick="abrirForm('${r.id}')" style="cursor:pointer">
+    <div class="row between"><b>${esc(r.nome)}</b><span class="tag">${r.cat}</span></div>
+    <div class="mut mono" style="margin-top:6px">${r.horas.join('  ·  ')||'sem horário'}</div>
+    <div class="mut" style="margin-top:4px">${r.dias.length===7?'Todos os dias':r.dias.map(d=>DIAS[d]).join(', ')} · ${r.horas.length||1}x/dia</div>
+  </div>`).join('');
+}
+
+/* ---------- FORM ---------- */
+function abrirForm(id){
+  editId=id||null;
+  const r=id?db.rotinas.find(x=>x.id===id):null;
+  document.getElementById('fNome').value=r?r.nome:'';
+  document.getElementById('fCat').value=r?r.cat:'Saúde';
+  const dias=r?r.dias:[0,1,2,3,4,5,6];
+  document.getElementById('fDias').innerHTML=DIAS.map((d,i)=>`<span class="pill ${dias.includes(i)?'on':''}" data-d="${i}" onclick="this.classList.toggle('on')">${d}</span>`).join('');
+  document.getElementById('fHoras').innerHTML='';
+  (r&&r.horas.length?r.horas:['08:00']).forEach(h=>addHora(h));
+  document.getElementById('fDel').innerHTML=r?`<button class="btn danger" style="width:100%;margin-top:10px" onclick="excluir('${r.id}')">Excluir rotina</button>`:'';
+  ir('form');
+}
+function addHora(v){
+  const w=document.createElement('div');w.className='row';w.style.marginBottom='8px';
+  w.innerHTML=`<input type="time" value="${v||'08:00'}"><button class="btn ghost sm" onclick="this.parentNode.remove()">✕</button>`;
+  document.getElementById('fHoras').appendChild(w);
+}
+function salvarRotina(){
+  const nome=document.getElementById('fNome').value.trim();
+  if(!nome){alert('Dê um nome para a rotina.');return}
+  const dias=[...document.querySelectorAll('#fDias .pill.on')].map(e=>+e.dataset.d);
+  if(!dias.length){alert('Escolha ao menos um dia da semana.');return}
+  const horas=[...document.querySelectorAll('#fHoras input')].map(i=>i.value).filter(Boolean).sort();
+  const o={id:editId||uid(),nome,cat:document.getElementById('fCat').value,dias,horas,criada:hoje()};
+  if(editId){const i=db.rotinas.findIndex(x=>x.id===editId);o.criada=db.rotinas[i].criada;db.rotinas[i]=o}
+  else db.rotinas.push(o);
+  save();editId=null;ir('rotinas');
+}
+function excluir(id){
+  if(!confirm('Excluir esta rotina? O histórico dela também sai dos relatórios.'))return;
+  db.rotinas=db.rotinas.filter(r=>r.id!==id);save();editId=null;ir('rotinas');
+}
+
+/* ---------- RELATÓRIOS ---------- */
+function renderPeriodos(){
+  document.getElementById('periodos').innerHTML=[7,30,90].map(p=>
+    `<span class="pill ${p===periodo?'on':''}" onclick="periodo=${p};renderRel()">${p} dias</span>`).join('');
+}
+function serie(){
+  const out=[];const base=new Date();
+  for(let k=periodo-1;k>=0;k--){
+    const d=new Date(base);d.setDate(base.getDate()-k);const ds=dstr(d);
+    const rs=ativasEm(ds).filter(r=>r.criada<=ds);
+    let tot=0,ok=0;
+    rs.forEach(r=>slots(r).forEach((h,i)=>{tot++;if(feito(ds,r.id,i))ok++}));
+    out.push({ds,dow:d.getDay(),tot,ok,pct:tot?ok/tot*100:null});
+  }
+  return out;
+}
+function renderRel(){
+  renderPeriodos();
+  const s=serie(), val=s.filter(x=>x.tot>0);
+  const tot=val.reduce((a,b)=>a+b.tot,0), ok=val.reduce((a,b)=>a+b.ok,0);
+  const ad=tot?Math.round(ok/tot*100):0;
+  document.getElementById('kAd').textContent=ad+'%';
+  document.getElementById('kCo').textContent=ok+'/'+tot;
+  document.getElementById('kPf').textContent=val.filter(x=>x.pct===100).length;
+  let st=0;for(let i=s.length-1;i>=0;i--){if(s[i].tot===0)continue;if(s[i].pct>=100)st++;else break}
+  document.getElementById('kSt').textContent=st+'d';
+
+  // por rotina
+  const porR=db.rotinas.map(r=>{
+    let t=0,c=0;
+    s.forEach(d=>{if(r.dias.includes(d.dow)&&r.criada<=d.ds)slots(r).forEach((h,i)=>{t++;if(feito(d.ds,r.id,i))c++})});
+    return{nome:r.nome,cat:r.cat,t,c,pct:t?c/t*100:0}
+  }).filter(x=>x.t>0).sort((a,b)=>b.pct-a.pct);
+
+  const porC={};porR.forEach(r=>{porC[r.cat]=porC[r.cat]||{t:0,c:0};porC[r.cat].t+=r.t;porC[r.cat].c+=r.c});
+  const porS=DIAS.map((n,i)=>{const f=s.filter(x=>x.dow===i&&x.tot>0);
+    const t=f.reduce((a,b)=>a+b.tot,0),c=f.reduce((a,b)=>a+b.ok,0);return t?c/t*100:0});
+
+  ch('cLinha','line',{labels:s.map(x=>x.ds.slice(8)+'/'+x.ds.slice(5,7)),
+    datasets:[{data:s.map(x=>x.pct),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.18)',fill:true,tension:.35,spanGaps:true,pointRadius:2}]});
+  ch('cRot','bar',{labels:porR.map(x=>x.nome),
+    datasets:[{data:porR.map(x=>Math.round(x.pct)),backgroundColor:porR.map(x=>x.pct>=80?'#22c55e':x.pct>=50?'#f59e0b':'#ef4444')}]},true);
+  ch('cCat','bar',{labels:Object.keys(porC),
+    datasets:[{data:Object.values(porC).map(v=>Math.round(v.c/v.t*100)),backgroundColor:'#3b82f6'}]});
+  ch('cSem','bar',{labels:DIAS,datasets:[{data:porS.map(v=>Math.round(v)),backgroundColor:'#8b5cf6'}]});
+
+  const fmt=x=>`<div class="row between" style="padding:6px 0"><span>${esc(x.nome)}</span><b class="mono">${Math.round(x.pct)}% <span class="mut">(${x.c}/${x.t})</span></b></div>`;
+  document.getElementById('bons').innerHTML=porR.slice(0,3).map(fmt).join('')||'<div class="mut">Sem dados ainda.</div>';
+  document.getElementById('ruins').innerHTML=porR.slice(-3).reverse().map(fmt).join('')||'<div class="mut">Sem dados ainda.</div>';
+}
+function ch(id,type,data,horiz){
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(document.getElementById(id),{type,data,options:{
+    indexAxis:horiz?'y':'x',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#93a4c4',font:{size:10}},grid:{color:'#22304d'},max:horiz?100:undefined},
+            y:{ticks:{color:'#93a4c4',font:{size:10}},grid:{color:'#22304d'},max:horiz?undefined:100,beginAtZero:true}}
+  }});
+}
+
+/* ---------- dados ---------- */
+function exportar(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));
+  a.download='rotinas-backup-'+hoje()+'.json';a.click();
+}
+document.getElementById('imp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j.rotinas)throw 0;db=j;save();alert('Backup importado.');ir('hoje')}catch(x){alert('Arquivo inválido.')}};
+  rd.readAsText(f);
+};
+function zerar(){if(confirm('Apagar TODAS as rotinas e o histórico?')){db={rotinas:[],log:{}};save();ir('hoje')}}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+load();ir('hoje');
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
