@@ -57,6 +57,8 @@ nav button.on{color:var(--acc)}
 .mono{font-variant-numeric:tabular-nums}
 .hm{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .hm div{aspect-ratio:1;border-radius:5px;background:var(--card2)}
+.cbox{position:relative;width:100%;overflow:hidden}
+.cbox canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
 </style>
 </head>
 <body>
@@ -118,10 +120,10 @@ nav button.on{color:var(--acc)}
         <div class="kpi"><span class="mut">Dias 100%</span><b id="kPf">–</b></div>
       </div>
     </div>
-    <div class="card"><div class="mut" style="margin-bottom:8px">Aderência por dia (%)</div><canvas id="cLinha" height="150"></canvas></div>
-    <div class="card"><div class="mut" style="margin-bottom:8px">Desempenho por rotina (%)</div><canvas id="cRot" height="200"></canvas></div>
-    <div class="card"><div class="mut" style="margin-bottom:8px">Por categoria (%)</div><canvas id="cCat" height="180"></canvas></div>
-    <div class="card"><div class="mut" style="margin-bottom:8px">Por dia da semana (%)</div><canvas id="cSem" height="150"></canvas></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Aderência por dia (%)</div><div class="cbox" style="height:180px"><canvas id="cLinha"></canvas></div></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Desempenho por rotina (%)</div><div class="cbox" style="height:230px"><canvas id="cRot"></canvas></div></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Por categoria (%)</div><div class="cbox" style="height:200px"><canvas id="cCat"></canvas></div></div>
+    <div class="card"><div class="mut" style="margin-bottom:8px">Por dia da semana (%)</div><div class="cbox" style="height:180px"><canvas id="cSem"></canvas></div></div>
     <div class="card">
       <div class="row between"><b style="color:var(--ok)">✔ Faço bem</b></div>
       <div id="bons" style="margin-top:8px"></div>
@@ -318,7 +320,7 @@ function renderRel(){
 function ch(id,type,data,horiz){
   if(charts[id])charts[id].destroy();
   charts[id]=new Chart(document.getElementById(id),{type,data,options:{
-    indexAxis:horiz?'y':'x',responsive:true,maintainAspectRatio:false,
+    indexAxis:horiz?'y':'x',responsive:true,maintainAspectRatio:false,animation:false,resizeDelay:100,
     plugins:{legend:{display:false}},
     scales:{x:{ticks:{color:'#93a4c4',font:{size:10}},grid:{color:'#22304d'},max:horiz?100:undefined},
             y:{ticks:{color:'#93a4c4',font:{size:10}},grid:{color:'#22304d'},max:horiz?undefined:100,beginAtZero:true}}
@@ -340,7 +342,6 @@ function zerar(){if(confirm('Apagar TODAS as rotinas e o histórico?')){db={roti
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 load();ir('hoje');
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
