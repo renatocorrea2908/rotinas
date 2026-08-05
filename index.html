@@ -73,6 +73,11 @@ nav button.on{color:var(--acc)}
   <!-- HOJE -->
   <section id="v-hoje">
     <div class="card">
+      <div class="row between" style="margin-bottom:10px">
+        <button class="btn ghost sm" onclick="mudaDia(-1)">‹</button>
+        <div style="text-align:center"><b id="diaLbl">Hoje</b><div class="mut mono" id="diaData"></div></div>
+        <button class="btn ghost sm" id="btnProx" onclick="mudaDia(1)">›</button>
+      </div>
       <div class="row between"><b id="prgTxt">0 de 0</b><span class="mut" id="prgPct">0%</span></div>
       <div class="bar" style="margin-top:8px"><i id="prgBar" style="width:0%"></i></div>
     </div>
@@ -156,7 +161,7 @@ nav button.on{color:var(--acc)}
 <script>
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const K='rotinasApp.v1';
-let db={rotinas:[],log:{}}, editId=null, periodo=30, charts={};
+let db={rotinas:[],log:{}}, editId=null, periodo=30, charts={}, diaSel=null;
 
 function load(){try{const r=localStorage.getItem(K);if(r)db=JSON.parse(r)}catch(e){}}
 function save(){localStorage.setItem(K,JSON.stringify(db))}
@@ -171,10 +176,9 @@ function ir(v){
   document.getElementById('v-'+v).classList.remove('hide');
   ['hoje','rotinas','rel','dados'].forEach(x=>document.getElementById('n-'+x).classList.remove('on'));
   const n=document.getElementById('n-'+(v==='form'?'rotinas':v)); if(n)n.classList.add('on');
-  const t={hoje:'Hoje',rotinas:'Minhas rotinas',rel:'Relatórios',form:editId?'Editar rotina':'Nova rotina',dados:'Dados'};
+  const t={hoje:'Checklist',rotinas:'Minhas rotinas',rel:'Relatórios',form:editId?'Editar rotina':'Nova rotina',dados:'Dados'};
   document.getElementById('ttl').textContent=t[v];
-  const d=new Date();
-  document.getElementById('sub').textContent=v==='hoje'?DIAS[d.getDay()]+', '+d.toLocaleDateString('pt-BR'):'';
+  document.getElementById('sub').textContent='';
   if(v==='hoje')renderHoje(); if(v==='rotinas')renderRotinas(); if(v==='rel')renderRel();
   window.scrollTo(0,0);
 }
@@ -190,13 +194,23 @@ function feito(dateStr,rid,i){return !!(db.log[dateStr]&&db.log[dateStr][rid+'#'
 function toggle(dateStr,rid,i){
   db.log[dateStr]=db.log[dateStr]||{};
   const k=rid+'#'+i;
-  if(db.log[dateStr][k])delete db.log[dateStr][k]; else db.log[dateStr][k]=agora();
+  if(db.log[dateStr][k])delete db.log[dateStr][k]; else db.log[dateStr][k]=(dateStr===hoje()?agora():'retro');
   save();renderHoje();
 }
 
 /* ---------- HOJE ---------- */
+function mudaDia(n){
+  const d=new Date(diaSel+'T12:00:00'); d.setDate(d.getDate()+n);
+  const ns=dstr(d); if(ns>hoje())return;
+  diaSel=ns; renderHoje();
+}
 function renderHoje(){
-  const d=hoje(), lista=[], rs=ativasEm(d);
+  if(!diaSel||diaSel>hoje())diaSel=hoje();
+  const d=diaSel, lista=[], rs=ativasEm(d);
+  const dt=new Date(d+'T12:00:00'), ont=new Date(); ont.setDate(ont.getDate()-1);
+  document.getElementById('diaLbl').textContent = d===hoje()?'Hoje':(d===dstr(ont)?'Ontem':DIAS[dt.getDay()]);
+  document.getElementById('diaData').textContent = dt.toLocaleDateString('pt-BR');
+  document.getElementById('btnProx').style.visibility = d===hoje()?'hidden':'visible';
   rs.forEach(r=>slots(r).forEach((h,i)=>lista.push({r,h,i})));
   lista.sort((a,b)=>a.h.localeCompare(b.h));
   const el=document.getElementById('listaHoje');
@@ -204,12 +218,12 @@ function renderHoje(){
   else{
     el.innerHTML=lista.map(x=>{
       const ok=feito(d,x.r.id,x.i);
-      const atrasado=!ok&&x.h!=='--:--'&&x.h<agora();
+      const atrasado=!ok&&x.h!=='--:--'&&(d<hoje()||x.h<agora());
       return `<div class="item ${ok?'done':''}">
         <div class="chk ${ok?'on':''}" onclick="toggle('${d}','${x.r.id}',${x.i})">${ok?'✓':''}</div>
         <div style="flex:1">
           <div class="nm">${esc(x.r.nome)}</div>
-          <div class="mut mono">${x.h} ${atrasado?'<span class="late">• atrasado</span>':''} ${ok?'• feito '+db.log[d][x.r.id+'#'+x.i]:''}</div>
+          <div class="mut mono">${x.h} ${atrasado?'<span class="late">• atrasado</span>':''} ${ok?'• feito '+(db.log[d][x.r.id+'#'+x.i]==='retro'?'(lançado depois)':db.log[d][x.r.id+'#'+x.i]):''}</div>
         </div>
         <span class="tag">${x.r.cat}</span>
       </div>`}).join('');
