@@ -57,6 +57,7 @@ async function cloudInit() {
 
 /* =================== MOTOR DE CÁLCULO =================== */
 function bossOf(ws) { const n = Math.floor(diffDays('2024-01-01', ws) / 7); return BOSSES[((n % BOSSES.length) + BOSSES.length) % BOSSES.length]; }
+function habVisivel(h, ds) { return !(h.arq && h.arq <= ds) && h.dias.includes(D(ds).getDay()); }
 function habAtivo(h, ds) { return h.criado <= ds && !(h.arq && h.arq <= ds) && h.dias.includes(D(ds).getDay()); }
 function bossHP(ws) {
   let plan = 0;
@@ -244,7 +245,18 @@ function confetti(cv) {
 }
 
 /* =================== AÇÕES =================== */
-function togHab(ev, id) { const d = diaSel; act(ev, () => { db.log[d] = db.log[d] || {}; if (db.log[d][id]) delete db.log[d][id]; else db.log[d][id] = 1; if (!Object.keys(db.log[d]).length) delete db.log[d]; }); }
+function togHab(ev, id) {
+  const d = diaSel, h = db.itens.find(i => i.id === id);
+  act(ev, () => {
+    db.log[d] = db.log[d] || {};
+    if (db.log[d][id]) delete db.log[d][id]; else db.log[d][id] = 1;
+    if (!Object.keys(db.log[d]).length) delete db.log[d];
+    // marcar um dia anterior ao cadastro passa a ser o início do hábito; desmarcar volta ao início original
+    const orig = h.criado0 || h.criado;
+    const logs = Object.keys(db.log).filter(k => db.log[k][id] && k < orig).sort();
+    if (logs.length) { h.criado0 = orig; h.criado = logs[0]; } else { h.criado = orig; delete h.criado0; }
+  });
+}
 function togMiss(ev, id) { const it = db.itens.find(i => i.id === id); act(ev, () => { it.feito = it.feito ? null : hoje(); }); }
 function togMarco(ev, id, mid) { const it = db.itens.find(i => i.id === id); const m = it.marcos.find(x => x.id === mid); act(ev, () => { m.feito = m.feito ? null : hoje(); }); }
 function concluirMeta(ev, id) {
@@ -388,7 +400,7 @@ function renderHoje() {
   const minD = addDays(T, -7);
   if (!diaSel || diaSel > T || diaSel < minD) diaSel = T;
   const ds = diaSel, isT = ds === T;
-  const habs = db.itens.filter(i => i.tipo === 'habito' && habAtivo(i, ds));
+  const habs = db.itens.filter(i => i.tipo === 'habito' && habVisivel(i, ds));
   const ok = habs.filter(h => db.log[ds] && db.log[ds][h.id]).length, pct = habs.length ? ok / habs.length * 100 : 0;
   const lbl = isT ? 'Hoje' : ds === addDays(T, -1) ? 'Ontem' : DOW[D(ds).getDay()];
   const miss = db.itens.filter(i => i.tipo === 'missao' && !i.arq && (!i.feito || i.feito === T)).sort((a, b) => (!!a.feito - !!b.feito) || ((a.prazo || '9') < (b.prazo || '9') ? -1 : 1));
