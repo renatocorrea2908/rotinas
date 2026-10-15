@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b16">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jornada">
+<meta name="description" content="RPG da vida real: evolua seu avatar cumprindo hábitos, missões e metas pessoais e profissionais.">
+<title>Jornada</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="ob" class="hide"></div>
+<div id="app" class="hide">
+  <header>
+    <div class="row between">
+      <h1 id="ttl">Hoje</h1>
+      <div class="hdr-stats">
+        <span class="chip lvl" id="hLvl">Nv 1</span>
+        <span class="chip gold" id="hGold" onclick="ir('loja')">🪙 0</span>
+        <button class="iconbtn" onclick="config()" aria-label="Configurações">⚙</button>
+      </div>
+    </div>
+  </header>
+  <main id="main"></main>
+  <nav>
+    <button data-v="hoje" onclick="ir('hoje')"><span class="ic">⚔️</span>Hoje</button>
+    <button data-v="jornada" onclick="ir('jornada')"><span class="ic">🗺️</span>Jornada</button>
+    <button data-v="heroi" onclick="ir('heroi')"><span class="ic">🛡️</span>Herói</button>
+    <button data-v="loja" onclick="ir('loja')"><span class="ic">💰</span>Tesouro</button>
+    <button data-v="analise" onclick="ir('analise')"><span class="ic">📈</span>Análise</button>
+  </nav>
+</div>
+<div id="toasts"></div>
+<input type="file" id="imp" accept=".json" class="hide">
+<script src="data.js"></script>
+<script src="avatar.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
