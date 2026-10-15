@@ -28,7 +28,30 @@ const DEF = () => ({ v: 1, criado: null, perfil: null, itens: [], log: {}, desaf
 let db = DEF(), S = null, view = 'hoje', diaSel = null, jTab = 'habito', sugArea = 'voce', hitBoss = false;
 
 function load() { try { const r = localStorage.getItem(KEY); if (r) db = Object.assign(DEF(), JSON.parse(r)); db.ui = Object.assign(DEF().ui, db.ui || {}); } catch (e) { } }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { toast('⚠️', 'Não consegui salvar neste navegador.'); } }
+function save() {
+  db.savedAt = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
+  cloudPush();
+}
+/* Nuvem: quando aberto como link do Claude, guarda o progresso na conta do usuário */
+let cloud = null, cloudT = null;
+function cloudPush() { if (!cloud) return; clearTimeout(cloudT); cloudT = setTimeout(() => cloud.set({ json: JSON.stringify(db), savedAt: db.savedAt }).catch(() => { }), 800); }
+async function cloudInit() {
+  try {
+    if (!window.claude || !claude.use) return;
+    const [cdb, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!cdb || !user) return;
+    const ref = cdb.doc('data/users/' + (await user.id()) + '/jornada');
+    const snap = await ref.get();
+    cloud = ref;
+    const r = snap.exists ? snap.data() : null;
+    if (r && r.json && (r.savedAt || 0) > (db.savedAt || 0)) {
+      db = Object.assign(DEF(), JSON.parse(r.json)); db.ui = Object.assign(DEF().ui, db.ui || {});
+      try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
+      S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render();
+    } else if (db.perfil) cloudPush();
+  } catch (e) { }
+}
 
 /* =================== MOTOR DE CÁLCULO =================== */
 function bossOf(ws) { const n = Math.floor(diffDays('2024-01-01', ws) / 7); return BOSSES[((n % BOSSES.length) + BOSSES.length) % BOSSES.length]; }
@@ -224,7 +247,7 @@ function togMiss(ev, id) { const it = db.itens.find(i => i.id === id); act(ev, (
 function togMarco(ev, id, mid) { const it = db.itens.find(i => i.id === id); const m = it.marcos.find(x => x.id === mid); act(ev, () => { m.feito = m.feito ? null : hoje(); }); }
 function concluirMeta(ev, id) {
   const it = db.itens.find(i => i.id === id);
-  if (it.feito) { if (!confirm('Reabrir este épico? O XP da conclusão será removido.')) return; act(ev, () => { it.feito = null; }); return; }
+  if (it.feito) { ask('Reabrir este épico? O XP da conclusão será removido.', () => act(null, () => { it.feito = null; }), 'Reabrir'); return; }
   act(ev, () => { it.feito = hoje(); });
   setTimeout(() => toast('🏆', `Épico concluído: <b>${esc(it.nome)}</b>`, 'ach-t'), 100);
 }
@@ -478,9 +501,7 @@ function salvarItem() {
 }
 function arquivar(id) { act(null, () => { db.itens.find(i => i.id === id).arq = hoje(); }); closeModal(); toast('📦', 'Arquivado. O XP conquistado continua seu.'); }
 function excluir(id) {
-  if (!confirm('Excluir definitivamente? Todo o XP que este item gerou será removido. (Arquivar mantém o XP.)')) return;
-  act(null, () => { db.itens = db.itens.filter(i => i.id !== id); Object.values(db.log).forEach(l => delete l[id]); });
-  closeModal();
+  ask('Excluir definitivamente? Todo o XP que este item gerou será removido. <b>Arquivar mantém o XP.</b>', () => act(null, () => { db.itens = db.itens.filter(i => i.id !== id); Object.values(db.log).forEach(l => delete l[id]); }), 'Excluir', true);
 }
 
 /* ---------- sugestões ---------- */
@@ -596,10 +617,14 @@ function renderLoja() {
 }
 function comprar(ev, id) {
   const r = db.recompensas.find(x => x.id === id);
-  if (S.gold < r.custo || !confirm(`Resgatar “${r.nome}” por ${r.custo} de ouro?`)) return;
+  if (S.gold < r.custo) return;
+  const x = ev.clientX, y = ev.clientY;
+  ask(`Resgatar <b>${esc(r.ic + ' ' + r.nome)}</b> por 🪙 ${fmtN(r.custo)}?`, () => comprarOk(r, x, y), 'Resgatar');
+}
+function comprarOk(r, x, y) {
   db.compras.push({ rid: r.id, nome: r.nome, ic: r.ic, custo: r.custo, data: hoje() }); save();
   const st = calc(); celebrate(st, false); S = st;
-  floatTxt(ev.clientX, ev.clientY, `-${r.custo} 🪙`, true); snd('coin'); vib(20);
+  floatTxt(x, y, `-${r.custo} 🪙`, true); snd('coin'); vib(20);
   toast(r.ic, `Aproveite: <b>${esc(r.nome)}</b>. Você mereceu.`); render();
 }
 let R = null;
@@ -694,6 +719,10 @@ function modal(html, keepScroll) {
   m.innerHTML = `<div class="sheet">${html}</div>`;
   if (keepScroll) m.querySelector('.sheet').scrollTop = sc;
 }
+function ask(msg, yes, okTxt = 'Confirmar', danger = false) {
+  window.__ask = yes;
+  modal(`<h2 class="title">Confirmar</h2><p style="line-height:1.5">${msg}</p><div class="row" style="margin-top:16px"><button class="btn ${danger ? 'danger' : ''}" style="flex:1" onclick="closeModal();window.__ask()">${okTxt}</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+}
 function closeModal() { const m = $('modal'); if (m) m.remove(); }
 function config() {
   modal(`<h2 class="title">⚙️ Configurações</h2>
@@ -715,7 +744,9 @@ function config() {
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
-function exportar() {
+async function exportar() {
+  const data = JSON.stringify(db, null, 2), filename = 'jornada-backup-' + hoje() + '.json';
+  try { const dl = window.claude && claude.use ? await claude.use('downloads') : null; if (dl) { await dl.save({ filename, data }); return; } } catch (e) { return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }));
   a.download = 'jornada-backup-' + hoje() + '.json'; a.click();
@@ -726,7 +757,7 @@ function importar(e) {
   rd.onload = () => { try { const j = JSON.parse(rd.result); if (!j.itens || !j.perfil) throw 0; db = Object.assign(DEF(), j); db.ui = Object.assign(DEF().ui, j.ui || {}); save(); S = calc(); celebrate(S, true); closeModal(); render(); toast('✅', 'Backup importado.'); } catch (x) { toast('⚠️', 'Arquivo inválido.'); } };
   rd.readAsText(f); e.target.value = '';
 }
-function zerar() { if (confirm('Apagar TODO o progresso? Isso não pode ser desfeito.') && confirm('Tem certeza absoluta?')) { db = DEF(); save(); S = null; closeModal(); render(); } }
+function zerar() { ask('Apagar <b>todo</b> o progresso, itens e conquistas? Isso não pode ser desfeito.', () => { db = DEF(); save(); S = null; render(); }, 'Apagar tudo', true); }
 
 /* =================== ONBOARDING =================== */
 let OB = null;
@@ -780,6 +811,7 @@ function finishOB() {
 load();
 if (db.perfil) { S = calc(); celebrate(S, true); }
 render();
+cloudInit();
 $('imp').onchange = importar;
 // virada do dia com o app aberto
 let lastDay = hoje();

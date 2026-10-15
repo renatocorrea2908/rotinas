@@ -1,10 +1,10 @@
 /* Catálogo: áreas, classes, sugestões, chefões, conquistas */
 const AREAS = {
-  saude:     { nome: 'Saúde',     attr: 'Vigor',     ic: '❤️', cor: '#ef4444', perk: 'Nv 5+: ombros mais largos · Nv 10: coração radiante' },
+  saude:     { nome: 'Saúde',     attr: 'Vigor',     ic: '❤️', cor: '#ef4444', perk: 'Nv 5+: físico mais forte · Nv 10: runa de vitalidade' },
   mente:     { nome: 'Mente',     attr: 'Sabedoria', ic: '🧠', cor: '#8b5cf6', perk: 'Nv 5: grimório flutuante · Nv 10: grimório arcano' },
   carreira:  { nome: 'Carreira',  attr: 'Maestria',  ic: '💼', cor: '#3b82f6', perk: 'Nv 5: insígnia de prata · Nv 10: insígnia de ouro' },
   financas:  { nome: 'Finanças',  attr: 'Riqueza',   ic: '💰', cor: '#eab308', perk: 'Nv 5: bolsa de ouro · Nv 10: moedas orbitando' },
-  relacoes:  { nome: 'Relações',  attr: 'Vínculos',  ic: '🤝', cor: '#ec4899', perk: 'Nv 5: filhote de raposa · Nv 10: raposa adulta · Nv 15: raposa espiritual' },
+  relacoes:  { nome: 'Relações',  attr: 'Vínculos',  ic: '🤝', cor: '#ec4899', perk: 'Nv 5: filhote de lobo · Nv 10: lobo alfa · Nv 15: lobo espiritual' },
   proposito: { nome: 'Propósito', attr: 'Espírito',  ic: '✨', cor: '#14b8a6', perk: 'Nv 5: espírito-guia · Nv 10: asas de luz' }
 };
 const AREA_KEYS = Object.keys(AREAS);

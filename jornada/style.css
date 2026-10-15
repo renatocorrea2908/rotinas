@@ -211,3 +211,5 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 .av-wing{animation:wing 3.4s ease-in-out infinite}
 @keyframes wing{0%,100%{opacity:.75}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.av-rays{animation:rays 40s linear infinite;transform-box:view-box;transform-origin:120px 70px}
+@keyframes rays{to{transform:rotate(360deg)}}
