@@ -48,7 +48,7 @@ async function cloudInit() {
     cloud = ref;
     const r = snap.exists ? snap.data() : null;
     if (r && r.json && (r.savedAt || 0) > (db.savedAt || 0)) {
-      db = Object.assign(DEF(), { migr: null }, JSON.parse(r.json)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar();
+      db = Object.assign(DEF(), { migr: null }, JSON.parse(r.json)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar(); aplicarSeeds();
       try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
       S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render();
     } else if (db.perfil) cloudPush();
@@ -852,6 +852,33 @@ function resetProgress() {
   db.itens = db.itens.filter(i => !i.arq).map(i => { i.criado = T; if (i.feito) i.feito = null; (i.marcos || []).forEach(m => m.feito = null); return i; });
   db.ui = Object.assign(db.ui || {}, { lvl: 1, areaLv: {}, conq: {}, kills: 0 });
 }
+/* Rotinas trazidas do app Rotinas (cadastradas uma única vez) */
+const TODO_DIA = [0, 1, 2, 3, 4, 5, 6], SEG_SEX = [1, 2, 3, 4, 5];
+const SEEDS = [{ id: 'rotinas-2026-10-15', itens: [
+  ...[1, 2, 3, 4].map(n => ({ nome: `Beber 700 ml de água (${n}/4)`, area: 'saude', dif: 1, dias: TODO_DIA })),
+  { nome: 'Academia', area: 'saude', dif: 2, dias: SEG_SEX },
+  { nome: 'Ler 10 páginas', area: 'mente', dif: 1, dias: TODO_DIA },
+  ...['manhã', 'tarde', 'noite'].map(p => ({ nome: `Sem doces pela ${p}`, area: 'saude', dif: 1, dias: TODO_DIA })),
+  ...['café da manhã', 'almoço', 'jantar'].map(p => ({ nome: `Comer corretamente no ${p}`, area: 'saude', dif: 1, dias: TODO_DIA })),
+  ...['na Acta', 'no Stratum', 'no OS'].map(p => ({ nome: `Trabalhar ${p}`, area: 'carreira', dif: 2, dias: SEG_SEX })),
+  { nome: 'Estudar', area: 'mente', dif: 2, dias: SEG_SEX },
+  { nome: 'Sessão de TV à noite', area: 'proposito', dif: 1, dias: TODO_DIA },
+  { nome: 'Tempo com a Nenê', area: 'relacoes', dif: 2, dias: TODO_DIA },
+  { nome: 'Tempo com a Carol', area: 'relacoes', dif: 2, dias: TODO_DIA }
+] }];
+function aplicarSeeds() {
+  if (!db.perfil) return false;
+  db.seeds = db.seeds || [];
+  let mudou = false;
+  SEEDS.forEach(sd => {
+    if (db.seeds.includes(sd.id)) return;
+    const nomes = new Set(db.itens.filter(i => !i.arq).map(i => i.nome.toLowerCase()));
+    sd.itens.forEach(x => { if (!nomes.has(x.nome.toLowerCase())) db.itens.push({ id: uid(), tipo: 'habito', nome: x.nome, area: x.area, dif: x.dif, dias: x.dias.slice(), criado: hoje(), nota: '' }); });
+    db.seeds.push(sd.id); mudou = true;
+  });
+  if (mudou) save();
+  return mudou;
+}
 function migrar() {
   if (db.migr === MIGR) return false;
   if (db.perfil) resetProgress();
@@ -903,6 +930,7 @@ function finishOB() {
     db.itens.push(it);
   });
   db.recompensas = RECOMP_PADRAO.map(r => Object.assign({ id: uid() }, r));
+  aplicarSeeds();
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
   setTimeout(() => toast('⚔️', `Bem-vindo, <b>${esc(db.perfil.nome)}</b>. Sua jornada começa agora.`), 300);
@@ -911,6 +939,7 @@ function finishOB() {
 /* =================== BOOT =================== */
 load();
 migrar();
+aplicarSeeds();
 if (db.perfil) { S = calc(); celebrate(S, true); }
 render();
 cloudInit();
