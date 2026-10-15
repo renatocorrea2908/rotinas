@@ -24,10 +24,12 @@ const lvlInfo = (xp, f = need) => { const L = lvlOf(xp, f), a = f(L), b = f(L + 
 const clsB = a => ((CLASSES[db.perfil?.classe] || {}).b || {})[a] || 0;
 const mult = run => run >= 30 ? 2 : run >= 14 ? 1.75 : run >= 7 ? 1.5 : run >= 3 ? 1.2 : 1;
 
-const DEF = () => ({ v: 1, criado: null, perfil: null, itens: [], log: {}, desafios: {}, recompensas: [], compras: [], diario: {}, ui: { lvl: 1, areaLv: {}, conq: {}, kills: 0, som: true, vib: true } });
+const MIGR = 'reset-2026-10-15';
+const DEF = () => ({ v: 1, migr: MIGR, criado: null, perfil: null, itens: [], log: {}, desafios: {}, recompensas: [], compras: [], diario: {}, ui: { lvl: 1, areaLv: {}, conq: {}, kills: 0, som: true, vib: true } });
+let aPer = 30;
 let db = DEF(), S = null, view = 'hoje', diaSel = null, jTab = 'habito', sugArea = 'voce', hitBoss = false;
 
-function load() { try { const r = localStorage.getItem(KEY); if (r) db = Object.assign(DEF(), JSON.parse(r)); db.ui = Object.assign(DEF().ui, db.ui || {}); } catch (e) { } }
+function load() { try { const r = localStorage.getItem(KEY); if (r) db = Object.assign(DEF(), { migr: null }, JSON.parse(r)); db.ui = Object.assign(DEF().ui, db.ui || {}); } catch (e) { } }
 function save() {
   db.savedAt = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
@@ -46,7 +48,7 @@ async function cloudInit() {
     cloud = ref;
     const r = snap.exists ? snap.data() : null;
     if (r && r.json && (r.savedAt || 0) > (db.savedAt || 0)) {
-      db = Object.assign(DEF(), JSON.parse(r.json)); db.ui = Object.assign(DEF().ui, db.ui || {});
+      db = Object.assign(DEF(), { migr: null }, JSON.parse(r.json)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar();
       try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
       S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render();
     } else if (db.perfil) cloudPush();
@@ -429,6 +431,7 @@ function renderJornada() {
   const ativos = db.itens.filter(i => !i.arq);
   if (jTab === 'habito') {
     const l = ativos.filter(i => i.tipo === 'habito');
+    h += `<button class="btn ghost sm full" style="margin-bottom:12px" onclick="trazerRotinas()">📥 Trazer rotinas do app Rotinas</button>`;
     h += `<div class="mut small" style="margin:0 2px 10px">Rotinas recorrentes. Sequências multiplicam o XP: 3d 1.2x · 7d 1.5x · 14d 1.75x · 30d 2x.</div>`;
     h += l.length ? l.map(it => {
       const A = AREAS[it.area], st = S.streaks[it.id] || { cur: 0, best: 0 };
@@ -647,13 +650,55 @@ function salvarRec() {
 }
 
 /* =================== ANÁLISE =================== */
+function aderencia() {
+  const T = hoje(), habs = db.itens.filter(i => i.tipo === 'habito');
+  const ph = {}, pa = {}, pw = Array(7).fill(0).map(() => ({ s: 0, d: 0 }));
+  let s = 0, d = 0, perf = 0, dias = 0;
+  for (let i = aPer - 1; i >= 0; i--) {
+    const ds = addDays(T, -i), dow = D(ds).getDay();
+    let ds_s = 0, ds_d = 0;
+    habs.forEach(h => {
+      if (!habAtivo(h, ds)) return;
+      const ok = !!(db.log[ds] && db.log[ds][h.id]);
+      ds_s++; if (ok) ds_d++;
+      (ph[h.id] = ph[h.id] || { h, s: 0, d: 0 }).s++; if (ok) ph[h.id].d++;
+      (pa[h.area] = pa[h.area] || { s: 0, d: 0 }).s++; if (ok) pa[h.area].d++;
+    });
+    if (ds_s) { dias++; s += ds_s; d += ds_d; pw[dow].s += ds_s; pw[dow].d += ds_d; if (ds_d === ds_s) perf++; }
+  }
+  return { s, d, perf, dias, ph: Object.values(ph).map(x => Object.assign(x, { r: x.d / x.s })).sort((a, b) => b.r - a.r || b.s - a.s), pa, pw };
+}
+function aCor(r) { return r >= .8 ? 'var(--ok)' : r >= .5 ? 'var(--warn)' : 'var(--bad)'; }
+function aBar(label, r, extra) {
+  return `<div style="margin-bottom:11px"><div class="row between small"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span><b class="mono" style="color:${aCor(r)}">${Math.round(r * 100)}%${extra ? ` <span class="mut" style="font-weight:500">${extra}</span>` : ''}</b></div><div class="bar" style="margin-top:5px;height:7px"><i style="width:${(r * 100).toFixed(1)}%;background:${aCor(r)}"></i></div></div>`;
+}
+function renderAderencia() {
+  const a = aderencia(), r = a.s ? a.d / a.s : 0;
+  let h = `<div class="sec-h"><h2>Aderência</h2><div>${[7, 30, 90].map(p => `<span class="pill ${p === aPer ? 'on' : ''}" style="margin:0 0 0 6px" onclick="aPer=${p};render()">${p}d</span>`).join('')}</div></div>`;
+  if (!a.s) return h + `<div class="card mut small">Sem hábitos programados neste período.</div>`;
+  h += `<div class="card"><div class="grid3">
+      <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Aderência</div><div class="title" style="font-size:30px;font-weight:900;color:${aCor(r)}">${Math.round(r * 100)}%</div></div>
+      <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Cumpridos</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.d}/${a.s}</div></div>
+      <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Dias 100%</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.perf}/${a.dias}</div></div>
+    </div><div class="mut small" style="margin-top:8px">Últimos ${aPer} dias, incluindo hoje.</div></div>`;
+  const top = a.ph.slice(0, 3), bot = a.ph.length > 3 ? a.ph.slice(-3).reverse() : a.ph.slice().reverse().filter(x => !top.includes(x) || a.ph.length < 2);
+  const lin = x => `<div class="row between small" style="padding:6px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.h.nome)}</span><b class="mono" style="color:${aCor(x.r)}">${Math.round(x.r * 100)}% <span class="mut" style="font-weight:500">(${x.d}/${x.s})</span></b></div>`;
+  h += `<div class="card"><b style="color:var(--ok)">✔ Faço bem</b><div style="margin-top:6px">${top.map(lin).join('')}</div>
+    ${a.ph.length > 3 ? `<div style="height:1px;background:var(--line);margin:10px 0"></div><b style="color:var(--bad)">✖ Faço mal</b><div style="margin-top:6px">${bot.map(lin).join('')}</div>` : ''}</div>`;
+  h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por hábito</div>${a.ph.map(x => aBar(`${AREAS[x.h.area].ic} ${esc(x.h.nome)}${x.h.arq ? ' <span class="mut">(arquivado)</span>' : ''}`, x.r, `${x.d}/${x.s}`)).join('')}</div>`;
+  h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por área</div>${AREA_KEYS.filter(k => a.pa[k]).sort((x, y) => a.pa[y].d / a.pa[y].s - a.pa[x].d / a.pa[x].s).map(k => aBar(`${AREAS[k].ic} ${AREAS[k].nome}`, a.pa[k].d / a.pa[k].s, `${a.pa[k].d}/${a.pa[k].s}`)).join('')}</div>`;
+  const wk = [1, 2, 3, 4, 5, 6, 0].filter(i => a.pw[i].s);
+  h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por dia da semana</div><div class="bars" style="height:110px;align-items:flex-end">${wk.map(i => { const v = a.pw[i].d / a.pw[i].s; return `<div style="height:${Math.max(3, v * 100)}%;background:${aCor(v)};opacity:.85" title="${DOW[i]}: ${Math.round(v * 100)}%"></div>`; }).join('')}</div>
+    <div class="row small mut" style="gap:3px;margin-top:6px">${wk.map(i => `<span style="flex:1;text-align:center">${DOW[i]}<br><b class="mono" style="color:${aCor(a.pw[i].d / a.pw[i].s)}">${Math.round(a.pw[i].d / a.pw[i].s * 100)}%</b></span>`).join('')}</div></div>`;
+  return h;
+}
 function renderAnalise() {
   const T = hoje();
   const sumR = (a, b) => { let s = 0; for (let i = a; i < b; i++) s += S.daily[addDays(T, -i)] || 0; return s; };
   const x7 = sumR(0, 7), x7p = sumR(7, 14), x30 = sumR(0, 30);
   const trend = x7p ? Math.round((x7 - x7p) / x7p * 100) : null;
   const kills = S.bosses.filter(b => b.kill).length;
-  let h = `<div class="grid2">
+  let h = renderAderencia() + `<div class="sec-h"><h2>Evolução</h2></div><div class="grid2">
     <div class="kpi"><div class="l">XP 7 dias</div><div class="v">${fmtN(x7)}</div><div class="small" style="color:${trend == null ? 'var(--mut)' : trend >= 0 ? 'var(--ok)' : 'var(--bad)'}">${trend == null ? '—' : (trend >= 0 ? '▲ ' : '▼ ') + Math.abs(trend) + '% vs semana anterior'}</div></div>
     <div class="kpi"><div class="l">Média diária (30d)</div><div class="v">${fmtN(x30 / 30)}</div><div class="mut small">XP por dia</div></div>
     <div class="kpi"><div class="l">Maior sequência</div><div class="v">🔥 ${S.maxStreak}</div><div class="mut small">dias seguidos</div></div>
@@ -687,7 +732,8 @@ function insights() {
   const a30 = {}; AREA_KEYS.forEach(a => a30[a] = 0);
   for (let i = 0; i < 30; i++) { const da = S.dailyArea[addDays(T, -i)] || {}; AREA_KEYS.forEach(a => a30[a] += da[a] || 0); }
   const ord = AREA_KEYS.slice().sort((a, b) => a30[b] - a30[a]), tot = AREA_KEYS.reduce((s, a) => s + a30[a], 0);
-  if (!tot) return ['Ainda sem dados suficientes. Cumpra seus primeiros hábitos e eu começo a ler seus padrões.'];
+  const usados = diffDays(db.criado || T, T) + 1;
+  if (!tot || usados < 7) return [`Ainda é cedo para ler padrões (${usados} ${usados === 1 ? 'dia' : 'dias'} de jornada). Com 7 dias de uso eu aponto seu ponto forte, seu ponto cego e o hábito que precisa de ajuste.`];
   const fo = ord[0], fr = ord[ord.length - 1];
   out.push(`💪 <b>Ponto forte:</b> ${AREAS[fo].ic} ${AREAS[fo].nome} concentrou <b>${Math.round(a30[fo] / tot * 100)}%</b> do seu XP em 30 dias.`);
   if (a30[fr] / tot < .08) out.push(`⚠️ <b>Ponto cego:</b> ${AREAS[fr].ic} ${AREAS[fr].nome} recebeu só <b>${Math.round(a30[fr] / tot * 100)}%</b> da sua energia. Um hábito leve aqui já muda o equilíbrio. <a href="#" onclick="sugArea='${fr}';renderSug();return false" style="color:#a78bfa">Ver sugestões →</a>`);
@@ -741,6 +787,8 @@ function config() {
     <label>Seus dados</label><div class="mut small" style="margin-bottom:8px">Ficam salvos neste aparelho. Faça backup de vez em quando.</div>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="exportar()">⬇ Exportar backup</button>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
+    <button class="btn ghost full" style="margin-bottom:8px" onclick="trazerRotinas()">📥 Trazer rotinas do app Rotinas</button>
+    <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
@@ -754,9 +802,62 @@ async function exportar() {
 function importar(e) {
   const f = e.target.files[0]; if (!f) return;
   const rd = new FileReader();
-  rd.onload = () => { try { const j = JSON.parse(rd.result); if (!j.itens || !j.perfil) throw 0; db = Object.assign(DEF(), j); db.ui = Object.assign(DEF().ui, j.ui || {}); save(); S = calc(); celebrate(S, true); closeModal(); render(); toast('✅', 'Backup importado.'); } catch (x) { toast('⚠️', 'Arquivo inválido.'); } };
+  rd.onload = () => { try { const j = JSON.parse(rd.result); if (Array.isArray(j.rotinas) && !j.itens) { closeModal(); return rotinasPreview(j.rotinas); } if (!j.itens || !j.perfil) throw 0; db = Object.assign(DEF(), j); db.ui = Object.assign(DEF().ui, j.ui || {}); save(); S = calc(); celebrate(S, true); closeModal(); render(); toast('✅', 'Backup importado.'); } catch (x) { toast('⚠️', 'Arquivo inválido.'); } };
   rd.readAsText(f); e.target.value = '';
 }
+/* ---------- importação de rotinas do app Rotinas (sem histórico) ---------- */
+const CAT_AREA = { 'Saúde': 'saude', 'Trabalho': 'carreira', 'Pessoal': 'proposito', 'Financeiro': 'financas', 'Família': 'relacoes', 'Estudo': 'mente' };
+let RI = null;
+function trazerRotinas() {
+  let local = null;
+  try { const r = localStorage.getItem('rotinasApp.v1'); if (r) local = JSON.parse(r); } catch (e) { }
+  if (local && Array.isArray(local.rotinas) && local.rotinas.length) return rotinasPreview(local.rotinas);
+  modal(`<h2 class="title">📥 Trazer rotinas do Rotinas</h2>
+    <p style="line-height:1.55">1. Abra o app <b>Rotinas</b> e toque em <b>⋯</b> (ou na aba <b>Dados</b>).<br>2. Toque em <b>Exportar backup (.json)</b>.<br>3. Volte aqui e selecione o arquivo baixado.</p>
+    <div class="mut small">Só as rotinas vêm para cá, como hábitos. O histórico de dias marcados não é importado.</div>
+    <button class="btn full" style="margin-top:16px" onclick="$('imp').click()">Selecionar arquivo do Rotinas</button>
+    <button class="btn ghost full" style="margin-top:8px" onclick="closeModal()">Cancelar</button>`);
+}
+function rotinasPreview(rots) {
+  const nomes = new Set(db.itens.filter(i => i.tipo === 'habito' && !i.arq).map(i => i.nome.trim().toLowerCase()));
+  RI = rots.filter(r => r && r.nome && !r.arq).map(r => ({
+    nome: String(r.nome).trim(), area: CAT_AREA[r.cat] || 'proposito', cat: r.cat || '',
+    dias: Array.isArray(r.dias) && r.dias.length ? r.dias.map(Number).filter(d => d >= 0 && d <= 6).sort() : [0, 1, 2, 3, 4, 5, 6],
+    dup: nomes.has(String(r.nome).trim().toLowerCase()), on: !nomes.has(String(r.nome).trim().toLowerCase())
+  }));
+  if (!RI.length) return toast('⚠️', 'Nenhuma rotina encontrada nesse arquivo.');
+  renderRI();
+}
+function renderRI() {
+  const n = RI.filter(r => r.on).length;
+  modal(`<h2 class="title">📥 ${RI.length} rotinas encontradas</h2>
+    <div class="mut small" style="margin-bottom:12px">Entram como hábitos, nível Leve, nos mesmos dias da semana. Ajuste área e dificuldade depois, se quiser.</div>
+    ${RI.map((r, i) => `<div class="sug" style="cursor:pointer;${r.on ? 'border-color:var(--acc);background:rgba(124,92,255,.12)' : ''}" onclick="RI[${i}].on=!RI[${i}].on;renderRI()">
+      <div class="chk ${r.on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${r.on ? '✓' : ''}</div>
+      <div style="flex:1;min-width:0"><div class="nm">${esc(r.nome)}</div>
+      <div class="mut small">${esc(r.cat)} → ${AREAS[r.area].ic} ${AREAS[r.area].nome} · ${r.dias.length === 7 ? 'todo dia' : r.dias.map(d => DOW[d]).join(' ')}${r.dup ? ' · <span style="color:var(--warn)">já existe aqui</span>' : ''}</div></div></div>`).join('')}
+    <button class="btn full" style="margin-top:14px" ${n ? '' : 'disabled'} onclick="importarRI()">Importar ${n} ${n === 1 ? 'rotina' : 'rotinas'}</button>
+    <button class="btn ghost full" style="margin-top:8px" onclick="closeModal()">Cancelar</button>`);
+}
+function importarRI() {
+  const sel = RI.filter(r => r.on); if (!sel.length) return;
+  act(null, () => sel.forEach(r => db.itens.push({ id: uid(), tipo: 'habito', nome: r.nome, area: r.area, dif: 1, dias: r.dias, criado: hoje(), nota: '' })));
+  closeModal(); RI = null; jTab = 'habito'; ir('jornada');
+  toast('📥', `<b>${sel.length}</b> ${sel.length === 1 ? 'rotina importada' : 'rotinas importadas'} como hábitos`);
+}
+/* Zera XP/nível/histórico e recomeça hoje; mantém perfil, itens ativos e recompensas */
+function resetProgress() {
+  const T = hoje();
+  db.criado = T; db.log = {}; db.desafios = {}; db.diario = {}; db.compras = [];
+  db.itens = db.itens.filter(i => !i.arq).map(i => { i.criado = T; if (i.feito) i.feito = null; (i.marcos || []).forEach(m => m.feito = null); return i; });
+  db.ui = Object.assign(db.ui || {}, { lvl: 1, areaLv: {}, conq: {}, kills: 0 });
+}
+function migrar() {
+  if (db.migr === MIGR) return false;
+  if (db.perfil) resetProgress();
+  db.migr = MIGR; save(); return true;
+}
+function zerarProgresso() { ask('Zerar nível, XP, ouro, conquistas e histórico, e recomeçar hoje? <b>Seu herói, itens e recompensas ficam.</b>', () => { resetProgress(); save(); S = calc(); celebrate(S, true); diaSel = null; view = 'hoje'; render(); toast('⚔️', 'Nova jornada começa hoje.'); }, 'Zerar progresso', true); }
 function zerar() { ask('Apagar <b>todo</b> o progresso, itens e conquistas? Isso não pode ser desfeito.', () => { db = DEF(); save(); S = null; render(); }, 'Apagar tudo', true); }
 
 /* =================== ONBOARDING =================== */
@@ -809,6 +910,7 @@ function finishOB() {
 
 /* =================== BOOT =================== */
 load();
+migrar();
 if (db.perfil) { S = calc(); celebrate(S, true); }
 render();
 cloudInit();
