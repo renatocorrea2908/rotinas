@@ -1,0 +1,8 @@
+{
+  "appId": "com.renatocorrea.lendario",
+  "appName": "Lendário",
+  "webDir": "www",
+  "backgroundColor": "#070b16",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never", "backgroundColor": "#070b16" }
+}

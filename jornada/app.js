@@ -509,7 +509,7 @@ function renderJornada() {
   } else if (jTab === 'meta') {
     const l = ativos.filter(i => i.tipo === 'meta').sort((a, b) => !!a.feito - !!b.feito);
     h += `<div class="mut small" style="margin:0 2px 10px">Metas de longo prazo divididas em marcos. Cada marco +40 XP; concluir o épico dá o grande prêmio.</div>`;
-    h += l.length ? l.map(m => metaCard(m, true)).join('') : `<div class="empty">Nenhum épico ainda. Que tal “Lançar o MVP do Stratum”?</div>`;
+    h += l.length ? l.map(m => metaCard(m, true)).join('') : `<div class="empty">Nenhum épico ainda. Que tal “Lançar um projeto próprio”?</div>`;
   } else {
     const l = db.itens.filter(i => i.arq);
     h += `<div class="mut small" style="margin:0 2px 10px">Itens arquivados mantêm o XP já conquistado.</div>`;
@@ -531,7 +531,7 @@ function openForm() {
   const html = `<h2 class="title">${isNew ? 'Novo item' : 'Editar ' + TIPOS[F.tipo].toLowerCase()}</h2>
     ${isNew ? `<div class="seg" style="margin-top:12px">${Object.entries(TIPOS).map(([k, n]) => `<button class="${F.tipo === k ? 'on' : ''}" onclick="F.nome=$('fNome').value;F.nota=$('fNota').value;F.tipo='${k}';openForm()">${n}</button>`).join('')}</div>
       <div class="mut small">${{ habito: 'Algo que se repete em dias da semana.', missao: 'Tarefa única, com prazo opcional. XP em dobro.', meta: 'Objetivo grande, dividido em marcos.' }[F.tipo]}</div>` : ''}
-    <label>Nome</label><input id="fNome" value="${esc(F.nome)}" placeholder="${{ habito: 'Ex.: Treino de força', missao: 'Ex.: Renovar seguro do carro', meta: 'Ex.: Lançar o MVP do Stratum' }[F.tipo]}">
+    <label>Nome</label><input id="fNome" value="${esc(F.nome)}" placeholder="${{ habito: 'Ex.: Treino de força', missao: 'Ex.: Renovar seguro do carro', meta: 'Ex.: Correr uma maratona' }[F.tipo]}">
     <label>Área da vida</label><div>${AREA_KEYS.map(a => `<span class="pill ${F.area === a ? 'on' : ''}" onclick="F.area='${a}';[...this.parentNode.children].forEach(e=>e.classList.remove('on'));this.classList.add('on')">${AREAS[a].ic} ${AREAS[a].nome}</span>`).join('')}</div>
     <label>Dificuldade</label><div>${[1, 2, 3].map(d => `<span class="pill ${F.dif === d ? 'on' : ''}" onclick="F.dif=${d};[...this.parentNode.children].forEach(e=>e.classList.remove('on'));this.classList.add('on')">${DIF[d].n} · ${F.tipo === 'meta' ? 100 * d : F.tipo === 'missao' ? DIF[d].xp * 2 : DIF[d].xp} XP</span>`).join('')}</div>
     ${F.tipo === 'habito' ? `<label>Dias da semana</label><div id="fDias">${DOW.map((d, i) => `<span class="pill ${F.dias.includes(i) ? 'on' : ''}" onclick="togDia(${i})">${d}</span>`).join('')}</div>
@@ -577,7 +577,7 @@ function renderSug() {
     ord.slice(0, 3).forEach(a => list.push(...SUG.filter(s => s.a === a && !nomes.has(s.n.toLowerCase())).slice(0, 3)));
   } else list = SUG.filter(s => s.a === sugArea);
   const tl = { h: 'Hábito', m: 'Missão', e: 'Épico' };
-  const html = `<h2 class="title">💡 Sugestões</h2><div class="mut small" style="margin-bottom:12px">Curadas para seu momento: executivo, founder e investidor. Toque em + para adicionar — você pode editar depois.</div>
+  const html = `<h2 class="title">💡 Sugestões</h2><div class="mut small" style="margin-bottom:12px">Organizadas por área da vida. Toque em + para adicionar — você pode editar depois.</div>
     <div style="margin-bottom:8px"><span class="pill ${sugArea === 'voce' ? 'on' : ''}" onclick="sugArea='voce';renderSug()">⭐ Para você</span>${AREA_KEYS.map(a => `<span class="pill ${sugArea === a ? 'on' : ''}" onclick="sugArea='${a}';renderSug()">${AREAS[a].ic} ${AREAS[a].nome}</span>`).join('')}</div>
     ${sugArea === 'voce' ? `<div class="insight" style="border-color:${AREAS[ord[0]].cor}">Suas áreas com menos atenção: <b>${ord.slice(0, 3).map(a => AREAS[a].nome).join(', ')}</b>. Equilíbrio acelera a evolução do avatar.</div>` : ''}
     ${list.map(s => {
@@ -813,7 +813,7 @@ function renderAnalise() {
   h += `<div class="sec-h"><h2>Consistência — 18 semanas</h2></div><div class="card"><div class="heat">${cells}</div>
     <div class="row small mut" style="margin-top:10px;gap:12px;flex-wrap:wrap"><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,.35)"></i> nada feito</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(124,92,255,.6)"></i> parcial</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fbbf24"></i> dia perfeito</span></div></div>`;
   // insights
-  h += `<div class="sec-h"><h2>Leitura do Jarvis</h2></div>` + insights().map(t => `<div class="insight">${t}</div>`).join('');
+  h += `<div class="sec-h"><h2>Leitura do Oráculo</h2></div>` + insights().map(t => `<div class="insight">${t}</div>`).join('');
   return h;
 }
 function insights() {
@@ -879,6 +879,7 @@ function config() {
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
+    <div class="mut small" style="text-align:center;margin-top:14px">Lendário 1.0 · <a href="privacidade.html" target="_blank" style="color:#a78bfa">Política de privacidade</a></div>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
 async function exportar() {
@@ -903,18 +904,7 @@ function resetProgress() {
 }
 /* Rotinas trazidas do app Rotinas (cadastradas uma única vez) */
 const TODO_DIA = [0, 1, 2, 3, 4, 5, 6], SEG_SEX = [1, 2, 3, 4, 5];
-const SEEDS = [{ id: 'rotinas-2026-10-15', itens: [
-  ...[1, 2, 3, 4].map(n => ({ nome: `Beber 700 ml de água (${n}/4)`, area: 'saude', dif: 1, dias: TODO_DIA })),
-  { nome: 'Academia', area: 'saude', dif: 2, dias: SEG_SEX },
-  { nome: 'Ler 10 páginas', area: 'mente', dif: 1, dias: TODO_DIA },
-  ...['manhã', 'tarde', 'noite'].map(p => ({ nome: `Sem doces pela ${p}`, area: 'saude', dif: 1, dias: TODO_DIA })),
-  ...['café da manhã', 'almoço', 'jantar'].map(p => ({ nome: `Comer corretamente no ${p}`, area: 'saude', dif: 1, dias: TODO_DIA })),
-  ...['na Acta', 'no Stratum', 'no OS'].map(p => ({ nome: `Trabalhar ${p}`, area: 'carreira', dif: 2, dias: SEG_SEX })),
-  { nome: 'Estudar', area: 'mente', dif: 2, dias: SEG_SEX },
-  { nome: 'Sessão de TV à noite', area: 'proposito', dif: 1, dias: TODO_DIA },
-  { nome: 'Tempo com a Nenê', area: 'relacoes', dif: 2, dias: TODO_DIA },
-  { nome: 'Tempo com a Carol', area: 'relacoes', dif: 2, dias: TODO_DIA }
-] }];
+const SEEDS = []; // rotinas pessoais já cadastradas foram removidas da versão pública
 function aplicarSeeds() {
   if (!db.perfil) return false;
   db.seeds = db.seeds || [];
@@ -984,7 +974,6 @@ function finishOB() {
     db.itens.push(it);
   });
   db.recompensas = RECOMP_PADRAO.map(r => Object.assign({ id: uid() }, r));
-  aplicarSeeds();
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
   setTimeout(() => toast('⚔️', `Bem-vindo ao Lendário, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
