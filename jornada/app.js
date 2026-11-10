@@ -37,7 +37,9 @@ let db = DEF(), S = null, view = 'hoje', diaSel = null, jTab = 'habito', sugArea
 function load() { try { const r = localStorage.getItem(KEY); if (r) db = Object.assign(DEF(), { migr: null }, JSON.parse(r)); db.ui = Object.assign(DEF().ui, db.ui || {}); } catch (e) { } }
 function save() {
   db.savedAt = Date.now();
-  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { }
+  const json = JSON.stringify(db);
+  try { localStorage.setItem(KEY, json); } catch (e) { }
+  if (typeof NATIVE !== 'undefined') NATIVE.persist(json);
   cloudPush();
 }
 /* Nuvem: quando aberto como link do Claude, guarda o progresso na conta do usuário */
@@ -166,7 +168,11 @@ function snd(type) {
     });
   } catch (e) { }
 }
-const vib = p => { if (db.ui.vib && navigator.vibrate) try { navigator.vibrate(p); } catch (e) { } };
+const vib = p => {
+  if (!db.ui.vib) return;
+  if (typeof NATIVE !== 'undefined' && NATIVE.on) { NATIVE.haptic(Array.isArray(p) ? 'heavy' : p > 18 ? 'medium' : 'light'); return; }
+  if (navigator.vibrate) try { navigator.vibrate(p); } catch (e) { }
+};
 
 function toast(ic, html, cls = '') {
   const t = document.createElement('div');
@@ -859,6 +865,22 @@ function ask(msg, yes, okTxt = 'Confirmar', danger = false) {
   modal(`<h2 class="title">Confirmar</h2><p style="line-height:1.5">${msg}</p><div class="row" style="margin-top:16px"><button class="btn ${danger ? 'danger' : ''}" style="flex:1" onclick="closeModal();window.__ask()">${okTxt}</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
 }
 function closeModal() { const m = $('modal'); if (m) m.remove(); }
+async function setLembrete(ativo, hora) {
+  const r = await NATIVE.lembrete(ativo, hora || db.ui.lemHora || '20:00');
+  if (r === 'negado') { toast('🔕', 'Permita as notificações do Lendário nos ajustes do celular.'); ativo = false; }
+  db.ui.lembrete = ativo && r === 'ok'; if (hora) db.ui.lemHora = hora; save();
+  if (r === 'ok') toast('🔔', `Lembrete diário às ${db.ui.lemHora || '20:00'}.`);
+  config();
+}
+async function nativeBoot() {
+  if (typeof NATIVE === 'undefined' || !NATIVE.on) return;
+  await NATIVE.init();
+  if (!db.perfil) {
+    const j = await NATIVE.restore();
+    if (j) { try { db = Object.assign(DEF(), { migr: null }, JSON.parse(j)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar(); S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render(); } catch (e) { } }
+  } else NATIVE.persist(JSON.stringify(db));
+  if (db.ui.lembrete) NATIVE.lembrete(true, db.ui.lemHora || '20:00');
+}
 function config() {
   modal(`<h2 class="title">⚙️ Configurações</h2>
     <div class="row between" style="margin-top:14px"><span>🔊 Sons</span><span class="pill ${db.ui.som ? 'on' : ''}" onclick="db.ui.som=!db.ui.som;save();config()">${db.ui.som ? 'Ligado' : 'Desligado'}</span></div>
@@ -874,6 +896,9 @@ function config() {
       • <b>Ouro</b>: valor fixo por conquista (hábito leve 1, médio 2, épico 4; missões em dobro; marco 3; épico 15–45; dia perfeito 3; chefão 30). Sequências aumentam o XP, não o ouro.<br>
       • <b>Avanço em %</b>: em missões e épicos, cada avanço libera XP proporcional (até metade do prêmio); concluir paga o prêmio inteiro.<br>
       • <b>Avatar</b>: muda de forma nos níveis 5, 10, 15, 20, 30, 40 e 50, e ganha itens conforme cada atributo evolui.</div>
+    ${typeof NATIVE !== 'undefined' && NATIVE.on ? `<label>Lembrete diário</label>
+    <div class="row between"><span>🔔 Avisar no celular</span><span class="pill ${db.ui.lembrete ? 'on' : ''}" onclick="setLembrete(!db.ui.lembrete)">${db.ui.lembrete ? 'Ligado' : 'Desligado'}</span></div>
+    ${db.ui.lembrete ? `<div class="row between"><span class="mut small">Horário</span><input type="time" id="lemHora" value="${db.ui.lemHora || '20:00'}" style="width:120px" onchange="setLembrete(true,this.value)"></div>` : ''}` : ''}
     <label>Seus dados</label><div class="mut small" style="margin-bottom:8px">Ficam salvos neste aparelho. Faça backup de vez em quando.</div>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="exportar()">⬇ Exportar backup</button>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
@@ -976,6 +1001,7 @@ function finishOB() {
   db.recompensas = RECOMP_PADRAO.map(r => Object.assign({ id: uid() }, r));
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
+  if (typeof NATIVE !== 'undefined' && NATIVE.on) setTimeout(() => setLembrete(true, '20:00').then(closeModal), 1500);
   setTimeout(() => toast('⚔️', `Bem-vindo ao Lendário, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
 }
 
@@ -986,9 +1012,10 @@ aplicarSeeds();
 if (db.perfil) { S = calc(); celebrate(S, true); }
 render();
 cloudInit();
+nativeBoot();
 $('imp').onchange = importar;
 // virada do dia com o app aberto
 let lastDay = hoje();
 setInterval(() => { if (hoje() !== lastDay) { lastDay = hoje(); diaSel = null; S = calc(); render(); } }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && db.perfil) { S = calc(); celebrate(S, true); render(); } });
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => { });

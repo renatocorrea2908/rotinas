@@ -1,6 +1,6 @@
 // Rede primeiro (sempre pega a versão nova), cache como reserva para uso offline.
-const CACHE = 'lendario-v2';
-const FILES = ['./', './index.html', './style.css', './data.js', './avatar.js', './app.js', './manifest.json', './icon-192.png', './icon-512.png', './logo.svg'];
+const CACHE = 'lendario-v3';
+const FILES = ['./', './index.html', './style.css', './data.js', './avatar.js', './app.js', './manifest.json', './icon-192.png', './icon-512.png', './logo.svg', './native.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

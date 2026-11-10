@@ -1,4 +1,4 @@
-name: App Android (Lendário)
+name: App Android e iOS (Lendário)
 
 on:
   workflow_dispatch:
@@ -49,3 +49,20 @@ jobs:
             mobile/android/app/build/outputs/apk/debug/*.apk
             mobile/android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: ignore
+
+  ios-check:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependências
+        run: npm ci
+      - name: Copiar o app web para o projeto iOS
+        run: npm run sync-web && npx cap sync ios
+      - name: Compilar para o simulador de iPhone (sem assinatura)
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -30
