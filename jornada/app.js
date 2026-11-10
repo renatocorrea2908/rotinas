@@ -614,6 +614,16 @@ function radar() {
   AREA_KEYS.forEach((a, i) => { const [x, y] = pt(i, R + 26); g += `<text x="${x}" y="${y - 2}" text-anchor="middle" font-size="16">${AREAS[a].ic}</text><text x="${x}" y="${y + 13}" text-anchor="middle" font-size="10.5" fill="#cbd5e1" font-weight="700">${AREAS[a].nome} ${S.areaLv[a]}</text>`; });
   return `<svg viewBox="0 0 320 300">${g}</svg>`;
 }
+function tabelaBonus() {
+  const cel = v => v ? `<td class="${v > 0 ? 'pos' : 'neg'}">${v > 0 ? '+' : '−'}${Math.round(Math.abs(v) * 100)}%</td>` : '<td class="zero">·</td>';
+  const head = `<tr><th></th>${AREA_KEYS.map(a => `<th title="${AREAS[a].nome}">${AREAS[a].ic}</th>`).join('')}</tr>`;
+  const tab = (obj, cur, tit) => `<div class="mut small" style="font-weight:700;margin:4px 0 6px">${tit}</div><div class="tb-wrap"><table class="tb">${head}${Object.entries(obj).map(([k, x]) => `<tr class="${k === cur ? 'cur' : ''}"><td class="nm">${x.ic} ${x.n}</td>${AREA_KEYS.map(a => cel(x.b[a] || 0)).join('')}</tr>`).join('')}</table></div>`;
+  const tot = comboBonus(db.perfil.raca, db.perfil.classe);
+  return `<div class="sec-h"><h2>Raças e classes</h2><button class="btn ghost sm" onclick="personalizar()">Trocar</button></div><div class="card">
+    ${tab(RACAS, db.perfil.raca, 'Raças')}<div style="height:12px"></div>${tab(CLASSES, db.perfil.classe, 'Classes')}
+    <div class="tb-wrap" style="margin-top:12px"><table class="tb"><tr class="cur tot"><td class="nm">Seu total</td>${AREA_KEYS.map(a => cel(tot[a] || 0)).join('')}</tr></table></div>
+    <div class="mut small" style="margin-top:8px">O bônus da raça soma com o da classe e vale sobre todo o XP da área. ❤️ Saúde · 🧠 Mente · 💼 Carreira · 💰 Finanças · 🤝 Relações · ✨ Propósito</div></div>`;
+}
 function renderHeroi() {
   const li = lvlInfo(S.total), T = tierN(S.tier), nx = S.tier < 7 ? tierN(S.tier + 1) : null, cl = CLASSES[db.perfil.classe], rc = RACAS[db.perfil.raca];
   const nConq = CONQ.filter(c => db.ui.conq[c.id]).length;
@@ -637,6 +647,7 @@ function renderHeroi() {
       <div class="mut" style="font-size:10.5px;margin-top:4px">${A.perk}</div></div><div class="lv" style="color:${A.cor}">${i.lvl}</div></div>`;
   }).join('')}</div>`;
   h += `<div class="sec-h"><h2>Roda da vida</h2></div><div class="card radar">${radar()}</div>`;
+  h += tabelaBonus();
   h += `<div class="sec-h"><h2>Conquistas</h2><span class="mut small">${nConq}/${CONQ.length}</span></div><div class="card"><div class="ach-grid">${CONQ.map(c => { const u = db.ui.conq[c.id]; return `<div class="ach ${c.r} ${u ? '' : 'lock'}"><div class="i">${c.ic}</div><div class="n">${esc(c.n)}</div><div class="d">${esc(c.d)}</div>${u ? `<div class="d" style="color:var(--gold)">${fmtD(u)}</div>` : ''}</div>`; }).join('')}</div></div>`;
   return h;
 }

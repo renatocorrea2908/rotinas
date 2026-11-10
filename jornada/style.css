@@ -234,3 +234,13 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 .road .st img{width:92px;height:115px}
 .pick img{height:118px}
 .locked img{filter:brightness(.18) grayscale(1) blur(1.5px)}
+
+.tb-wrap{overflow-x:auto}
+.tb{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;table-layout:fixed}
+.tb tr>:first-child{width:31%}
+.tb th{font-weight:400;font-size:15px;padding:4px 2px;text-align:center}
+.tb td{padding:7px 1px;text-align:center;border-top:1px solid var(--line);font-weight:700}
+.tb td.nm{text-align:left;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px}
+.tb td.pos{color:var(--ok)} .tb td.neg{color:var(--bad)} .tb td.zero{color:var(--mut);font-weight:400}
+.tb tr.cur td{background:rgba(124,92,255,.16)} .tb tr.cur td.nm{color:#c4b5fd}
+.tb tr.tot td{background:rgba(251,191,36,.12)} .tb tr.tot td.nm{color:var(--gold)}
