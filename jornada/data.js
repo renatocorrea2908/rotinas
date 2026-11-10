@@ -9,12 +9,30 @@ const AREAS = {
 };
 const AREA_KEYS = Object.keys(AREAS);
 
-const CLASSES = {
-  estrategista: { n: 'Estrategista', ic: '♟️', d: '+15% XP em Carreira e Finanças', b: { carreira: .15, financas: .15 } },
-  guardiao:     { n: 'Guardião',     ic: '🛡️', d: '+15% XP em Saúde e Relações',   b: { saude: .15, relacoes: .15 } },
-  sabio:        { n: 'Sábio',        ic: '📜', d: '+15% XP em Mente e Propósito',  b: { mente: .15, proposito: .15 } },
-  polimata:     { n: 'Polímata',     ic: '🌐', d: '+5% XP em todas as áreas',      b: { saude: .05, mente: .05, carreira: .05, financas: .05, relacoes: .05, proposito: .05 } }
+/* Raça + classe: bônus/penalidades de XP por área (somam) */
+const RACAS = {
+  humano:  { n: 'Humano',  ic: '🧑', d: 'Versátil: um pouco melhor em tudo.', b: { saude: .05, mente: .05, carreira: .05, financas: .05, relacoes: .05, proposito: .05 } },
+  elfo:    { n: 'Elfo',    ic: '🧝', d: 'Mente afiada e espírito elevado; corpo mais frágil.', b: { mente: .15, proposito: .10, saude: -.05 } },
+  anao:    { n: 'Anão',    ic: '⛏️', d: 'Mestre do ouro e do ofício; pouco sociável.', b: { financas: .15, carreira: .10, relacoes: -.05 } },
+  orc:     { n: 'Orc',     ic: '👹', d: 'Força bruta e ambição; pouca paciência para livros.', b: { saude: .20, carreira: .05, mente: -.10 } },
+  goblin:  { n: 'Goblin',  ic: '👺', d: 'Faro para dinheiro e negócios; pouco espiritual.', b: { financas: .20, carreira: .05, proposito: -.10 } },
+  gigante: { n: 'Gigante', ic: '🗿', d: 'Corpo imenso e coração grande; gasta demais.', b: { saude: .15, relacoes: .10, financas: -.10 } }
 };
+const CLASSES = {
+  guerreiro: { n: 'Guerreiro', ic: '⚔️', d: 'Disciplina física e de execução.', b: { saude: .15, carreira: .10 } },
+  clerigo:   { n: 'Clérigo',   ic: '✝️', d: 'Servir, cuidar e dar sentido.', b: { proposito: .15, relacoes: .10 } },
+  mago:      { n: 'Mago',      ic: '🔮', d: 'Conhecimento é poder.', b: { mente: .20, carreira: .05 } },
+  ladrao:    { n: 'Ladrão',    ic: '🗡️', d: 'Astúcia com recursos e oportunidades.', b: { financas: .15, carreira: .10 } },
+  druida:    { n: 'Druida',    ic: '🌿', d: 'Equilíbrio entre corpo, natureza e pessoas.', b: { saude: .10, proposito: .10, relacoes: .05 } }
+};
+function comboBonus(raca, classe) {
+  const out = {};
+  AREA_KEYS.forEach(a => { const v = ((RACAS[raca] || {}).b || {})[a] || 0; const w = ((CLASSES[classe] || {}).b || {})[a] || 0; if (v + w) out[a] = Math.round((v + w) * 100) / 100; });
+  return out;
+}
+function bonusTxt(b) {
+  return Object.entries(b).sort((x, y) => y[1] - x[1]).map(([a, v]) => `<span style="color:${v > 0 ? 'var(--ok)' : 'var(--bad)'};white-space:nowrap">${AREAS[a].ic} ${v > 0 ? '+' : '−'}${Math.round(Math.abs(v) * 100)}%</span>`).join(' · ');
+}
 
 const DIF = { 1: { n: 'Leve', xp: 10 }, 2: { n: 'Média', xp: 25 }, 3: { n: 'Épica', xp: 50 } };
 const TIPOS = { habito: 'Hábito', missao: 'Missão', meta: 'Épico' };

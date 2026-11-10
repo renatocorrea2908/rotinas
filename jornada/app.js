@@ -21,7 +21,8 @@ const need = L => 40 * (L - 1) * L;          // XP acumulado para o nível L do 
 const needA = L => 10 * (L - 1) * L;         // XP acumulado para o nível L de uma área
 const lvlOf = (xp, f = need) => { let L = 1; while (f(L + 1) <= xp) L++; return L; };
 const lvlInfo = (xp, f = need) => { const L = lvlOf(xp, f), a = f(L), b = f(L + 1); return { lvl: L, cur: xp - a, next: b - a, pct: (xp - a) / (b - a) * 100 }; };
-const clsB = a => ((CLASSES[db.perfil?.classe] || {}).b || {})[a] || 0;
+const tierN = i => AV.tierInfo(CLASSES[db.perfil?.classe] ? db.perfil.classe : 'guerreiro', i);
+const clsB = a => comboBonus(db.perfil?.raca, db.perfil?.classe)[a] || 0;
 /* Economia do ouro: até ECON_DATA valia 1 ouro a cada 4 XP (+100 por chefão).
    A partir dela o ouro é fixo por conquista, sem multiplicador de sequência. */
 const ECON_DATA = '2026-11-10';
@@ -74,7 +75,7 @@ function calc() {
   const T = hoje();
   const st = { total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, goldOldXP: 0, goldNew: 0, sched: {} };
   AREA_KEYS.forEach(a => st.area[a] = 0);
-  const cls = (CLASSES[db.perfil?.classe] || {}).b || {};
+  const cls = comboBonus(db.perfil?.raca, db.perfil?.classe);
   const add = (a, xp, d) => {
     xp = Math.round(xp * (1 + (a ? cls[a] || 0 : 0)));
     st.total += xp; if (a) st.area[a] += xp;
@@ -146,7 +147,7 @@ function calc() {
 
 function avOpts(st, extra) {
   const p = db.perfil || {};
-  return Object.assign({ tier: st.tier, skin: p.pele || AV.SKINS[1], hair: p.cabelo || 'curto', hairColor: p.corCabelo || AV.HAIRC[1], beard: p.barba || 'nenhuma', glasses: !!p.oculos, mood: st.mood, areas: st.areaLv, aura: st.dom ? AREAS[st.dom].cor : '#7c5cff' }, extra || {});
+  return Object.assign({ tier: st.tier, race: p.raca || 'humano', cls: CLASSES[p.classe] ? p.classe : 'guerreiro', skin: p.pele || null, hair: p.cabelo || 'curto', hairColor: p.corCabelo || AV.HAIRC[1], beard: p.barba || 'nenhuma', glasses: !!p.oculos, mood: st.mood, areas: st.areaLv, aura: st.dom ? AREAS[st.dom].cor : '#7c5cff' }, extra || {});
 }
 
 /* =================== FEEDBACK / GAMIFICAÇÃO =================== */
@@ -225,7 +226,7 @@ function celebrate(st, silent) {
 }
 
 function levelUp(old, st) {
-  const tOld = AV.tierOf(old), tNew = st.tier, T = AV.TIERS[tNew];
+  const tOld = AV.tierOf(old), tNew = st.tier, T = tierN(tNew);
   const el = document.createElement('div'); el.id = 'lvlup';
   el.innerHTML = `<canvas></canvas><div class="small mut" style="letter-spacing:4px;text-transform:uppercase;font-weight:800">Subiu de nível</div>
     <div class="av">${AV.render(avOpts(st, { mood: 'feliz' }))}</div>
@@ -320,11 +321,12 @@ function render() {
   $('hGold').textContent = '🪙 ' + fmtN(S.gold);
   $('main').innerHTML = VIEWS[view][1]();
   if (hitBoss) { const f = document.querySelector('.boss .face:not(.dead)'); if (f) f.classList.add('hit'); hitBoss = false; }
+  if (precisaEscolha() && !$('modal')) escolhaHeroi();
 }
 
 /* =================== HOJE =================== */
 function hudCard() {
-  const li = lvlInfo(S.total), T = AV.TIERS[S.tier], cl = CLASSES[db.perfil.classe];
+  const li = lvlInfo(S.total), T = tierN(S.tier), cl = CLASSES[db.perfil.classe], rc = RACAS[db.perfil.raca];
   const td = S.daily[hoje()] || 0;
   const enC = S.energia >= 70 ? '' : S.energia >= 40 ? 'background:linear-gradient(90deg,#d97706,#fbbf24)' : 'background:linear-gradient(90deg,#b91c1c,#f87171)';
   const moodTxt = { feliz: 'Motivado', ok: 'Estável', cansado: 'Cansado', exausto: 'Exausto — retome hoje!' }[S.mood];
@@ -332,7 +334,7 @@ function hudCard() {
     <div class="av" onclick="ir('heroi')">${AV.render(avOpts(S))}<div class="lvl-badge">NV ${S.lvl}</div></div>
     <div class="info">
       <div class="nm">${esc(db.perfil.nome)}</div>
-      <div class="tier">${T.n} · ${cl ? cl.ic + ' ' + cl.n : ''}</div>
+      <div class="tier">${T.n} · ${rc ? rc.n : ''} ${cl ? cl.n : ''}</div>
       <div class="stat-l"><span>XP</span><b class="mono">${fmtN(li.cur)} / ${fmtN(li.next)}</b></div>
       <div class="bar xp"><i style="width:${li.pct.toFixed(1)}%"></i></div>
       <div class="stat-l"><span>Energia · ${moodTxt}</span><b class="mono">${S.energia}%</b></div>
@@ -613,19 +615,19 @@ function radar() {
   return `<svg viewBox="0 0 320 300">${g}</svg>`;
 }
 function renderHeroi() {
-  const li = lvlInfo(S.total), T = AV.TIERS[S.tier], nx = AV.TIERS[S.tier + 1], cl = CLASSES[db.perfil.classe];
+  const li = lvlInfo(S.total), T = tierN(S.tier), nx = S.tier < 7 ? tierN(S.tier + 1) : null, cl = CLASSES[db.perfil.classe], rc = RACAS[db.perfil.raca];
   const nConq = CONQ.filter(c => db.ui.conq[c.id]).length;
   let h = `<div class="card glow" style="text-align:center">
     <div style="width:230px;height:288px;margin:0 auto">${AV.render(avOpts(S))}</div>
     <div class="title" style="font-size:24px;font-weight:900;margin-top:4px">${esc(db.perfil.nome)}</div>
     <div class="tier" style="font-size:15px">Nível ${S.lvl} · ${T.n}</div>
-    <div class="mut small" style="margin-top:3px">${cl ? cl.ic + ' ' + cl.n + ' — ' + cl.d : ''}</div>
+    <div class="mut small" style="margin-top:3px">${rc ? rc.ic + ' ' + rc.n : ''} · ${cl ? cl.ic + ' ' + cl.n : ''}</div><div class="small" style="margin-top:5px">${bonusTxt(comboBonus(db.perfil.raca, db.perfil.classe))}</div>
     <div class="bar xp" style="margin:14px 10px 6px"><i style="width:${li.pct.toFixed(1)}%"></i></div>
     <div class="mut small mono">${fmtN(li.cur)} / ${fmtN(li.next)} XP · total ${fmtN(S.total)}</div>
     ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min} — faltam ${fmtN(need(nx.min) - S.total)} XP</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
     <button class="btn ghost sm" style="margin-top:14px" onclick="personalizar()">🎨 Personalizar avatar</button>
   </div>`;
-  h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.TIERS.map((t, i) => `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}">${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">Nv ${t.min}</div></div>`).join('')}</div>
+  h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}">${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">Nv ${t.min}</div></div>`).join('')}</div>
     <div class="mut small">Cada forma desbloqueia roupas e equipamentos. Os <b>atributos</b> abaixo adicionam itens próprios ao avatar.</div></div>`;
   h += `<div class="sec-h"><h2>Atributos</h2></div><div class="card">${AREA_KEYS.map(a => {
     const A = AREAS[a], i = lvlInfo(S.area[a], needA);
@@ -641,8 +643,27 @@ function renderHeroi() {
 
 /* ---------- personalização (também usada no onboarding) ---------- */
 let P = null;
+function heroPreview(o) { return AV.render(Object.assign({ race: P.raca || 'humano', cls: P.classe || 'guerreiro', skin: P.pele, hair: P.cabelo, hairColor: P.corCabelo, beard: P.barba, glasses: P.oculos, mood: 'feliz', areas: {}, aura: '#7c5cff', anim: false }, o)); }
+function setRaca(k) { P.raca = k; const sk = AV.RACES[k].skins; if (!sk.includes(P.pele)) P.pele = sk[1]; }
+function racaPicker(target) {
+  return `<label>Raça</label><div class="pick-grid">${Object.entries(RACAS).map(([k, r]) => `<div class="pick ${P.raca === k ? 'on' : ''}" onclick="setRaca('${k}');${target}()">${heroPreview({ race: k, tier: 1 })}<b>${r.ic} ${r.n}</b><div class="pk-d">${r.d}</div><div class="pk-b">${bonusTxt(comboBonus(k, null))}</div></div>`).join('')}</div>`;
+}
+function classePicker(target) {
+  return `<label>Classe</label><div class="pick-grid">${Object.entries(CLASSES).map(([k, c]) => `<div class="pick ${P.classe === k ? 'on' : ''}" onclick="P.classe='${k}';${target}()">${heroPreview({ cls: k, tier: 4 })}<b>${c.ic} ${c.n}</b><div class="pk-d">${c.d}</div><div class="pk-b">${bonusTxt(comboBonus(null, k))}</div></div>`).join('')}</div>`;
+}
+const comboLine = () => `<div class="insight" style="margin-top:12px">Sua combinação: <b>${RACAS[P.raca].ic} ${RACAS[P.raca].n} ${CLASSES[P.classe].n}</b><br>${bonusTxt(comboBonus(P.raca, P.classe))}</div>`;
+const precisaEscolha = () => db.perfil && (!RACAS[db.perfil.raca] || !CLASSES[db.perfil.classe]);
+function escolhaHeroi() {
+  if (!P || !P.__escolha) { P = Object.assign({}, db.perfil, { __escolha: true }); if (!RACAS[P.raca]) P.raca = 'humano'; if (!CLASSES[P.classe]) P.classe = 'guerreiro'; }
+  modal(`<h2 class="title">⚔️ Nova era: raça e classe</h2>
+    <div class="mut small" style="line-height:1.5">Agora seu herói tem raça e classe. Cada combinação dá mais ou menos XP em cada área da vida, e a classe define as 8 formas de evolução. O bônus vale para todo o histórico.</div>
+    <div style="width:170px;height:212px;margin:8px auto 0">${heroPreview({ tier: S ? S.tier : 0, areas: S ? S.areaLv : {} })}</div>
+    ${comboLine()}${racaPicker('escolhaHeroi')}${classePicker('escolhaHeroi')}
+    <button class="btn gold full" style="margin-top:16px" onclick="salvarEscolha()">Confirmar</button>`, true);
+}
+function salvarEscolha() { delete P.__escolha; const np = P; closeModal(); act(null, () => { db.perfil = np; }); P = null; toast(RACAS[np.raca].ic, `${RACAS[np.raca].n} ${CLASSES[np.classe].n}: sua nova jornada começa.`); }
 function avPicker(target) {
-  return `<label>Tom de pele</label><div>${AV.SKINS.map(c => `<span class="swatch ${P.pele === c ? 'on' : ''}" style="background:${c}" onclick="P.pele='${c}';${target}()"></span>`).join('')}</div>
+  return `<label>Tom de pele</label><div>${AV.RACES[P.raca || 'humano'].skins.map(c => `<span class="swatch ${P.pele === c ? 'on' : ''}" style="background:${c}" onclick="P.pele='${c}';${target}()"></span>`).join('')}</div>
     <label>Cabelo</label><div>${AV.HAIRS.map(([k, n]) => `<span class="pill ${P.cabelo === k ? 'on' : ''}" onclick="P.cabelo='${k}';${target}()">${n}</span>`).join('')}</div>
     <label>Cor do cabelo</label><div>${AV.HAIRC.map(c => `<span class="swatch ${P.corCabelo === c ? 'on' : ''}" style="background:${c}" onclick="P.corCabelo='${c}';${target}()"></span>`).join('')}</div>
     <label>Barba</label><div>${AV.BEARDS.map(([k, n]) => `<span class="pill ${P.barba === k ? 'on' : ''}" onclick="P.barba='${k}';${target}()">${n}</span>`).join('')}</div>
@@ -652,11 +673,11 @@ function personalizar() { P = Object.assign({}, db.perfil); renderPers(); }
 function renderPers() {
   const st = S;
   modal(`<h2 class="title">🎨 Personalizar</h2>
-    <div style="width:180px;height:225px;margin:0 auto">${AV.render(Object.assign(avOpts(st), { skin: P.pele, hair: P.cabelo, hairColor: P.corCabelo, beard: P.barba, glasses: P.oculos }))}</div>
+    <div style="width:180px;height:225px;margin:0 auto">${heroPreview({ tier: st.tier, areas: st.areaLv, anim: true })}</div>
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
+    ${comboLine()}${racaPicker('renderPers')}${classePicker('renderPers')}
+    <div class="mut small" style="margin-top:6px">Mudar raça ou classe recalcula o bônus em todo o histórico.</div>
     ${avPicker('renderPers')}
-    <label>Classe</label>${Object.entries(CLASSES).map(([k, c]) => `<div class="classcard ${P.classe === k ? 'on' : ''}" onclick="P.classe='${k}';renderPers()"><b>${c.ic} ${c.n}</b><div class="mut small">${c.d}</div></div>`).join('')}
-    <div class="mut small">Mudar de classe recalcula o bônus em todo o histórico.</div>
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
 function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); act(null, () => { db.perfil = P; }); closeModal(); }
@@ -809,7 +830,7 @@ function insights() {
   const dr = dw.map((x, i) => ({ i, r: x.s ? x.d / x.s : null })).filter(x => x.r != null);
   if (dr.length >= 4) { dr.sort((a, b) => b.r - a.r); out.push(`📅 Seu melhor dia é <b>${DOW[dr[0].i]}</b> (${Math.round(dr[0].r * 100)}%); o mais fraco é <b>${DOW[dr[dr.length - 1].i]}</b> (${Math.round(dr[dr.length - 1].r * 100)}%). Planeje o dia fraco com antecedência.`); }
   if (S.energia < 40) out.push(`🪫 Sua energia está em ${S.energia}%. Hábitos perdidos drenam energia; cumpridos recarregam. Foque nos 2 mais fáceis hoje para virar o jogo.`);
-  const nx = AV.TIERS[S.tier + 1];
+  const nx = S.tier < 7 ? tierN(S.tier + 1) : null;
   if (nx) { const avg = Object.keys(S.daily).length ? (() => { let s = 0; for (let i = 0; i < 14; i++) s += S.daily[addDays(T, -i)] || 0; return s / 14; })() : 0; if (avg > 0) out.push(`🔮 No ritmo atual (~${fmtN(avg)} XP/dia), você vira <b>${nx.n}</b> em cerca de <b>${Math.ceil((need(nx.min) - S.total) / avg)} dias</b>.`); }
   return out;
 }
@@ -909,8 +930,8 @@ let OB = null;
 const STARTER = ['s3', 's1', 'm1', 'c1', 'c2', 'f1', 'r1', 'p1', 's2', 'p2', 'c5', 'f4'];
 function renderOnboarding() {
   $('app').classList.add('hide'); $('ob').classList.remove('hide');
-  if (!OB) { OB = { step: 0, sel: new Set(['s3', 'm1', 'c1', 'r1', 'p1']) }; P = { nome: '', pele: AV.SKINS[1], cabelo: 'social', corCabelo: AV.HAIRC[4], barba: 'nenhuma', oculos: false, classe: 'estrategista' }; }
-  const prev = (tier, mood) => AV.render({ tier, skin: P.pele, hair: P.cabelo, hairColor: P.corCabelo, beard: P.barba, glasses: P.oculos, mood: mood || 'feliz', areas: {}, aura: '#7c5cff' });
+  if (!OB) { OB = { step: 0, sel: new Set(['s3', 'm1', 'c1', 'r1', 'p1']) }; P = { nome: '', raca: 'humano', classe: 'guerreiro', pele: AV.SKINS[1], cabelo: 'social', corCabelo: AV.HAIRC[4], barba: 'nenhuma', oculos: false }; }
+  const prev = (tier, mood) => heroPreview({ tier, mood: mood || 'feliz', anim: true });
   let h = '';
   if (OB.step === 0) {
     h = `<div class="hero-av">${prev(7)}</div>
@@ -919,19 +940,23 @@ function renderOnboarding() {
       <label>Como chamamos seu herói?</label><input id="obNome" value="${esc(P.nome)}" placeholder="Seu nome" oninput="P.nome=this.value">
       <button class="btn full" style="margin-top:18px" onclick="if(!P.nome.trim()){toast('✏️','Digite um nome.');return}OB.step=1;renderOnboarding()">Começar →</button>`;
   } else if (OB.step === 1) {
-    h = `<div class="mut small" style="text-align:center">Passo 1 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Crie seu avatar</h1>
-      <div class="hero-av">${prev(0)}</div>${avPicker('renderOnboarding')}
+    h = `<div class="mut small" style="text-align:center">Passo 1 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua raça</h1>
+      ${racaPicker('renderOnboarding')}
       <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=0;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=2;renderOnboarding()">Continuar →</button></div>`;
   } else if (OB.step === 2) {
-    h = `<div class="mut small" style="text-align:center">Passo 2 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0 14px">Escolha sua classe</h1>
-      ${Object.entries(CLASSES).map(([k, c]) => `<div class="classcard ${P.classe === k ? 'on' : ''}" onclick="P.classe='${k}';renderOnboarding()"><div style="font-size:18px;font-weight:800">${c.ic} ${c.n}</div><div class="mut small">${c.d}</div></div>`).join('')}
+    h = `<div class="mut small" style="text-align:center">Passo 2 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua classe</h1>
+      ${classePicker('renderOnboarding')}${comboLine()}
       <div class="mut small" style="margin-top:6px">Dá para trocar depois.</div>
       <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=1;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=3;renderOnboarding()">Continuar →</button></div>`;
+  } else if (OB.step === 3) {
+    h = `<div class="mut small" style="text-align:center">Passo 3 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Aparência</h1>
+      <div class="hero-av">${prev(0)}</div>${avPicker('renderOnboarding')}
+      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=2;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=4;renderOnboarding()">Continuar →</button></div>`;
   } else {
-    h = `<div class="mut small" style="text-align:center">Passo 3 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Primeiras missões</h1>
+    h = `<div class="mut small" style="text-align:center">Passo 4 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Primeiras missões</h1>
       <p class="mut small" style="text-align:center">Comece com 3 a 6. Menos é mais: constância vence ambição.</p>
       ${STARTER.map(id => { const s = SUG.find(x => x.id === id), A = AREAS[s.a], on = OB.sel.has(id); return `<div class="sug" style="cursor:pointer;${on ? 'border-color:var(--acc);background:rgba(124,92,255,.14)' : ''}" onclick="OB.sel.has('${id}')?OB.sel.delete('${id}'):OB.sel.add('${id}');renderOnboarding()"><div class="chk ${on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${on ? '✓' : ''}</div><div style="flex:1"><div class="nm">${esc(s.n)}</div><div class="mut small">${A.ic} ${A.nome} · ${{ h: 'Hábito', m: 'Missão', e: 'Épico' }[s.t]}</div></div></div>`; }).join('')}
-      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=2;renderOnboarding()">←</button><button class="btn gold" style="flex:1" onclick="finishOB()">⚔️ Iniciar jornada</button></div>`;
+      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=3;renderOnboarding()">←</button><button class="btn gold" style="flex:1" onclick="finishOB()">⚔️ Iniciar jornada</button></div>`;
   }
   $('ob').innerHTML = `<div class="ob">${h}</div>`;
   scrollTo(0, 0);
