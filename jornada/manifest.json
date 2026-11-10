@@ -1,6 +1,6 @@
 {
-  "name": "Jornada — RPG da vida real",
-  "short_name": "Jornada",
+  "name": "Lendário — Sua vida é o jogo",
+  "short_name": "Lendário",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

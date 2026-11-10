@@ -244,3 +244,6 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 .tb td.pos{color:var(--ok)} .tb td.neg{color:var(--bad)} .tb td.zero{color:var(--mut);font-weight:400}
 .tb tr.cur td{background:rgba(124,92,255,.16)} .tb tr.cur td.nm{color:#c4b5fd}
 .tb tr.tot td{background:rgba(251,191,36,.12)} .tb tr.tot td.nm{color:var(--gold)}
+
+.hdr-logo{width:30px;height:30px;border-radius:8px}
+.wordmark{font-family:Cinzel,Georgia,serif;font-weight:900;font-size:40px;letter-spacing:3px;text-align:center;margin-top:8px;background:linear-gradient(180deg,#fff4c2,#f7c948 55%,#9a6514);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(251,191,36,.35))}

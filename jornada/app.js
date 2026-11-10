@@ -945,8 +945,9 @@ function renderOnboarding() {
   const prev = (tier, mood) => heroPreview({ tier, mood: mood || 'feliz', anim: true });
   let h = '';
   if (OB.step === 0) {
-    h = `<div class="hero-av">${prev(7)}</div>
-      <h1 class="title" style="text-align:center;font-size:30px;margin:10px 0 6px">Sua vida é o jogo.</h1>
+    h = `<img src="logo.svg" alt="Lendário" style="width:148px;height:148px;display:block;margin:0 auto;filter:drop-shadow(0 0 24px rgba(124,92,255,.55))">
+      <div class="wordmark">LENDÁRIO</div>
+      <div style="text-align:center;color:#c4b5fd;font-size:12px;font-weight:700;letter-spacing:5px;margin:4px 0 14px">SUA VIDA É O JOGO</div>
       <p class="mut" style="text-align:center;line-height:1.5">Cada hábito cumprido, missão entregue e meta conquistada evolui seu herói — de <b>Aprendiz</b> a <b>Lenda</b>.</p>
       <label>Como chamamos seu herói?</label><input id="obNome" value="${esc(P.nome)}" placeholder="Seu nome" oninput="P.nome=this.value">
       <button class="btn full" style="margin-top:18px" onclick="if(!P.nome.trim()){toast('✏️','Digite um nome.');return}OB.step=1;renderOnboarding()">Começar →</button>`;
@@ -986,7 +987,7 @@ function finishOB() {
   aplicarSeeds();
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
-  setTimeout(() => toast('⚔️', `Bem-vindo, <b>${esc(db.perfil.nome)}</b>. Sua jornada começa agora.`), 300);
+  setTimeout(() => toast('⚔️', `Bem-vindo ao Lendário, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
 }
 
 /* =================== BOOT =================== */
