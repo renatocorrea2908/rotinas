@@ -213,3 +213,10 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .av-rays{animation:rays 40s linear infinite;transform-box:view-box;transform-origin:120px 70px}
 @keyframes rays{to{transform:rotate(360deg)}}
+
+.av-cape{animation:cape 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 0}
+@keyframes cape{0%,100%{transform:skewX(0)}50%{transform:skewX(-2.2deg)}}
+.av-dash{animation:dash 6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-64}}
+.av-glint{opacity:0;animation:glint 4s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes glint{0%,72%,100%{opacity:0;transform:scale(.2) rotate(0)}82%{opacity:1;transform:scale(1) rotate(45deg)}}

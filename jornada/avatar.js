@@ -33,10 +33,12 @@ const AV = (() => {
     const s = Math.min(8, Math.floor((lv('saude') - 1) * 0.8));
     const an = c => o.anim ? ` class="${c}"` : '';
     const defs = [], gcache = {};
+    // brilho que percorre a lâmina (só animado)
+    const glint = (x, y, d = 0) => o.anim ? `<path class="av-glint" style="animation-delay:${d}s" d="M${x} ${y - 7} L${x + 1.6} ${y - 1.6} L${x + 7} ${y} L${x + 1.6} ${y + 1.6} L${x} ${y + 7} L${x - 1.6} ${y + 1.6} L${x - 7} ${y} L${x - 1.6} ${y - 1.6} Z" fill="#fff"/>` : '';
     // gradiente de material: luz de cima/esquerda
     const M = (c, k = 'v') => {
       const key = c + k; if (gcache[key]) return gcache[key];
-      const gid = id + 'g' + Object.keys(gcache).length;
+      const gid = id + 'm' + Object.keys(gcache).length;
       const xy = k === 'v' ? 'x1="0" y1="0" x2="0" y2="1"' : 'x1="0" y1="0" x2="1" y2="1"';
       defs.push(`<linearGradient id="${gid}" ${xy}><stop offset="0" stop-color="${shade(c, 30)}"/><stop offset=".45" stop-color="${c}"/><stop offset="1" stop-color="${shade(c, -45)}"/></linearGradient>`);
       return (gcache[key] = `url(#${gid})`);
@@ -56,6 +58,7 @@ const AV = (() => {
       <linearGradient id="${id}fl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff7d6"/><stop offset=".5" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/></linearGradient>
       <radialGradient id="${id}fc" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="${shade(SK, 10)}"/><stop offset=".7" stop-color="${SK}"/><stop offset="1" stop-color="${SKd}"/></radialGradient>
       <filter id="${id}gl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="${id}sh"><feComponentTransfer><feFuncR type="linear" slope=".74"/><feFuncG type="linear" slope=".74"/><feFuncB type="linear" slope=".8"/></feComponentTransfer></filter>
       <filter id="${id}g2" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>`);
 
     /* ================= FUNDO / FX ================= */
@@ -66,10 +69,15 @@ const AV = (() => {
       p.push(`<g${an('av-rays')} fill="#fde68a" opacity=".16">${r}</g>`);
     }
     p.push(`<g${an('av-aura')}><circle cx="120" cy="160" r="${108 + t * 3}" fill="url(#${id}au)"/></g>`);
+    // pedestal de pedra nas formas avançadas
+    if (t >= 3) {
+      const top = t === 7 ? '#7a5e1c' : t === 4 ? '#3b2a33' : '#2c3448';
+      p.push(`<path d="M44 281 L45 291 Q120 305 195 291 L196 281 Z" fill="${M(shade(top, -35))}" stroke="${OL}" stroke-width="1.2"/><ellipse cx="120" cy="281" rx="76" ry="13" fill="${M(top)}" stroke="${OL}" stroke-width="1.2"/><path d="M60 287 l6 5 M96 293 l3 4 M150 293 l-2 4 M182 287 l-5 5" stroke="${OL}" stroke-width="1" opacity=".6"/><ellipse cx="120" cy="279" rx="68" ry="9" fill="none" stroke="#fff" stroke-opacity=".1"/>`);
+    }
     // círculo mágico no chão
     if (t >= 2) {
       const op = (0.25 + t * .09).toFixed(2), c = t === 7 ? '#fbbf24' : o.aura;
-      p.push(`<g opacity="${op}" fill="none" stroke="${c}"><ellipse cx="120" cy="281" rx="${62 + t * 2}" ry="12" stroke-width="2"/><ellipse cx="120" cy="281" rx="${50 + t * 2}" ry="9" stroke-width="1.2" stroke-dasharray="3 5"/>${t >= 4 ? `<ellipse cx="120" cy="281" rx="${74 + t * 2}" ry="15" stroke-width="1" stroke-dasharray="10 4 2 4"/>` : ''}</g>`);
+      p.push(`<g opacity="${op}" fill="none" stroke="${c}"><ellipse cx="120" cy="281" rx="${62 + t * 2}" ry="12" stroke-width="2"/><ellipse${an('av-dash')} cx="120" cy="281" rx="${50 + t * 2}" ry="9" stroke-width="1.2" stroke-dasharray="3 5"/>${t >= 4 ? `<ellipse cx="120" cy="281" rx="${74 + t * 2}" ry="15" stroke-width="1" stroke-dasharray="10 4 2 4"/>` : ''}</g>`);
     }
     p.push(`<ellipse cx="120" cy="281" rx="${48 + s}" ry="7" fill="#000" opacity=".55"/>`);
     if (t >= 3) for (let i = 0; i < t * 2 + 2; i++) {
@@ -96,24 +104,24 @@ const AV = (() => {
     /* ================= CAPAS / CASACOS (atrás) ================= */
     if (t === 4 || t === 7) {
       const cc = t === 4 ? M('#9f1239') : M('#f8fafc'), edge = t === 4 ? '#4c0519' : '#d6a63a';
-      p.push(`<path d="M${86 - s} 98 L${154 + s} 98 L${194 + s} 284 L176 277 L164 288 L146 279 L128 290 L112 280 L94 290 L78 278 L64 286 L${46 - s} 284 Z" fill="${cc}" stroke="${edge}" stroke-width="2"/>`);
-      p.push(`<path d="M104 110 L92 270 M136 110 L150 272 M120 112 L120 280" stroke="${t === 4 ? '#4c0519' : '#cbd5e1'}" stroke-width="1.5" opacity=".5"/>`);
+      p.push(`<g${an('av-cape')}><path d="M${86 - s} 98 L${154 + s} 98 L${194 + s} 284 L176 277 L164 288 L146 279 L128 290 L112 280 L94 290 L78 278 L64 286 L${46 - s} 284 Z" fill="${cc}" stroke="${edge}" stroke-width="2"/><path d="M${154 + s} 98 L${194 + s} 284 L176 277 L164 288 L146 279 L140 110 Z" fill="#000" opacity=".18"/><path d="M104 110 L92 270 M136 110 L150 272 M120 112 L120 280" stroke="${t === 4 ? '#4c0519' : '#cbd5e1'}" stroke-width="1.5" opacity=".5"/></g>`);
     }
-    if (t === 2) p.push(`<path d="M${86 - s} 100 L${154 + s} 100 L164 252 L148 246 L136 256 L120 248 L104 256 L92 246 L76 252 Z" fill="${M('#4a3020')}" stroke="${OL}" stroke-width="1.5"/>`);
-    if (t === 5) p.push(`<path d="M${86 - s} 100 L${154 + s} 100 L168 262 L144 256 L120 266 L96 256 L72 262 Z" fill="${M('#3b1a6e')}" stroke="${OL}" stroke-width="1.5"/>`);
+    if (t === 2) p.push(`<g${an('av-cape')}><path d="M${86 - s} 100 L${154 + s} 100 L164 252 L148 246 L136 256 L120 248 L104 256 L92 246 L76 252 Z" fill="${M('#4a3020')}" stroke="${OL}" stroke-width="1.5"/></g>`);
+    if (t === 5) p.push(`<g${an('av-cape')}><path d="M${86 - s} 100 L${154 + s} 100 L168 262 L144 256 L120 266 L96 256 L72 262 Z" fill="${M('#3b1a6e')}" stroke="${OL}" stroke-width="1.5"/></g>`);
     // arco e aljava nas costas (Desbravador)
     if (t === 2) p.push(`<path d="M152 40 Q206 150 150 262" stroke="${M('#6b4423')}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M152 40 L150 262" stroke="#e7e5e4" stroke-width="1" opacity=".7"/><rect x="92" y="54" width="12" height="62" rx="3" transform="rotate(-28 98 85)" fill="${M('#5b3415')}" stroke="${OL}"/><g transform="rotate(-28 98 85)" stroke="${OL}" stroke-width=".8"><path d="M95 56 L95 40" stroke="#d6c7a8" stroke-width="1.6"/><path d="M101 56 L101 37" stroke="#d6c7a8" stroke-width="1.6"/><path d="M95 40 l-3 -6 l3 2 l3 -2 Z M101 37 l-3 -6 l3 2 l3 -2 Z" fill="#b91c1c"/></g>`);
     // gola alta (Mestre)
     if (t === 5) p.push(`<path d="M100 96 L86 52 Q98 62 106 84 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.5"/><path d="M140 96 L154 52 Q142 62 134 84 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.5"/><path d="M88 56 L104 90 M152 56 L136 90" stroke="#fbbf24" stroke-width="1.5"/>`);
 
     /* cabelo longo (atrás) */
-    if (o.hair === 'longo') p.push(`<path d="M99 52 Q96 28 120 28 Q144 28 141 52 L144 98 Q134 104 128 96 L128 70 L112 70 L112 96 Q106 104 96 98 Z" fill="${HCd}" stroke="${OL}" stroke-width="1.4"/>`);
+    const HEAD = x => `<g transform="translate(120 84) scale(1.12) translate(-120 -84)">${x}</g>`;
+    if (o.hair === 'longo') p.push(HEAD(`<path d="M99 52 Q96 28 120 28 Q144 28 141 52 L144 98 Q134 104 128 96 L128 70 L112 70 L112 96 Q106 104 96 98 Z" fill="${HCd}" stroke="${OL}" stroke-width="1.4"/>`));
 
     /* ================= PERNAS ================= */
     const robe = t === 6;
     const pantsC = ['#5b4a37', '#2f3640', '#3a3626', '#1e2633', '#141821', '#1e1236', '#cbd5e1', '#141821'][t];
     const legs = `M94 170 L146 170 L144 226 L141 266 L124 266 L120 204 L116 266 L99 266 L96 226 Z`;
-    if (!robe) p.push(`<path d="${legs}" fill="${M(pantsC)}" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/>`);
+    if (!robe) p.push(`<path d="${legs}" fill="${M(pantsC)}" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/><path d="M131 171 L145 171 L143 226 L140.5 265 L133 265 L129 212 Z" fill="#000" opacity=".22"/><path d="M99 178 L100 258" stroke="#fff" stroke-opacity=".13" stroke-width="2.2" stroke-linecap="round"/>`);
     // grevas
     if (t === 3 || t === 4 || t === 7) {
       const gm = t === 3 ? STEEL : t === 4 ? DARK : GOLD;
@@ -131,8 +139,8 @@ const AV = (() => {
 
     /* ================= ARMAS ATRÁS DA MÃO ================= */
     const hx = 161 + s * .3; // mão direita
-    if (t === 0) p.push(`<g stroke="${OL}" stroke-width="1.2"><path d="M${hx - 3} 194 L${hx + 3} 194 L${hx + 3} 256 L${hx} 264 L${hx - 3} 256 Z" fill="${M('#a47148')}"/><rect x="${hx - 9}" y="190" width="18" height="5" rx="2" fill="${M('#5b3a1f')}"/></g>`);
-    if (t === 3) p.push(`<g stroke="${OL}" stroke-width="1.2"><path d="M${hx - 4} 196 L${hx + 4} 196 L${hx + 20} 276 L${hx + 13} 282 Z" fill="${STEEL}"/><path d="M${hx} 198 L${hx + 15} 276" stroke="#fff" stroke-width="1" opacity=".7"/><rect x="${hx - 12}" y="190" width="24" height="6" rx="2" fill="${M('#475569')}"/><circle cx="${hx}" cy="170" r="4" fill="${M('#475569')}"/></g>`);
+    if (t === 0) p.push(`<g stroke="${OL}" stroke-width="1.2"><path d="M${hx - 4.5} 194 L${hx + 4.5} 194 L${hx + 4.5} 258 L${hx} 268 L${hx - 4.5} 258 Z" fill="${M('#c99060')}"/><path d="M${hx - 1} 198 L${hx - 1} 258" stroke="#f3d3a8" stroke-width="1.2"/><rect x="${hx - 11}" y="189" width="22" height="6" rx="2.5" fill="${M('#6b4423')}"/></g>`);
+    if (t === 3) p.push(`<g stroke="${OL}" stroke-width="1.2"><path d="M${hx - 4} 196 L${hx + 4} 196 L${hx + 20} 276 L${hx + 13} 282 Z" fill="${STEEL}"/><path d="M${hx} 198 L${hx + 15} 276" stroke="#fff" stroke-width="1" opacity=".7"/>${glint(hx + 9, 238, 1.2)}<rect x="${hx - 12}" y="190" width="24" height="6" rx="2" fill="${M('#475569')}"/><circle cx="${hx}" cy="170" r="4" fill="${M('#475569')}"/></g>`);
     /* ================= TRONCO ================= */
     const torsoD = `M${80 - s} 100 Q120 90 ${160 + s} 100 L${154 + s * .5} 140 L146 174 L94 174 L${86 - s * .5} 140 Z`;
     const torsoC = ['#cdbb98', '#2f6b45', '#2f4a24', '#3d4656', '#1b1f2a', '#2e1065', '#f1f5f9', '#1b1f2a'][t];
@@ -157,7 +165,7 @@ const AV = (() => {
       if (t >= 4) p.push(`<path d="M${88 - s * .5} 104 Q120 96 ${152 + s * .5} 104" stroke="${tr}" stroke-width="2.2" fill="none"/><path d="M100 132 q8 -6 14 0 q6 -6 14 0 q-14 10 -28 0 Z" fill="${tr}" opacity=".9"/>`);
       if (t === 7) p.push(`<circle cx="120" cy="120" r="7" fill="#fff7d6" filter="url(#${id}gl)"/><circle cx="120" cy="120" r="4.5" fill="#f97316"/>`);
     }
-    if (t === 5) p.push(`<path d="M${84 - s} 100 L106 100 L112 176 L${88 - s * .5} 176 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.4"/><path d="M${156 + s} 100 L134 100 L128 176 L${152 + s * .5} 176 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.4"/><path d="M106 102 L112 176 M134 102 L128 176" stroke="#f7c948" stroke-width="2"/><g fill="none" stroke="${shade(o.aura, 35)}" stroke-width="1.4" filter="url(#${id}gl)"><circle cx="120" cy="128" r="9"/><path d="M120 116 v24 M108 128 h24"/></g><path d="M94 164 L146 164 L146 176 L94 176 Z" fill="${M('#b7791f')}" stroke="${OL}"/>`);
+    if (t === 5) p.push(`<path d="M${84 - s} 100 L106 100 L112 176 L${88 - s * .5} 176 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.4"/><path d="M${156 + s} 100 L134 100 L128 176 L${152 + s * .5} 176 Z" fill="${M('#4c1d95')}" stroke="${OL}" stroke-width="1.4"/><path d="M106 102 L112 176 M134 102 L128 176" stroke="#f7c948" stroke-width="2"/><g fill="none" stroke="${shade(o.aura, 35)}" stroke-width="1.4" filter="url(#${id}gl)"><circle cx="120" cy="128" r="12"/><path d="M120 117.5 L129 133 L111 133 Z M120 138.5 L111 123 L129 123 Z"/></g><path d="M94 164 L146 164 L146 176 L94 176 Z" fill="${M('#b7791f')}" stroke="${OL}"/>`);
 
     if (t === 5 || t === 6) {
       const sx = 164 + s * .3;
@@ -165,6 +173,9 @@ const AV = (() => {
       else p.push(`<rect x="${sx - 3.5}" y="60" width="7" height="224" rx="3.5" fill="${GOLD}" stroke="${OL}" stroke-width="1.2"/><path d="M${sx - 12} 64 Q${sx} 54 ${sx + 12} 64 L${sx + 8} 70 L${sx - 8} 70 Z" fill="${GOLD}" stroke="${OL}"/><g${an('av-float')}><path d="M${sx} 14 L${sx + 9} 40 L${sx} 60 L${sx - 9} 40 Z" fill="#a5f3fc" stroke="#ecfeff" stroke-width="1.5" filter="url(#${id}gl)"/></g>`);
     }
 
+    /* volume: lado direito na sombra, borda esquerda com luz */
+    if (!robe) p.push(`<path d="M127 95 Q${148 + s} 95 ${160 + s} 100 L${154 + s * .5} 140 L146 174 L129 174 Q134 136 127 95 Z" fill="#000" opacity=".2"/><path d="M${83 - s} 104 L${89 - s * .5} 140 L96 171" stroke="#fff" stroke-opacity=".22" stroke-width="2.2" fill="none" stroke-linecap="round"/>`);
+    else p.push(`<path d="M127 95 L${152 + s} 100 L166 274 Q150 278 135 280 Q138 180 127 95 Z" fill="#000" opacity=".14"/>`);
     /* acessórios de atributo no peito/cinto */
     if (lv('carreira') >= 5) p.push(`<path d="M104 112 l2.4 5 5.4 .7 -4 3.8 1 5.4 -4.8 -2.6 -4.8 2.6 1 -5.4 -4 -3.8 5.4 -.7 Z" fill="${lv('carreira') >= 10 ? GOLD : STEEL}" stroke="${OL}" stroke-width=".8"${lv('carreira') >= 10 ? ` filter="url(#${id}gl)"` : ''}/>`);
     if (lv('financas') >= 5) p.push(`<g stroke="${OL}" stroke-width="1.2"><path d="M138 172 q-9 5 -9 15 q0 8 12 8 q12 0 12 -8 q0 -10 -9 -15 Z" fill="${M('#8a5a12')}"/><path d="M137 172 h8" stroke="#f7c948" stroke-width="2.5"/></g><text x="141" y="190" font-size="9" text-anchor="middle" fill="#fde68a" font-weight="900">$</text>`);
@@ -200,15 +211,16 @@ const AV = (() => {
       return g;
     };
 
-    if (pose === 'rest' || pose === 'shield') { p.push(armRest); p.push(mirror(armRest)); }
-    if (pose === 'great') { p.push(armGreat); p.push(mirror(armGreat)); }
+    const dim = x => `<g filter="url(#${id}sh)">${x}</g>`;
+    if (pose === 'rest' || pose === 'shield') { p.push(armRest); p.push(dim(mirror(armRest))); }
+    if (pose === 'great') { p.push(armGreat); p.push(dim(mirror(armGreat))); }
     if (pose === 'cast') {
       const raise = `<path d="M${78 - s} 102 Q${66 - s} 120 ${64 - s} 140 L${80 - s} 146 Q${86 - s} 124 ${95 - s} 106 Z" fill="${armM}" stroke="${OL}" stroke-width="1.5" stroke-linejoin="round"/><path d="M${64 - s} 140 L${80 - s} 146 L72 112 L58 112 Z" fill="${gaunt}" stroke="${OL}" stroke-width="1.5" stroke-linejoin="round"/><path d="M57 114 q-2 -12 8 -14 q10 2 8 14 Z" fill="${SK}" stroke="${OL}" stroke-width="1.3"/>`;
-      p.push(raise); p.push(mirror(armRest));
+      p.push(raise); p.push(dim(mirror(armRest)));
       const oc = t === 6 ? '#5eead4' : o.aura;
       p.push(`<g${an('av-float')}><circle cx="65" cy="90" r="16" fill="${oc}" filter="url(#${id}g2)" opacity=".9"/><circle cx="65" cy="90" r="8" fill="${shade(oc, 55)}"/><circle cx="65" cy="90" r="4" fill="#fff"/></g><g${an('av-spin')} fill="none" stroke="${shade(oc, 40)}" stroke-width="1.2"><circle cx="65" cy="90" r="13" stroke-dasharray="2 4"/></g>`);
     }
-    p.push(paul()); p.push(mirror(paul()));
+    p.push(paul()); p.push(dim(mirror(paul())));
 
     /* ================= ESCUDO / MONTANTE ================= */
     if (pose === 'shield') p.push(`<g stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"><path d="M50 128 Q72 118 94 128 L92 176 Q86 206 72 222 Q58 206 52 176 Z" fill="${STEEL}"/><path d="M56 132 Q72 125 88 132 L87 175 Q82 199 72 212 Q62 199 57 175 Z" fill="${M('#1e40af')}"/></g><path d="M72 140 L72 200 M60 158 L84 158" stroke="#e2e8f0" stroke-width="5"/><path d="M58 134 Q66 130 74 131" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/>`);
@@ -217,10 +229,11 @@ const AV = (() => {
       if (t === 7) p.push(`<path d="M114 182 L126 182 L122 282 L118 282 Z" fill="#fbbf24" filter="url(#${id}g2)" opacity=".85"/>`);
       p.push(`<g stroke="${OL}" stroke-width="1.4" stroke-linejoin="round"><path d="M113 184 L127 184 L124 270 L120 284 L116 270 Z" fill="${bl}"/><path d="M92 176 Q120 168 148 176 L146 184 Q120 178 94 184 Z" fill="${gm}"/><rect x="116" y="152" width="8" height="24" rx="2" fill="${M('#3b2414')}"/><circle cx="120" cy="150" r="6" fill="${gm}"/></g><path d="M120 186 L120 272" stroke="#fff" stroke-width="1.2" opacity=".8"/>`);
       if (t >= 4) p.push(`<circle cx="120" cy="178" r="3" fill="${t === 7 ? '#f97316' : '#ef4444'}"/>`);
-      p.push(hand(113, 172) + hand(127, 172));
+      p.push(hand(113, 172) + hand(127, 172) + glint(120, 228, .6));
     }
 
     /* ================= CABEÇA ================= */
+    const h0 = p.length;
     p.push(`<path d="M111 76 L129 76 L131 96 L109 96 Z" fill="${SKd}" stroke="${OL}" stroke-width="1.3"/>`);
     p.push(`<ellipse cx="100.5" cy="60" rx="4" ry="6" fill="${SKd}" stroke="${OL}" stroke-width="1.2"/><ellipse cx="139.5" cy="60" rx="4" ry="6" fill="${SKd}" stroke="${OL}" stroke-width="1.2"/>`);
     p.push(`<path d="M101 50 Q101 32 120 31 Q139 32 139 50 L139 62 Q138 75 129 82 Q120 87 111 82 Q102 75 101 62 Z" fill="url(#${id}fc)" stroke="${OL}" stroke-width="1.6"/>`);
@@ -263,6 +276,8 @@ const AV = (() => {
     /* coroa (Lenda) */
     if (t === 7) p.push(`<g filter="url(#${id}gl)" stroke="${OL}" stroke-width="1.2" stroke-linejoin="round"><path d="M100 40 L102 18 L110 32 L114 10 L120 28 L126 10 L130 32 L138 18 L140 40 Q120 34 100 40 Z" fill="${GOLD}"/></g><circle cx="120" cy="34" r="3" fill="#ef4444"/><circle cx="108" cy="36" r="2" fill="#38bdf8"/><circle cx="132" cy="36" r="2" fill="#38bdf8"/>`);
     if (t === 4) p.push(`<path d="M100 46 Q120 38 140 46" stroke="#7f1d1d" stroke-width="3" fill="none"/>`);
+
+    p.push(HEAD(p.splice(h0).join('')));
 
     /* ================= FLUTUANTES ================= */
     if (lv('mente') >= 5) {
