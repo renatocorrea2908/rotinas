@@ -22,6 +22,10 @@ const needA = L => 10 * (L - 1) * L;         // XP acumulado para o nível L de 
 const lvlOf = (xp, f = need) => { let L = 1; while (f(L + 1) <= xp) L++; return L; };
 const lvlInfo = (xp, f = need) => { const L = lvlOf(xp, f), a = f(L), b = f(L + 1); return { lvl: L, cur: xp - a, next: b - a, pct: (xp - a) / (b - a) * 100 }; };
 const clsB = a => ((CLASSES[db.perfil?.classe] || {}).b || {})[a] || 0;
+/* Economia do ouro: até ECON_DATA valia 1 ouro a cada 4 XP (+100 por chefão).
+   A partir dela o ouro é fixo por conquista, sem multiplicador de sequência. */
+const ECON_DATA = '2026-11-10';
+const OURO = { hab: { 1: 1, 2: 2, 3: 4 }, miss: { 1: 2, 2: 4, 3: 8 }, marco: 3, meta: 15, diario: 1, perfeito: 3, chefe: 30 };
 const mult = run => run >= 30 ? 2 : run >= 14 ? 1.75 : run >= 7 ? 1.5 : run >= 3 ? 1.2 : 1;
 
 const MIGR = 'reset-2026-10-15';
@@ -68,7 +72,7 @@ function bossHP(ws) {
 
 function calc() {
   const T = hoje();
-  const st = { total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, sched: {} };
+  const st = { total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, goldOldXP: 0, goldNew: 0, sched: {} };
   AREA_KEYS.forEach(a => st.area[a] = 0);
   const cls = (CLASSES[db.perfil?.classe] || {}).b || {};
   const add = (a, xp, d) => {
@@ -76,17 +80,23 @@ function calc() {
     st.total += xp; if (a) st.area[a] += xp;
     st.daily[d] = (st.daily[d] || 0) + xp;
     if (a) { st.dailyArea[d] = st.dailyArea[d] || {}; st.dailyArea[d][a] = (st.dailyArea[d][a] || 0) + xp; }
+    if (d < ECON_DATA) st.goldOldXP += xp;
   };
+  const ouro = (n, d) => { if (d >= ECON_DATA) st.goldNew += n; };
+  // avanço em %: metade do prêmio vai sendo liberada conforme o avanço sobe
+  const progEv = (it, base) => { let mx = 0; (it.prog || []).forEach(r => push(r.d, () => { if (r.p > mx) { add(it.area, base * 0.5 * (r.p - mx) / 100, r.d); mx = r.p; } })); };
   const ev = {}, push = (d, f) => (ev[d] = ev[d] || []).push(f);
   db.itens.forEach(it => {
-    if (it.tipo === 'missao' && it.feito) push(it.feito, () => { st.missDone++; add(it.area, DIF[it.dif].xp * 2, it.feito); st.energia = Math.min(100, st.energia + 3); });
+    if (it.tipo === 'missao') progEv(it, DIF[it.dif].xp * 2);
+    if (it.tipo === 'missao' && it.feito) push(it.feito, () => { st.missDone++; add(it.area, DIF[it.dif].xp * 2, it.feito); ouro(OURO.miss[it.dif], it.feito); st.energia = Math.min(100, st.energia + 3); });
     if (it.tipo === 'meta') {
-      (it.marcos || []).forEach(m => { if (m.feito) push(m.feito, () => add(it.area, 40, m.feito)); });
-      if (it.feito) push(it.feito, () => { st.metaDone++; add(it.area, 100 * it.dif, it.feito); });
+      progEv(it, 100 * it.dif);
+      (it.marcos || []).forEach(m => { if (m.feito) push(m.feito, () => { add(it.area, 40, m.feito); ouro(OURO.marco, m.feito); }); });
+      if (it.feito) push(it.feito, () => { st.metaDone++; add(it.area, 100 * it.dif, it.feito); ouro(OURO.meta * it.dif, it.feito); });
     }
   });
-  Object.entries(db.desafios).forEach(([d, x]) => { if (x.feito) { const s = SUG.find(z => z.id === x.sid); if (s) push(d, () => { st.desafios++; add(s.a, DIF[s.d].xp * 2, d); }); } });
-  Object.entries(db.diario).forEach(([d, x]) => { if (x && (x.txt || x.humor)) push(d, () => { st.diario++; add('proposito', 10, d); }); });
+  Object.entries(db.desafios).forEach(([d, x]) => { if (x.feito) { const s = SUG.find(z => z.id === x.sid); if (s) push(d, () => { st.desafios++; add(s.a, DIF[s.d].xp * 2, d); ouro(OURO.hab[s.d] * 2, d); }); } });
+  Object.entries(db.diario).forEach(([d, x]) => { if (x && (x.txt || x.humor)) push(d, () => { st.diario++; add('proposito', 10, d); ouro(OURO.diario, d); }); });
 
   const habs = db.itens.filter(i => i.tipo === 'habito');
   const run = {}, best = {};
@@ -107,22 +117,22 @@ function calc() {
       sch++;
       if (db.log[ds] && db.log[ds][h.id]) {
         done++; run[h.id]++; best[h.id] = Math.max(best[h.id], run[h.id]); st.habDone++;
-        add(h.area, DIF[h.dif].xp * mult(run[h.id]), ds);
+        add(h.area, DIF[h.dif].xp * mult(run[h.id]), ds); ouro(OURO.hab[h.dif], ds);
         st.energia = Math.min(100, st.energia + 4);
       } else if (ds < T) { run[h.id] = 0; st.energia = Math.max(0, st.energia - 10); }
     });
     st.sched[ds] = { sch, done };
-    if (sch >= 3 && done === sch) { st.perfect++; add(null, 30, ds); }
+    if (sch >= 3 && done === sch) { st.perfect++; add(null, 30, ds); ouro(OURO.perfeito, ds); }
     (ev[ds] || []).forEach(f => f());
     wXP += st.total - before;
-    if (!wKill && wXP >= wHP) { wKill = ds; st.bossKills++; add(null, 150, ds); st.goldBonus += 100; }
+    if (!wKill && wXP >= wHP) { wKill = ds; st.bossKills++; add(null, 150, ds); if (ds < ECON_DATA) st.goldBonus += 100; else ouro(OURO.chefe, ds); }
   }
   close();
   habs.forEach(h => { st.streaks[h.id] = { cur: run[h.id], best: best[h.id] }; st.maxStreak = Math.max(st.maxStreak, best[h.id]); });
   st.lvl = lvlOf(st.total);
   st.areaLv = {}; AREA_KEYS.forEach(a => st.areaLv[a] = lvlOf(st.area[a], needA));
   st.minArea = Math.min(...AREA_KEYS.map(a => st.areaLv[a]));
-  st.goldEarned = Math.floor(st.total / 4) + st.goldBonus;
+  st.goldEarned = Math.floor(st.goldOldXP / 4) + st.goldBonus + st.goldNew;
   st.spent = db.compras.reduce((s, c) => s + c.custo, 0);
   st.gold = st.goldEarned - st.spent;
   st.compras = db.compras.length;
@@ -196,7 +206,7 @@ function celebrate(st, silent) {
   // chefão
   if (st.bossKills > (ui.kills || 0) && !silent) {
     const b = st.bosses[st.bosses.length - 1];
-    setTimeout(() => { toast(b.boss.ic, `<b>${esc(b.boss.n)}</b> derrotado!<div class="small mut">+150 XP · +100 ouro</div>`, 'ach-t'); snd('boss'); vib([30, 50, 30, 50, 80]); }, 300);
+    setTimeout(() => { toast(b.boss.ic, `<b>${esc(b.boss.n)}</b> derrotado!<div class="small mut">+150 XP · +${b.kill < ECON_DATA ? 100 : OURO.chefe} ouro</div>`, 'ach-t'); snd('boss'); vib([30, 50, 30, 50, 80]); }, 300);
   }
   ui.kills = st.bossKills;
   // níveis de área
@@ -343,7 +353,7 @@ function bossCard() {
     <div style="flex:1;min-width:0">
       <div class="mut small" style="text-transform:uppercase;letter-spacing:1.2px;font-weight:800">Chefão da semana</div>
       <div style="font-weight:800;font-size:16px;margin:2px 0 8px" class="title">${esc(b.boss.n)}</div>
-      ${b.kill ? `<div style="color:var(--ok);font-weight:800">⚔️ Derrotado! +150 XP · +100 🪙</div>` :
+      ${b.kill ? `<div style="color:var(--ok);font-weight:800">⚔️ Derrotado! +150 XP · +${b.kill < ECON_DATA ? 100 : OURO.chefe} 🪙</div>` :
       `<div class="bar boss"><i style="width:${pct.toFixed(1)}%"></i></div>
        <div class="row between small mut mono" style="margin-top:6px"><span>❤ ${fmtN(left)} / ${fmtN(b.hp)} HP</span><span>${fim === 0 ? 'último dia!' : fim + 'd restantes'}</span></div>`}
     </div></div>
@@ -377,22 +387,58 @@ function prazoTxt(p) {
   const n = diffDays(hoje(), p);
   return n < 0 ? `<span class="late">atrasada ${-n}d</span>` : n === 0 ? '<span class="late">vence hoje</span>' : `<span>em ${n}d · ${fmtD(p)}</span>`;
 }
+/* ---------- avanço em % (missões e épicos) ---------- */
+function pctManual(it) { const p = it.prog || []; return p.length ? p[p.length - 1].p : 0; }
+function pctOf(it) {
+  if (it.feito) return 100;
+  const ms = it.marcos || [], pm = ms.length ? ms.filter(m => m.feito).length / ms.length * 100 : 0;
+  return Math.round(Math.max(pctManual(it), pm));
+}
+let AV_P = null;
+function avanco(ev, id) {
+  if (ev) ev.stopPropagation();
+  const it = db.itens.find(i => i.id === id); if (!it) return;
+  AV_P = { id, p: pctManual(it) };
+  renderAvanco();
+}
+function renderAvanco() {
+  const it = db.itens.find(i => i.id === AV_P.id), base = it.tipo === 'meta' ? 100 * it.dif : DIF[it.dif].xp * 2;
+  const mx = Math.max(0, ...(it.prog || []).map(r => r.p));
+  modal(`<h2 class="title">📈 Avanço</h2><div style="font-weight:700;margin-bottom:12px">${esc(it.nome)}</div>
+    <div class="title" style="font-size:44px;font-weight:900;text-align:center;color:var(--gold)" id="avP">${AV_P.p}%</div>
+    <input id="avR" type="range" min="0" max="100" step="5" value="${AV_P.p}" style="padding:0;margin:10px 0 14px;accent-color:#7c5cff" oninput="AV_P.p=+this.value;$('avP').textContent=this.value+'%'">
+    <div style="text-align:center">${[0, 25, 50, 75, 100].map(v => `<span class="pill" onclick="AV_P.p=${v};$('avR').value=${v};$('avP').textContent='${v}%'">${v}%</span>`).join('')}</div>
+    <div class="mut small" style="margin-top:8px;line-height:1.5">Cada avanço novo libera XP proporcional, até metade do prêmio (+${Math.round(base / 2)} XP no total). Concluir paga o prêmio inteiro.${mx ? ` Maior avanço já registrado: ${mx}%.` : ''}${it.tipo === 'missao' ? ' Em 100% a missão é concluída.' : ''}</div>
+    <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarAvanco(event)">Salvar avanço</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+}
+function salvarAvanco(ev) {
+  const it = db.itens.find(i => i.id === AV_P.id), p = AV_P.p, T = hoje();
+  closeModal();
+  act(ev, () => {
+    it.prog = it.prog || [];
+    const last = it.prog[it.prog.length - 1];
+    if (last && last.d === T) last.p = p; else it.prog.push({ d: T, p });
+    if (it.tipo === 'missao') it.feito = p >= 100 ? (it.feito || T) : null;
+  });
+}
+const pctChip = it => `<span class="xpchip" style="cursor:pointer;background:rgba(251,191,36,.16);color:var(--gold)" onclick="avanco(event,'${it.id}')">📈 ${pctOf(it)}%</span>`;
 function missItem(it) {
   const A = AREAS[it.area];
   return `<div class="item ${it.feito ? 'done' : ''}"><div class="area-dot" style="background:${A.cor}"></div>
     <div class="chk ${it.feito ? 'on' : ''}" onclick="togMiss(event,'${it.id}')">${it.feito ? '✓' : ''}</div>
     <div style="flex:1;min-width:0" onclick="editar('${it.id}')"><div class="nm">${esc(it.nome)}</div>
-      <div class="meta"><span>📜 Missão · ${A.ic} ${A.attr}</span><span class="xpchip">+${DIF[it.dif].xp * 2} XP</span>${it.feito ? `<span>feita ${fmtD(it.feito)}</span>` : prazoTxt(it.prazo)}</div>
+      <div class="meta"><span>📜 Missão · ${A.ic} ${A.attr}</span><span class="xpchip">+${DIF[it.dif].xp * 2} XP</span>${it.feito ? `<span>feita ${fmtD(it.feito)}</span>` : pctChip(it) + prazoTxt(it.prazo)}</div>
+      ${!it.feito && pctOf(it) > 0 ? `<div class="bar" style="height:5px;margin-top:7px"><i style="width:${pctOf(it)}%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></i></div>` : ''}
     </div></div>`;
 }
 function metaCard(it, full) {
   const A = AREAS[it.area], ms = it.marcos || [], dn = ms.filter(m => m.feito).length;
-  const pct = it.feito ? 100 : ms.length ? dn / ms.length * 100 : 0;
+  const pct = pctOf(it);
   return `<div class="card" style="border-left:3px solid ${A.cor}">
     <div class="row between" onclick="editar('${it.id}')" style="cursor:pointer"><div><div class="mut small">🏆 Épico · ${A.ic} ${A.attr}${it.prazo ? ' · até ' + fmtD(it.prazo) : ''}</div><div style="font-weight:800;font-size:16px;margin-top:3px">${esc(it.nome)}</div></div><span class="xpchip">+${100 * it.dif} XP</span></div>
-    <div class="row" style="margin-top:10px"><div class="bar xp" style="flex:1"><i style="width:${pct}%"></i></div><b class="small mono">${Math.round(pct)}%</b></div>
+    <div class="row" style="margin-top:10px"><div class="bar xp" style="flex:1"><i style="width:${pct}%"></i></div><b class="small mono">${Math.round(pct)}%</b>${it.feito ? '' : `<button class="btn ghost sm" onclick="avanco(event,'${it.id}')">📈 Avanço</button>`}</div>
     ${full ? ms.map(m => `<div class="row" style="margin-top:10px"><div class="chk ${m.feito ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px;border-radius:8px" onclick="togMarco(event,'${it.id}','${m.id}')">${m.feito ? '✓' : ''}</div><span style="flex:1;${m.feito ? 'text-decoration:line-through;opacity:.55' : ''}">${esc(m.nome)}</span><span class="mut small">+40</span></div>`).join('') +
-      `<button class="btn ${it.feito ? 'ghost' : 'gold'} sm full" style="margin-top:12px" ${!it.feito && dn < ms.length ? 'disabled' : ''} onclick="concluirMeta(event,'${it.id}')">${it.feito ? '↺ Reabrir épico' : dn < ms.length ? `Conclua os marcos (${dn}/${ms.length})` : '🏆 Concluir épico'}</button>` : `<div class="mut small" style="margin-top:6px">${dn}/${ms.length} marcos</div>`}
+      `<button class="btn ${it.feito ? 'ghost' : 'gold'} sm full" style="margin-top:12px" ${!it.feito && dn < ms.length && pct < 100 ? 'disabled' : ''} onclick="concluirMeta(event,'${it.id}')">${it.feito ? '↺ Reabrir épico' : dn < ms.length && pct < 100 ? `Conclua os marcos (${dn}/${ms.length}) ou chegue a 100%` : '🏆 Concluir épico'}</button>` : `<div class="mut small" style="margin-top:6px">${ms.length ? dn + '/' + ms.length + ' marcos · ' : ''}${pct}% concluído</div>`}
   </div>`;
 }
 function renderHoje() {
@@ -443,7 +489,6 @@ function renderJornada() {
   const ativos = db.itens.filter(i => !i.arq);
   if (jTab === 'habito') {
     const l = ativos.filter(i => i.tipo === 'habito');
-    h += `<button class="btn ghost sm full" style="margin-bottom:12px" onclick="trazerRotinas()">📥 Trazer rotinas do app Rotinas</button>`;
     h += `<div class="mut small" style="margin:0 2px 10px">Rotinas recorrentes. Sequências multiplicam o XP: 3d 1.2x · 7d 1.5x · 14d 1.75x · 30d 2x.</div>`;
     h += l.length ? l.map(it => {
       const A = AREAS[it.area], st = S.streaks[it.id] || { cur: 0, best: 0 };
@@ -621,7 +666,7 @@ function renderLoja() {
   let h = `<div class="card" style="text-align:center;background:linear-gradient(135deg,rgba(251,191,36,.16),rgba(20,29,52,.7))">
     <div style="font-size:44px">🪙</div><div class="title" style="font-size:34px;font-weight:900;color:var(--gold)">${fmtN(S.gold)}</div>
     <div class="mut small">ouro disponível · ${fmtN(S.goldEarned)} ganho no total · ${fmtN(S.spent)} gasto</div>
-    <div class="small" style="margin-top:10px;color:#fde68a">1 ouro a cada 4 XP · +100 por chefão derrotado</div></div>`;
+    <div class="small" style="margin-top:10px;color:#fde68a;line-height:1.5">Hábito leve 1 · médio 2 · épico 4 · missão em dobro<br>Marco 3 · épico concluído 15–45 · dia perfeito 3 · chefão 30</div></div>`;
   h += `<div class="sec-h"><h2>Recompensas</h2><button class="btn ghost sm" onclick="formRec()">+ Nova</button></div>`;
   h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. É o seu sistema de “merecimento”.</div>`;
   h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
@@ -650,7 +695,7 @@ function renderRec() {
     <label>Ícone</label><div>${EMOJIS.map(e => `<span class="pill ${R.ic === e ? 'on' : ''}" style="font-size:18px" onclick="R.nome=$('rNome').value;R.custo=+$('rCusto').value;R.ic='${e}';renderRec()">${e}</span>`).join('')}</div>
     <label>Recompensa</label><input id="rNome" value="${esc(R.nome)}" placeholder="Ex.: Jantar especial">
     <label>Custo em ouro</label><input id="rCusto" type="number" min="1" value="${R.custo}">
-    <div class="mut small" style="margin-top:6px">Referência: um dia bom rende ~30–50 de ouro.</div>
+    <div class="mut small" style="margin-top:6px">Referência: um dia bom rende ~15–25 de ouro.</div>
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarRec()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>
     ${R.id ? `<button class="btn danger sm full" style="margin-top:10px" onclick="db.recompensas=db.recompensas.filter(r=>r.id!=='${R.id}');save();closeModal();render()">Excluir recompensa</button>` : ''}`);
 }
@@ -693,15 +738,15 @@ function renderAderencia() {
       <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Cumpridos</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.d}/${a.s}</div></div>
       <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Dias 100%</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.perf}/${a.dias}</div></div>
     </div><div class="mut small" style="margin-top:8px">Últimos ${aPer} dias, incluindo hoje.</div></div>`;
+  const wk = [1, 2, 3, 4, 5, 6, 0].filter(i => a.pw[i].s);
+  h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por dia da semana</div><div class="bars" style="height:110px;align-items:flex-end">${wk.map(i => { const v = a.pw[i].d / a.pw[i].s; return `<div style="height:${Math.max(3, v * 100)}%;background:${aCor(v)};opacity:.85" title="${DOW[i]}: ${Math.round(v * 100)}%"></div>`; }).join('')}</div>
+    <div class="row small mut" style="gap:3px;margin-top:6px">${wk.map(i => `<span style="flex:1;text-align:center">${DOW[i]}<br><b class="mono" style="color:${aCor(a.pw[i].d / a.pw[i].s)}">${Math.round(a.pw[i].d / a.pw[i].s * 100)}%</b></span>`).join('')}</div></div>`;
   const top = a.ph.slice(0, 3), bot = a.ph.length > 3 ? a.ph.slice(-3).reverse() : a.ph.slice().reverse().filter(x => !top.includes(x) || a.ph.length < 2);
   const lin = x => `<div class="row between small" style="padding:6px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.h.nome)}</span><b class="mono" style="color:${aCor(x.r)}">${Math.round(x.r * 100)}% <span class="mut" style="font-weight:500">(${x.d}/${x.s})</span></b></div>`;
   h += `<div class="card"><b style="color:var(--ok)">✔ Faço bem</b><div style="margin-top:6px">${top.map(lin).join('')}</div>
     ${a.ph.length > 3 ? `<div style="height:1px;background:var(--line);margin:10px 0"></div><b style="color:var(--bad)">✖ Faço mal</b><div style="margin-top:6px">${bot.map(lin).join('')}</div>` : ''}</div>`;
   h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por hábito</div>${a.ph.map(x => aBar(`${AREAS[x.h.area].ic} ${esc(x.h.nome)}${x.h.arq ? ' <span class="mut">(arquivado)</span>' : ''}`, x.r, `${x.d}/${x.s}`)).join('')}</div>`;
   h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por área</div>${AREA_KEYS.filter(k => a.pa[k]).sort((x, y) => a.pa[y].d / a.pa[y].s - a.pa[x].d / a.pa[x].s).map(k => aBar(`${AREAS[k].ic} ${AREAS[k].nome}`, a.pa[k].d / a.pa[k].s, `${a.pa[k].d}/${a.pa[k].s}`)).join('')}</div>`;
-  const wk = [1, 2, 3, 4, 5, 6, 0].filter(i => a.pw[i].s);
-  h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por dia da semana</div><div class="bars" style="height:110px;align-items:flex-end">${wk.map(i => { const v = a.pw[i].d / a.pw[i].s; return `<div style="height:${Math.max(3, v * 100)}%;background:${aCor(v)};opacity:.85" title="${DOW[i]}: ${Math.round(v * 100)}%"></div>`; }).join('')}</div>
-    <div class="row small mut" style="gap:3px;margin-top:6px">${wk.map(i => `<span style="flex:1;text-align:center">${DOW[i]}<br><b class="mono" style="color:${aCor(a.pw[i].d / a.pw[i].s)}">${Math.round(a.pw[i].d / a.pw[i].s * 100)}%</b></span>`).join('')}</div></div>`;
   return h;
 }
 function renderAnalise() {
@@ -791,15 +836,15 @@ function config() {
       • <b>Hábitos</b>: 10 / 25 / 50 XP (leve/média/épica), multiplicados pela sequência (até 2x).<br>
       • <b>Missões</b>: XP em dobro. <b>Épicos</b>: +40 por marco e 100–300 ao concluir.<br>
       • <b>Dia perfeito</b> (todos os hábitos, mín. 3): +30 XP.<br>
-      • <b>Chefão semanal</b>: HP = 70% do XP planejado da semana. Derrotar: +150 XP e +100 ouro.<br>
+      • <b>Chefão semanal</b>: HP = 70% do XP planejado da semana. Derrotar: +150 XP e +30 ouro.<br>
       • <b>Desafio do dia</b>: XP em dobro, sempre na área mais negligenciada.<br>
       • <b>Energia</b>: +4 por hábito cumprido, −10 por hábito perdido. Define o humor do avatar.<br>
-      • <b>Ouro</b>: 1 a cada 4 XP. Troque por recompensas reais no Tesouro.<br>
+      • <b>Ouro</b>: valor fixo por conquista (hábito leve 1, médio 2, épico 4; missões em dobro; marco 3; épico 15–45; dia perfeito 3; chefão 30). Sequências aumentam o XP, não o ouro.<br>
+      • <b>Avanço em %</b>: em missões e épicos, cada avanço libera XP proporcional (até metade do prêmio); concluir paga o prêmio inteiro.<br>
       • <b>Avatar</b>: muda de forma nos níveis 5, 10, 15, 20, 30, 40 e 50, e ganha itens conforme cada atributo evolui.</div>
     <label>Seus dados</label><div class="mut small" style="margin-bottom:8px">Ficam salvos neste aparelho. Faça backup de vez em quando.</div>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="exportar()">⬇ Exportar backup</button>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
-    <button class="btn ghost full" style="margin-bottom:8px" onclick="trazerRotinas()">📥 Trazer rotinas do app Rotinas</button>
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
@@ -814,48 +859,8 @@ async function exportar() {
 function importar(e) {
   const f = e.target.files[0]; if (!f) return;
   const rd = new FileReader();
-  rd.onload = () => { try { const j = JSON.parse(rd.result); if (Array.isArray(j.rotinas) && !j.itens) { closeModal(); return rotinasPreview(j.rotinas); } if (!j.itens || !j.perfil) throw 0; db = Object.assign(DEF(), j); db.ui = Object.assign(DEF().ui, j.ui || {}); save(); S = calc(); celebrate(S, true); closeModal(); render(); toast('✅', 'Backup importado.'); } catch (x) { toast('⚠️', 'Arquivo inválido.'); } };
+  rd.onload = () => { try { const j = JSON.parse(rd.result); if (!j.itens || !j.perfil) throw 0; db = Object.assign(DEF(), j); db.ui = Object.assign(DEF().ui, j.ui || {}); save(); S = calc(); celebrate(S, true); closeModal(); render(); toast('✅', 'Backup importado.'); } catch (x) { toast('⚠️', 'Arquivo inválido.'); } };
   rd.readAsText(f); e.target.value = '';
-}
-/* ---------- importação de rotinas do app Rotinas (sem histórico) ---------- */
-const CAT_AREA = { 'Saúde': 'saude', 'Trabalho': 'carreira', 'Pessoal': 'proposito', 'Financeiro': 'financas', 'Família': 'relacoes', 'Estudo': 'mente' };
-let RI = null;
-function trazerRotinas() {
-  let local = null;
-  try { const r = localStorage.getItem('rotinasApp.v1'); if (r) local = JSON.parse(r); } catch (e) { }
-  if (local && Array.isArray(local.rotinas) && local.rotinas.length) return rotinasPreview(local.rotinas);
-  modal(`<h2 class="title">📥 Trazer rotinas do Rotinas</h2>
-    <p style="line-height:1.55">1. Abra o app <b>Rotinas</b> e toque em <b>⋯</b> (ou na aba <b>Dados</b>).<br>2. Toque em <b>Exportar backup (.json)</b>.<br>3. Volte aqui e selecione o arquivo baixado.</p>
-    <div class="mut small">Só as rotinas vêm para cá, como hábitos. O histórico de dias marcados não é importado.</div>
-    <button class="btn full" style="margin-top:16px" onclick="$('imp').click()">Selecionar arquivo do Rotinas</button>
-    <button class="btn ghost full" style="margin-top:8px" onclick="closeModal()">Cancelar</button>`);
-}
-function rotinasPreview(rots) {
-  const nomes = new Set(db.itens.filter(i => i.tipo === 'habito' && !i.arq).map(i => i.nome.trim().toLowerCase()));
-  RI = rots.filter(r => r && r.nome && !r.arq).map(r => ({
-    nome: String(r.nome).trim(), area: CAT_AREA[r.cat] || 'proposito', cat: r.cat || '',
-    dias: Array.isArray(r.dias) && r.dias.length ? r.dias.map(Number).filter(d => d >= 0 && d <= 6).sort() : [0, 1, 2, 3, 4, 5, 6],
-    dup: nomes.has(String(r.nome).trim().toLowerCase()), on: !nomes.has(String(r.nome).trim().toLowerCase())
-  }));
-  if (!RI.length) return toast('⚠️', 'Nenhuma rotina encontrada nesse arquivo.');
-  renderRI();
-}
-function renderRI() {
-  const n = RI.filter(r => r.on).length;
-  modal(`<h2 class="title">📥 ${RI.length} rotinas encontradas</h2>
-    <div class="mut small" style="margin-bottom:12px">Entram como hábitos, nível Leve, nos mesmos dias da semana. Ajuste área e dificuldade depois, se quiser.</div>
-    ${RI.map((r, i) => `<div class="sug" style="cursor:pointer;${r.on ? 'border-color:var(--acc);background:rgba(124,92,255,.12)' : ''}" onclick="RI[${i}].on=!RI[${i}].on;renderRI()">
-      <div class="chk ${r.on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${r.on ? '✓' : ''}</div>
-      <div style="flex:1;min-width:0"><div class="nm">${esc(r.nome)}</div>
-      <div class="mut small">${esc(r.cat)} → ${AREAS[r.area].ic} ${AREAS[r.area].nome} · ${r.dias.length === 7 ? 'todo dia' : r.dias.map(d => DOW[d]).join(' ')}${r.dup ? ' · <span style="color:var(--warn)">já existe aqui</span>' : ''}</div></div></div>`).join('')}
-    <button class="btn full" style="margin-top:14px" ${n ? '' : 'disabled'} onclick="importarRI()">Importar ${n} ${n === 1 ? 'rotina' : 'rotinas'}</button>
-    <button class="btn ghost full" style="margin-top:8px" onclick="closeModal()">Cancelar</button>`);
-}
-function importarRI() {
-  const sel = RI.filter(r => r.on); if (!sel.length) return;
-  act(null, () => sel.forEach(r => db.itens.push({ id: uid(), tipo: 'habito', nome: r.nome, area: r.area, dif: 1, dias: r.dias, criado: hoje(), nota: '' })));
-  closeModal(); RI = null; jTab = 'habito'; ir('jornada');
-  toast('📥', `<b>${sel.length}</b> ${sel.length === 1 ? 'rotina importada' : 'rotinas importadas'} como hábitos`);
 }
 /* Zera XP/nível/histórico e recomeça hoje; mantém perfil, itens ativos e recompensas */
 function resetProgress() {
