@@ -77,6 +77,9 @@ const AV = (() => {
   };
   const TIERS = MIN.map((min, i) => ({ min, n: CLASSES.guerreiro.tiers[i][0], d: CLASSES.guerreiro.tiers[i][1] }));
   const tierOf = lvl => { let t = 0; MIN.forEach((m, i) => { if (lvl >= m) t = i; }); return t; };
+  /* Ilustrações prontas (raça-classe → formas disponíveis, 1 a 8). Sem arte, usa o desenho vetorial. */
+  const ART = { 'humano-guerreiro': [1, 2, 3, 4, 5, 8] };
+  const artOf = (race, cls, t) => { const k = (race || 'humano') + '-' + (cls || 'guerreiro'); return (ART[k] || []).includes(t + 1) ? `art/${k}-${t + 1}.webp` : null; };
   const tierInfo = (cls, i) => { const c = CLASSES[cls] || CLASSES.guerreiro; return { n: c.tiers[i][0], d: c.tiers[i][1], min: MIN[i] }; };
   const OL = '#0a0d17';
 
@@ -90,6 +93,7 @@ const AV = (() => {
 
   function render(o) {
     o = Object.assign({ tier: 0, race: 'humano', cls: 'guerreiro', skin: null, hair: 'curto', hairColor: HAIRC[1], beard: 'nenhuma', glasses: false, mood: 'feliz', areas: {}, aura: '#7c5cff', anim: true }, o);
+    if (o.art !== false) { const src = artOf(o.race, o.cls, Math.max(0, Math.min(7, o.tier || 0))); if (src) return `<img class="av-art" src="${src}" alt="" decoding="async">`; }
     const R = RACES[o.race] || RACES.humano, C = CLASSES[o.cls] || CLASSES.guerreiro;
     const t = Math.max(0, Math.min(7, o.tier)), K = C.tiers[t][2];
     const id = 'av' + (++uid), A = o.areas, lv = k => A[k] || 1;
@@ -474,5 +478,5 @@ const AV = (() => {
     return `<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>${defs.join('')}</defs><g${an('av-breathe')}>${p.join('')}</g></svg>`;
   }
 
-  return { render, tierOf, tierInfo, TIERS, MIN, RACES, CLASSES, SKINS, HAIRC, HAIRS, BEARDS, shade };
+  return { render, artOf, tierOf, tierInfo, TIERS, MIN, RACES, CLASSES, SKINS, HAIRC, HAIRS, BEARDS, shade };
 })();
