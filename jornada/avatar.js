@@ -11,12 +11,12 @@ const AV = (() => {
 
   /* ---------- raças: proporção do corpo, cabeça, orelhas e paleta de pele ---------- */
   const RACES = {
-    humano:  { n: 'Humano',  ic: '🧑', sx: 1,    sy: 1,    head: 1.12, ears: 'human',  skins: SKINS },
-    elfo:    { n: 'Elfo',    ic: '🧝', sx: .95,  sy: 1.03, head: 1.08, ears: 'elf',    skins: ['#f8e6d8', '#f0d5c0', '#e2c2a6', '#c99c7a', '#a8785a', '#7b5a46'] },
-    anao:    { n: 'Anão',    ic: '⛏️', sx: 1.13, sy: .84,  head: 1.24, ears: 'human',  skins: SKINS },
-    orc:     { n: 'Orc',     ic: '👹', sx: 1.1,  sy: 1.02, head: 1.1,  ears: 'orc',    skins: ['#8fae62', '#76964d', '#5f7d3d', '#7d8a5a', '#8c9e6e', '#4f6a35'], tusks: true },
-    goblin:  { n: 'Goblin',  ic: '👺', sx: .9,   sy: .8,   head: 1.36, ears: 'goblin', skins: ['#a9bb5e', '#93a84b', '#b9c26c', '#7f9a5a', '#c2b45a', '#6f8a46'], nose: true },
-    gigante: { n: 'Gigante', ic: '🗿', sx: 1.15, sy: 1.06, head: 1.02, ears: 'human',  skins: ['#e2cdb8', '#c7b29c', '#a8927c', '#8a7866', '#9aa3b2', '#6f7887'] }
+    humano:  { n: 'Humano',  ic: '🧑', sx: .9,   sy: .9,    head: 1.12, ears: 'human',  skins: SKINS },
+    elfo:    { n: 'Elfo',    ic: '🧝', sx: .85,  sy: .94, head: 1.08, ears: 'elf',    skins: ['#f8e6d8', '#f0d5c0', '#e2c2a6', '#c99c7a', '#a8785a', '#7b5a46'] },
+    anao:    { n: 'Anão',    ic: '⛏️', sx: 1.02, sy: .74,  head: 1.24, ears: 'human',  skins: SKINS },
+    orc:     { n: 'Orc',     ic: '👹', sx: 1,    sy: .93, head: 1.1,  ears: 'orc',    skins: ['#8fae62', '#76964d', '#5f7d3d', '#7d8a5a', '#8c9e6e', '#4f6a35'], tusks: true },
+    goblin:  { n: 'Goblin',  ic: '👺', sx: .8,   sy: .7,   head: 1.36, ears: 'goblin', skins: ['#a9bb5e', '#93a84b', '#b9c26c', '#7f9a5a', '#c2b45a', '#6f8a46'], nose: true },
+    gigante: { n: 'Gigante', ic: '🗿', sx: 1.24, sy: 1.06, head: .98, ears: 'human',  skins: ['#e2cdb8', '#c7b29c', '#a8927c', '#8a7866', '#9aa3b2', '#6f7887'] }
   };
 
   /* ---------- classes: nome e kit visual de cada uma das 8 formas ---------- */
@@ -437,7 +437,7 @@ const AV = (() => {
 
     /* fecha o grupo do corpo com a escala da raça */
     const body = p.splice(b0).join('');
-    p.push(R.sx === 1 && R.sy === 1 ? body : `<g transform="translate(120 281) scale(${R.sx} ${R.sy}) translate(-120 -281)">${body}</g>`);
+    p.push( `<g transform="translate(120 281) scale(${R.sx} ${R.sy}) translate(-120 -281)">${body}</g>`);
 
     /* ================= FLUTUANTES ================= */
     if (lv('mente') >= 5) {
