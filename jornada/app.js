@@ -634,7 +634,7 @@ function renderHeroi() {
   const li = lvlInfo(S.total), T = tierN(S.tier), nx = S.tier < 7 ? tierN(S.tier + 1) : null, cl = CLASSES[db.perfil.classe], rc = RACAS[db.perfil.raca];
   const nConq = CONQ.filter(c => db.ui.conq[c.id]).length;
   let h = `<div class="card glow" style="text-align:center">
-    <div style="width:230px;height:288px;margin:0 auto">${AV.render(avOpts(S))}</div>
+    <div style="width:256px;height:320px;max-width:100%;margin:0 auto">${AV.render(avOpts(S))}</div>
     <div class="title" style="font-size:24px;font-weight:900;margin-top:4px">${esc(db.perfil.nome)}</div>
     <div class="tier" style="font-size:15px">Nível ${S.lvl} · ${T.n}</div>
     <div class="mut small" style="margin-top:3px">${rc ? rc.ic + ' ' + rc.n : ''} · ${cl ? cl.ic + ' ' + cl.n : ''}</div><div class="small" style="margin-top:5px">${bonusTxt(comboBonus(db.perfil.raca, db.perfil.classe))}</div>

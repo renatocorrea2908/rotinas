@@ -239,9 +239,9 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 .pick.on{border-color:var(--acc);background:rgba(124,92,255,.16);box-shadow:0 0 0 1px var(--acc)}
 
 /* ilustrações */
-.av-art{width:100%;height:100%;object-fit:cover;display:block;border-radius:16px;-webkit-mask-image:radial-gradient(ellipse 78% 72% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 78% 72% at 50% 50%,#000 62%,transparent 100%)}
+.av-art{width:100%;height:100%;object-fit:contain;display:block;border-radius:14px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 28px -8px rgba(0,0,0,.7)}
 .road .st img{width:92px;height:115px}
-.pick img{height:118px}
+.pick img{width:100%;height:auto;aspect-ratio:4/5}
 .locked img{filter:brightness(.18) grayscale(1) blur(1.5px)}
 
 .tb-wrap{overflow-x:auto}
