@@ -679,13 +679,6 @@ function escolhaHeroi() {
     <button class="btn gold full" style="margin-top:16px" onclick="salvarEscolha()">Confirmar</button>`, true);
 }
 function salvarEscolha() { delete P.__escolha; const np = P; closeModal(); act(null, () => { db.perfil = np; }); P = null; toast(RACAS[np.raca].ic, `${RACAS[np.raca].n} ${CLASSES[np.classe].n}: sua nova jornada começa.`); }
-function avPicker(target) {
-  return `<label>Tom de pele</label><div>${AV.RACES[P.raca || 'humano'].skins.map(c => `<span class="swatch ${P.pele === c ? 'on' : ''}" style="background:${c}" onclick="P.pele='${c}';${target}()"></span>`).join('')}</div>
-    <label>Cabelo</label><div>${AV.HAIRS.map(([k, n]) => `<span class="pill ${P.cabelo === k ? 'on' : ''}" onclick="P.cabelo='${k}';${target}()">${n}</span>`).join('')}</div>
-    <label>Cor do cabelo</label><div>${AV.HAIRC.map(c => `<span class="swatch ${P.corCabelo === c ? 'on' : ''}" style="background:${c}" onclick="P.corCabelo='${c}';${target}()"></span>`).join('')}</div>
-    <label>Barba</label><div>${AV.BEARDS.map(([k, n]) => `<span class="pill ${P.barba === k ? 'on' : ''}" onclick="P.barba='${k}';${target}()">${n}</span>`).join('')}</div>
-    <label>Acessório</label><div><span class="pill ${P.oculos ? 'on' : ''}" onclick="P.oculos=!P.oculos;${target}()">👓 Óculos</span></div>`;
-}
 function personalizar() { P = Object.assign({}, db.perfil); renderPers(); }
 function renderPers() {
   const st = S;
@@ -694,7 +687,6 @@ function renderPers() {
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
     ${comboLine()}${racaPicker('renderPers')}${classePicker('renderPers')}
     <div class="mut small" style="margin-top:6px">Mudar raça ou classe recalcula o bônus em todo o histórico.</div>
-    ${avPicker('renderPers')}
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
 function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); act(null, () => { db.perfil = P; }); closeModal(); }
@@ -967,23 +959,19 @@ function renderOnboarding() {
       <label>Como chamamos seu herói?</label><input id="obNome" value="${esc(P.nome)}" placeholder="Seu nome" oninput="P.nome=this.value">
       <button class="btn full" style="margin-top:18px" onclick="if(!P.nome.trim()){toast('✏️','Digite um nome.');return}OB.step=1;renderOnboarding()">Começar →</button>`;
   } else if (OB.step === 1) {
-    h = `<div class="mut small" style="text-align:center">Passo 1 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua raça</h1>
+    h = `<div class="mut small" style="text-align:center">Passo 1 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua raça</h1>
       ${racaPicker('renderOnboarding')}
       <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=0;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=2;renderOnboarding()">Continuar →</button></div>`;
   } else if (OB.step === 2) {
-    h = `<div class="mut small" style="text-align:center">Passo 2 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua classe</h1>
+    h = `<div class="mut small" style="text-align:center">Passo 2 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Escolha sua classe</h1>
       ${classePicker('renderOnboarding')}${comboLine()}
       <div class="mut small" style="margin-top:6px">Dá para trocar depois.</div>
-      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=1;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=3;renderOnboarding()">Continuar →</button></div>`;
-  } else if (OB.step === 3) {
-    h = `<div class="mut small" style="text-align:center">Passo 3 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Aparência</h1>
-      <div class="hero-av">${prev(0)}</div>${avPicker('renderOnboarding')}
-      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=2;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=4;renderOnboarding()">Continuar →</button></div>`;
+      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=1;renderOnboarding()">←</button><button class="btn" style="flex:1" onclick="OB.step=4;renderOnboarding()">Continuar →</button></div>`;
   } else {
-    h = `<div class="mut small" style="text-align:center">Passo 4 de 4</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Primeiras missões</h1>
+    h = `<div class="mut small" style="text-align:center">Passo 3 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Primeiras missões</h1>
       <p class="mut small" style="text-align:center">Comece com 3 a 6. Menos é mais: constância vence ambição.</p>
       ${STARTER.map(id => { const s = SUG.find(x => x.id === id), A = AREAS[s.a], on = OB.sel.has(id); return `<div class="sug" style="cursor:pointer;${on ? 'border-color:var(--acc);background:rgba(124,92,255,.14)' : ''}" onclick="OB.sel.has('${id}')?OB.sel.delete('${id}'):OB.sel.add('${id}');renderOnboarding()"><div class="chk ${on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${on ? '✓' : ''}</div><div style="flex:1"><div class="nm">${esc(s.n)}</div><div class="mut small">${A.ic} ${A.nome} · ${{ h: 'Hábito', m: 'Missão', e: 'Épico' }[s.t]}</div></div></div>`; }).join('')}
-      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=3;renderOnboarding()">←</button><button class="btn gold" style="flex:1" onclick="finishOB()">⚔️ Iniciar jornada</button></div>`;
+      <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=2;renderOnboarding()">←</button><button class="btn gold" style="flex:1" onclick="finishOB()">⚔️ Iniciar jornada</button></div>`;
   }
   $('ob').innerHTML = `<div class="ob">${h}</div>`;
   scrollTo(0, 0);
