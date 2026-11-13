@@ -26,6 +26,7 @@ const clsB = a => comboBonus(db.perfil?.raca, db.perfil?.classe)[a] || 0;
 /* Economia do ouro: até ECON_DATA valia 1 ouro a cada 4 XP (+100 por chefão).
    A partir dela o ouro é fixo por conquista, sem multiplicador de sequência. */
 const ECON_DATA = '2026-11-10';
+const ESCUDO = { custo: 20, max: 3 };
 const OURO = { hab: { 1: 1, 2: 2, 3: 4 }, miss: { 1: 2, 2: 4, 3: 8 }, marco: 3, meta: 15, diario: 1, perfeito: 3, chefe: 30 };
 const mult = run => run >= 30 ? 2 : run >= 14 ? 1.75 : run >= 7 ? 1.5 : run >= 3 ? 1.2 : 1;
 
@@ -41,6 +42,7 @@ function save() {
   try { localStorage.setItem(KEY, json); } catch (e) { }
   if (typeof NATIVE !== 'undefined') NATIVE.persist(json);
   cloudPush();
+  reagendar();
 }
 /* Nuvem: quando aberto como link do Claude, guarda o progresso na conta do usuário */
 let cloud = null, cloudT = null;
@@ -75,7 +77,7 @@ function bossHP(ws) {
 
 function calc() {
   const T = hoje();
-  const st = { total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, goldOldXP: 0, goldNew: 0, sched: {} };
+  const st = { escudosUsados: [], escudos: 0, total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, goldOldXP: 0, goldNew: 0, sched: {} };
   AREA_KEYS.forEach(a => st.area[a] = 0);
   const cls = comboBonus(db.perfil?.raca, db.perfil?.classe);
   const add = (a, xp, d) => {
@@ -108,13 +110,19 @@ function calc() {
   Object.keys(ev).forEach(k => { if (k < start) start = k; });
   habs.forEach(h => { if (h.criado < start) start = h.criado; });
 
+  // escudos de sequência: cada um protege 1 dia perdido (a partir da véspera da compra)
+  const esc = db.compras.filter(c => c.tipo === 'escudo').map(c => c.data).sort();
   let wk = null, wXP = 0, wHP = 0, wKill = null;
   const close = () => { if (wk) st.bosses.push({ ws: wk, hp: wHP, dmg: wXP, kill: wKill, boss: bossOf(wk) }); };
   for (let ds = start; ds <= T; ds = addDays(ds, 1)) {
     const ws = weekStart(ds);
     if (ws !== wk) { close(); wk = ws; wXP = 0; wHP = bossHP(ws); wKill = null; }
     const before = st.total;
-    let sch = 0, done = 0;
+    let sch = 0, done = 0, prot = false;
+    if (ds < T && habs.some(h => habAtivo(h, ds) && !(db.log[ds] && db.log[ds][h.id]) && run[h.id] > 0)) {
+      const i = esc.findIndex(d => addDays(d, -1) <= ds);
+      if (i >= 0) { prot = true; esc.splice(i, 1); st.escudosUsados.push(ds); }
+    }
     habs.forEach(h => {
       if (!habAtivo(h, ds)) return;
       sch++;
@@ -122,7 +130,7 @@ function calc() {
         done++; run[h.id]++; best[h.id] = Math.max(best[h.id], run[h.id]); st.habDone++;
         add(h.area, DIF[h.dif].xp * mult(run[h.id]), ds); ouro(OURO.hab[h.dif], ds);
         st.energia = Math.min(100, st.energia + 4);
-      } else if (ds < T) { run[h.id] = 0; st.energia = Math.max(0, st.energia - 10); }
+      } else if (ds < T && !prot) { run[h.id] = 0; st.energia = Math.max(0, st.energia - 10); }
     });
     st.sched[ds] = { sch, done };
     if (sch >= 3 && done === sch) { st.perfect++; add(null, 30, ds); ouro(OURO.perfeito, ds); }
@@ -131,6 +139,7 @@ function calc() {
     if (!wKill && wXP >= wHP) { wKill = ds; st.bossKills++; add(null, 150, ds); if (ds < ECON_DATA) st.goldBonus += 100; else ouro(OURO.chefe, ds); }
   }
   close();
+  st.escudos = esc.length;
   habs.forEach(h => { st.streaks[h.id] = { cur: run[h.id], best: best[h.id] }; st.maxStreak = Math.max(st.maxStreak, best[h.id]); });
   st.lvl = lvlOf(st.total);
   st.areaLv = {}; AREA_KEYS.forEach(a => st.areaLv[a] = lvlOf(st.area[a], needA));
@@ -225,6 +234,11 @@ function celebrate(st, silent) {
     }
     ui.areaLv[a] = n;
   });
+  // escudo usado
+  if (st.escudosUsados.length > (ui.escUsados || 0) && !silent) setTimeout(() => toast('🛡️', `Escudo usado em ${fmtD(st.escudosUsados[st.escudosUsados.length - 1])}: suas sequências foram salvas.`, 'ach-t'), 400);
+  ui.escUsados = st.escudosUsados.length;
+  // galeria: guarda as formas já alcançadas
+  if (db.perfil) { ui.gal = ui.gal || {}; const gk = db.perfil.raca + '-' + db.perfil.classe; ui.gal[gk] = Math.max(ui.gal[gk] ?? -1, st.tier); }
   // nível do herói
   if (st.lvl > ui.lvl && !silent) levelUp(ui.lvl, st);
   ui.lvl = st.lvl;
@@ -387,7 +401,7 @@ function habItem(h, ds) {
   return `<div class="item ${ok ? 'done' : ''}"><div class="area-dot" style="background:${A.cor}"></div>
     <div class="chk ${ok ? 'on' : ''}" onclick="togHab(event,'${h.id}')">${ok ? '✓' : ''}</div>
     <div style="flex:1;min-width:0" onclick="editar('${h.id}')"><div class="nm">${esc(h.nome)}</div>
-      <div class="meta"><span>${A.ic} ${A.attr}</span><span class="xpchip">+${xp} XP${m > 1 && isT ? ` · ${m}x` : ''}</span>${isT && stv.cur >= 2 ? `<span class="fire">🔥 ${stv.cur}</span>` : ''}</div>
+      <div class="meta"><span>${A.ic} ${A.attr}</span><span class="xpchip">+${xp} XP${m > 1 && isT ? ` · ${m}x` : ''}</span>${h.hora ? `<span>⏰ ${h.hora}</span>` : ''}${isT && stv.cur >= 2 ? `<span class="fire">🔥 ${stv.cur}</span>` : ''}</div>
     </div></div>`;
 }
 function prazoTxt(p) {
@@ -541,7 +555,8 @@ function openForm() {
     <label>Área da vida</label><div>${AREA_KEYS.map(a => `<span class="pill ${F.area === a ? 'on' : ''}" onclick="F.area='${a}';[...this.parentNode.children].forEach(e=>e.classList.remove('on'));this.classList.add('on')">${AREAS[a].ic} ${AREAS[a].nome}</span>`).join('')}</div>
     <label>Dificuldade</label><div>${[1, 2, 3].map(d => `<span class="pill ${F.dif === d ? 'on' : ''}" onclick="F.dif=${d};[...this.parentNode.children].forEach(e=>e.classList.remove('on'));this.classList.add('on')">${DIF[d].n} · ${F.tipo === 'meta' ? 100 * d : F.tipo === 'missao' ? DIF[d].xp * 2 : DIF[d].xp} XP</span>`).join('')}</div>
     ${F.tipo === 'habito' ? `<label>Dias da semana</label><div id="fDias">${DOW.map((d, i) => `<span class="pill ${F.dias.includes(i) ? 'on' : ''}" onclick="togDia(${i})">${d}</span>`).join('')}</div>
-      <div class="row small" style="gap:6px"><span class="pill" onclick="F.dias=[0,1,2,3,4,5,6];syncDias()">Todos</span><span class="pill" onclick="F.dias=[1,2,3,4,5];syncDias()">Úteis</span><span class="pill" onclick="F.dias=[0,6];syncDias()">Fim de semana</span></div>` : ''}
+      <div class="row small" style="gap:6px"><span class="pill" onclick="F.dias=[0,1,2,3,4,5,6];syncDias()">Todos</span><span class="pill" onclick="F.dias=[1,2,3,4,5];syncDias()">Úteis</span><span class="pill" onclick="F.dias=[0,6];syncDias()">Fim de semana</span></div>
+      <label>Lembrete neste horário (opcional)</label><div class="row" style="gap:8px"><input type="time" id="fHora" value="${F.hora || ''}" style="width:130px"><span class="mut small">${typeof NATIVE !== 'undefined' && NATIVE.on ? 'Avisa só se ainda não tiver cumprido.' : 'Funciona no app instalado no celular.'}</span></div>` : ''}
     ${F.tipo !== 'habito' ? `<label>Prazo (opcional)</label><input type="date" id="fPrazo" value="${F.prazo || ''}">` : ''}
     ${F.tipo === 'meta' ? `<label>Marcos</label><div id="fMarcos">${F.marcos.map((m, i) => `<div class="row" style="margin-bottom:8px"><input value="${esc(m.nome)}" oninput="F.marcos[${i}].nome=this.value"><button class="btn ghost sm" onclick="F.marcos.splice(${i},1);keepForm()">✕</button></div>`).join('')}</div>
       <button class="btn ghost sm" onclick="F.marcos.push({id:uid(),nome:'',feito:null});keepForm()">+ Marco</button>` : ''}
@@ -550,12 +565,13 @@ function openForm() {
     ${!isNew ? `<div class="row" style="margin-top:10px"><button class="btn ghost sm" style="flex:1" onclick="arquivar('${F.id}')">📦 Arquivar (mantém XP)</button><button class="btn danger sm" style="flex:1" onclick="excluir('${F.id}')">Excluir</button></div>` : ''}`;
   modal(html);
 }
-function keepForm() { F.nome = $('fNome').value; F.nota = $('fNota').value; if ($('fPrazo')) F.prazo = $('fPrazo').value; openForm(); }
+function keepForm() { if ($('fHora')) F.hora = $('fHora').value; F.nome = $('fNome').value; F.nota = $('fNota').value; if ($('fPrazo')) F.prazo = $('fPrazo').value; openForm(); }
 function togDia(i) { F.dias = F.dias.includes(i) ? F.dias.filter(x => x !== i) : [...F.dias, i].sort(); syncDias(); }
 function syncDias() { [...$('fDias').children].forEach((e, i) => e.classList.toggle('on', F.dias.includes(i))); }
 function salvarItem() {
   F.nome = $('fNome').value.trim(); F.nota = $('fNota').value.trim();
   if ($('fPrazo')) F.prazo = $('fPrazo').value;
+  if ($('fHora')) F.hora = $('fHora').value || '';
   if (!F.nome) { $('fNome').focus(); toast('✏️', 'Dê um nome ao item.'); return; }
   if (F.tipo === 'habito' && !F.dias.length) { toast('📅', 'Escolha ao menos um dia.'); return; }
   if (F.tipo === 'meta') F.marcos = F.marcos.filter(m => m.nome.trim());
@@ -565,6 +581,7 @@ function salvarItem() {
     else { const i = db.itens.findIndex(x => x.id === F.id); db.itens[i] = F; }
   });
   closeModal();
+  if (F.hora && !db.ui.lembrete && typeof NATIVE !== 'undefined' && NATIVE.on) setLembrete(true, null, true);
   if (isNew) { toast('✨', `<b>${esc(F.nome)}</b> adicionado à jornada`); if (view === 'jornada') { jTab = F.tipo; render(); } }
 }
 function arquivar(id) { act(null, () => { db.itens.find(i => i.id === id).arq = hoje(); }); closeModal(); toast('📦', 'Arquivado. O XP conquistado continua seu.'); }
@@ -641,10 +658,12 @@ function renderHeroi() {
     <div class="bar xp" style="margin:14px 10px 6px"><i style="width:${li.pct.toFixed(1)}%"></i></div>
     <div class="mut small mono">${fmtN(li.cur)} / ${fmtN(li.next)} XP · total ${fmtN(S.total)}</div>
     ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min} — faltam ${fmtN(need(nx.min) - S.total)} XP</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
-    <button class="btn ghost sm" style="margin-top:14px" onclick="personalizar()">🎨 Personalizar avatar</button>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn gold sm" onclick="compartilharEvolucao()">📤 Compartilhar evolução</button><button class="btn ghost sm" onclick="personalizar()">🎨 Personalizar</button></div>
   </div>`;
   h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}">${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">Nv ${t.min}</div></div>`).join('')}</div>
     <div class="mut small">Cada forma desbloqueia roupas e equipamentos. Os <b>atributos</b> abaixo adicionam itens próprios ao avatar.</div></div>`;
+  const gal = galeriaInfo();
+  h += `<div class="sec-h"><h2>Galeria</h2><span class="mut small">${gal.n}/240 formas</span></div><div class="card row" style="gap:12px;cursor:pointer" onclick="galeria()"><div style="font-size:30px">🖼️</div><div style="flex:1"><b>Coleção de heróis</b><div class="mut small">As 6 raças e 5 classes, com as 8 formas de cada. Evolua para revelar.</div><div class="bar" style="margin-top:8px"><i style="width:${(gal.n / 240 * 100).toFixed(1)}%;background:var(--gold)"></i></div></div><span class="mut">›</span></div>`;
   h += `<div class="sec-h"><h2>Atributos</h2></div><div class="card">${AREA_KEYS.map(a => {
     const A = AREAS[a], i = lvlInfo(S.area[a], needA);
     return `<div class="attr"><div class="ic" style="background:${A.cor}22">${A.ic}</div><div style="flex:1;min-width:0">
@@ -656,6 +675,65 @@ function renderHeroi() {
   h += tabelaBonus();
   h += `<div class="sec-h"><h2>Conquistas</h2><span class="mut small">${nConq}/${CONQ.length}</span></div><div class="card"><div class="ach-grid">${CONQ.map(c => { const u = db.ui.conq[c.id]; return `<div class="ach ${c.r} ${u ? '' : 'lock'}"><div class="i">${c.ic}</div><div class="n">${esc(c.n)}</div><div class="d">${esc(c.d)}</div>${u ? `<div class="d" style="color:var(--gold)">${fmtD(u)}</div>` : ''}</div>`; }).join('')}</div></div>`;
   return h;
+}
+
+/* ---------- galeria ---------- */
+const RACA_ORD = ['humano', 'elfo', 'anao', 'orc', 'goblin', 'gigante'], CLS_ORD = ['guerreiro', 'clerigo', 'mago', 'ladrao', 'druida'];
+function galeriaInfo() { const g = db.ui.gal || {}; return { g, n: Object.values(g).reduce((s, t) => s + t + 1, 0) }; }
+let galRaca = null;
+function galeria(r) {
+  galRaca = r || galRaca || (RACAS[db.perfil.raca] ? db.perfil.raca : 'humano');
+  const { g, n } = galeriaInfo();
+  modal(`<h2 class="title">🖼️ Galeria</h2><div class="mut small">${n} de 240 formas reveladas. Cada nível alcançado revela a forma da sua raça e classe.</div>
+    <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => s + ((g[k + '-' + x] ?? -1) + 1), 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
+    ${CLS_ORD.map(c => { const t = g[galRaca + '-' + c] ?? -1; return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${t + 1}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = i <= t; return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
+    <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`, true);
+}
+function verForma(r, c, i) {
+  const tf = AV.tierInfo(c, i);
+  modal(`<img src="${AV.artOf(r, c, i)}" alt="" style="width:100%;border-radius:16px;display:block">
+    <div class="title" style="font-size:22px;font-weight:900;margin-top:12px;text-align:center">${esc(tf.n)}</div>
+    <div class="mut small" style="text-align:center">${RACAS[r].ic} ${RACAS[r].n} · ${CLASSES[c].ic} ${CLASSES[c].n} · forma ${i + 1} de 8 · Nv ${tf.min}</div>
+    <div class="small" style="text-align:center;margin-top:8px;color:#cbd5e1">${esc(tf.d)}</div>
+    <button class="btn ghost full" style="margin-top:16px" onclick="galeria()">← Voltar à galeria</button>`);
+}
+
+/* ---------- compartilhar evolução ---------- */
+function carregarImg(src) { return new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; }); }
+async function compartilharEvolucao() {
+  const p = db.perfil, T = tierN(S.tier);
+  toast('📤', 'Preparando a imagem…');
+  try {
+    await Promise.all(['900 64px Cinzel', '700 40px Inter', '500 30px Inter'].map(f => document.fonts.load(f)));
+    const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+    const bg = x.createRadialGradient(W / 2, 420, 60, W / 2, 520, 900); bg.addColorStop(0, '#3b2486'); bg.addColorStop(.5, '#1a1045'); bg.addColorStop(1, '#07060f');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    const gold = (y0, y1) => { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#fff4c2'); g.addColorStop(.55, '#f7c948'); g.addColorStop(1, '#b07c1c'); return g; };
+    x.textAlign = 'center';
+    x.font = '900 46px Cinzel'; x.fillStyle = gold(40, 100); x.fillText('BE YOUR HERO', W / 2, 96);
+    const cur = await carregarImg(AV.artOf(p.raca, p.classe, S.tier));
+    const card = (im, cx, cy, w, h, brilho) => {
+      x.save(); x.shadowColor = brilho ? 'rgba(247,201,72,.55)' : 'rgba(0,0,0,.6)'; x.shadowBlur = brilho ? 60 : 30;
+      x.beginPath(); x.roundRect(cx, cy, w, h, 28); x.fillStyle = '#000'; x.fill(); x.restore();
+      x.save(); x.beginPath(); x.roundRect(cx, cy, w, h, 28); x.clip(); x.drawImage(im, cx, cy, w, h); x.restore();
+      x.lineWidth = brilho ? 5 : 3; x.strokeStyle = brilho ? '#f7c948' : 'rgba(247,201,72,.4)'; x.beginPath(); x.roundRect(cx, cy, w, h, 28); x.stroke();
+    };
+    const lab = (t, cx, y) => { x.font = '800 30px Inter'; x.fillStyle = '#fde68a'; x.fillText(t, cx, y); };
+    if (S.tier > 0) {
+      const ini = await carregarImg(AV.artOf(p.raca, p.classe, 0));
+      card(ini, 70, 470, 320, 400, false); lab('NÍVEL 1', 230, 920);
+      x.font = '900 90px Inter'; x.fillStyle = '#f7c948'; x.fillText('›', 455, 700);
+      card(cur, 510, 170, 520, 650, true); lab(`NÍVEL ${S.lvl}`, 770, 870);
+    } else { card(cur, 250, 160, 580, 725, true); lab(`NÍVEL ${S.lvl}`, W / 2, 935); }
+    x.font = '900 70px Cinzel'; x.fillStyle = gold(960, 1040); x.fillText(p.nome.slice(0, 22).toUpperCase(), W / 2, 1035);
+    x.font = '600 34px Inter'; x.fillStyle = '#ddd6fe'; x.fillText(`${T.n} · ${RACAS[p.raca].n} ${CLASSES[p.classe].n}`, W / 2, 1090);
+    const nConq = CONQ.filter(c => db.ui.conq[c.id]).length;
+    x.font = '700 32px Inter'; x.fillStyle = '#fff'; x.fillText(`🔥 ${S.maxStreak} dias de sequência   ⚔️ ${S.bossKills} ${S.bossKills === 1 ? 'chefão' : 'chefões'}   🏆 ${nConq} conquistas`, W / 2, 1180);
+    x.font = '500 30px Inter'; x.fillStyle = '#a78bfa'; x.fillText('Sua vida é o jogo', W / 2, 1280);
+    const url = cv.toDataURL('image/png');
+    const r = await NATIVE.compartilhar(url, 'be-your-hero.png', `Cheguei ao nível ${S.lvl} no Be Your Hero! 🛡️ Minha vida virou um RPG.`);
+    if (r === 'baixado') toast('⬇', 'Imagem salva. Agora é só postar.');
+  } catch (e) { toast('⚠️', 'Não consegui gerar a imagem agora.'); }
 }
 
 /* ---------- personalização (também usada no onboarding) ---------- */
@@ -697,6 +775,10 @@ function renderLoja() {
     <div style="font-size:44px">🪙</div><div class="title" style="font-size:34px;font-weight:900;color:var(--gold)">${fmtN(S.gold)}</div>
     <div class="mut small">ouro disponível · ${fmtN(S.goldEarned)} ganho no total · ${fmtN(S.spent)} gasto</div>
     <div class="small" style="margin-top:10px;color:#fde68a;line-height:1.5">Hábito leve 1 · médio 2 · épico 4 · missão em dobro<br>Marco 3 · épico concluído 15–45 · dia perfeito 3 · chefão 30</div></div>`;
+  const ult = S.escudosUsados.length ? S.escudosUsados[S.escudosUsados.length - 1] : null, cheio = S.escudos >= ESCUDO.max;
+  h += `<div class="sec-h"><h2>Escudo de sequência</h2><span class="mut small">${S.escudos}/${ESCUDO.max}</span></div>
+    <div class="reward"><div class="ic">🛡️</div><div style="flex:1;min-width:0"><div style="font-weight:700">${S.escudos ? `${S.escudos} escudo${S.escudos > 1 ? 's' : ''} pronto${S.escudos > 1 ? 's' : ''}` : 'Nenhum escudo'}</div><div class="mut small">Protege suas sequências em 1 dia perdido. Vale também para ontem.${ult ? ` Último uso: ${fmtD(ult).replace(/\.$/, '')}.` : ''}</div><div class="price">🪙 ${ESCUDO.custo}</div></div>
+      <button class="btn gold sm" ${S.gold < ESCUDO.custo || cheio ? 'disabled' : ''} onclick="comprarEscudo(event)">${cheio ? 'Máximo' : S.gold < ESCUDO.custo ? 'faltam ' + fmtN(ESCUDO.custo - S.gold) : 'Comprar'}</button></div>`;
   h += `<div class="sec-h"><h2>Recompensas</h2><button class="btn ghost sm" onclick="formRec()">+ Nova</button></div>`;
   h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. Toque em ✏️ para mudar o nome, o ícone ou o valor, ou para excluir.</div>`;
   h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0;cursor:pointer" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
@@ -717,6 +799,16 @@ function comprarOk(r, x, y) {
   const st = calc(); celebrate(st, false); S = st;
   floatTxt(x, y, `-${r.custo} 🪙`, true); snd('coin'); vib(20);
   toast(r.ic, `Aproveite: <b>${esc(r.nome)}</b>. Você mereceu.`); render();
+}
+function comprarEscudo(ev) {
+  if (S.gold < ESCUDO.custo || S.escudos >= ESCUDO.max) return;
+  const x = ev.clientX, y = ev.clientY;
+  ask(`Comprar <b>🛡️ Escudo de sequência</b> por 🪙 ${ESCUDO.custo}?<br><span class="mut small">Ele é usado sozinho no primeiro dia em que você perder um hábito, e suas sequências continuam. Se ontem você perdeu algum, ele já protege ontem.</span>`, () => {
+    const antes = S.escudosUsados.length;
+    act(null, () => db.compras.push({ tipo: 'escudo', rid: 'escudo', nome: 'Escudo de sequência', ic: '🛡️', custo: ESCUDO.custo, data: hoje() }));
+    floatTxt(x, y, `-${ESCUDO.custo} 🪙`, true); snd('coin');
+    if (S.escudosUsados.length === antes) toast('🛡️', 'Escudo pronto. Ele entra em ação no primeiro dia perdido.');
+  }, 'Comprar');
 }
 let R = null;
 const EMOJIS = ['🎁', '🍷', '🍰', '📺', '📚', '🎧', '🏖️', '✈️', '🎮', '⛳', '🍣', '💆', '👟', '⌚', '🎬', '🛍️'];
@@ -858,12 +950,51 @@ function ask(msg, yes, okTxt = 'Confirmar', danger = false) {
   modal(`<h2 class="title">Confirmar</h2><p style="line-height:1.5">${msg}</p><div class="row" style="margin-top:16px"><button class="btn ${danger ? 'danger' : ''}" style="flex:1" onclick="closeModal();window.__ask()">${okTxt}</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
 }
 function closeModal() { const m = $('modal'); if (m) m.remove(); }
-async function setLembrete(ativo, hora) {
-  const r = await NATIVE.lembrete(ativo, hora || db.ui.lemHora || '20:00');
-  if (r === 'negado') { toast('🔕', 'Permita as notificações do Be Your Hero nos ajustes do celular.'); ativo = false; }
-  db.ui.lembrete = ativo && r === 'ok'; if (hora) db.ui.lemHora = hora; save();
-  if (r === 'ok') toast('🔔', `Lembrete diário às ${db.ui.lemHora || '20:00'}.`);
-  config();
+async function setLembrete(ativo, hora, quieto) {
+  if (ativo && !(await NATIVE.permitir())) { toast('🔕', 'Permita as notificações do Be Your Hero nos ajustes do celular.'); ativo = false; }
+  db.ui.lembrete = !!ativo; if (hora) db.ui.lemHora = hora; save(); reagendar(true);
+  if (ativo) toast('🔔', `Avisos ligados. Resumo do dia às ${db.ui.lemHora || '20:00'}.`);
+  if (!quieto) config();
+}
+/* Avisos inteligentes: agenda os próximos 7 dias e refaz a cada mudança.
+   Só avisa o que ainda falta; o que já foi cumprido é cancelado. */
+let reagT = null;
+function reagendar(ja) {
+  if (typeof NATIVE === 'undefined' || !NATIVE.on || !db.perfil) return;
+  clearTimeout(reagT); reagT = setTimeout(() => NATIVE.agendar(db.ui.lembrete ? planoAvisos() : []), ja ? 0 : 1500);
+}
+function quando(ds, hm) { const [h, m] = (hm || '20:00').split(':').map(Number); const d = D(ds); d.setHours(h, m, 0, 0); return d; }
+function planoAvisos() {
+  const T = hoje(), agora = new Date(), st = S || calc(), L = [];
+  const habs = db.itens.filter(i => i.tipo === 'habito' && !i.arq);
+  const lem = db.ui.lemHora || '20:00';
+  for (let k = 0; k < 7; k++) {
+    const ds = addDays(T, k);
+    const pend = habs.filter(h => habAtivo(h, ds) && !(db.log[ds] && db.log[ds][h.id]));
+    if (!pend.length) continue;
+    pend.filter(h => h.hora).forEach(h => {
+      const at = quando(ds, h.hora), cur = k === 0 ? (st.streaks[h.id] || {}).cur || 0 : 0;
+      if (at > agora) L.push({ at, title: `${AREAS[h.area].ic} ${h.nome}`, body: cur >= 3 ? `🔥 Sequência de ${cur} dias. Não deixe quebrar.` : 'Hora de cumprir. Seu herói agradece.' });
+    });
+    const at = quando(ds, lem);
+    if (at > agora) {
+      let body = `Faltam ${pend.length} ${pend.length > 1 ? 'hábitos' : 'hábito'} hoje: ${pend.slice(0, 2).map(h => h.nome).join(', ')}${pend.length > 2 ? '…' : ''}`;
+      if (k === 0) {
+        const fogo = pend.map(h => ({ h, c: (st.streaks[h.id] || {}).cur || 0 })).sort((a, b) => b.c - a.c)[0];
+        const b = st.bosses[st.bosses.length - 1];
+        if (fogo && fogo.c >= 3) body = `🔥 Sua sequência de ${fogo.c} dias em "${fogo.h.nome}" acaba hoje. ${body}`;
+        else if (b && !b.kill && b.dmg / b.hp >= 0.6) body = `⚔️ ${b.boss.n} está com ${Math.max(1, Math.round(100 - b.dmg / b.hp * 100))}% de vida. ${body}`;
+      }
+      L.push({ at, title: 'Be Your Hero', body });
+      // alerta de sequência em risco, mais tarde, se o resumo for cedo
+      if (k === 0 && lem < '21:00') {
+        const fogo = pend.map(h => (st.streaks[h.id] || {}).cur || 0).sort((a, b) => b - a)[0];
+        const at2 = quando(ds, '21:30');
+        if (fogo >= 3 && at2 > agora) L.push({ at: at2, title: '🔥 Sequência em risco', body: `Sua sequência de ${fogo} dias acaba hoje. Faltam ${pend.length} ${pend.length > 1 ? 'hábitos' : 'hábito'}.` });
+      }
+    }
+  }
+  return L.sort((a, b) => a.at - b.at).slice(0, 60).map((n, i) => Object.assign(n, { id: 1000 + i }));
 }
 async function nativeBoot() {
   if (typeof NATIVE === 'undefined' || !NATIVE.on) return;
@@ -872,7 +1003,7 @@ async function nativeBoot() {
     const j = await NATIVE.restore();
     if (j) { try { db = Object.assign(DEF(), { migr: null }, JSON.parse(j)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar(); S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render(); } catch (e) { } }
   } else NATIVE.persist(JSON.stringify(db));
-  if (db.ui.lembrete) NATIVE.lembrete(true, db.ui.lemHora || '20:00');
+  reagendar(true);
 }
 function config() {
   modal(`<h2 class="title">⚙️ Configurações</h2>
@@ -889,9 +1020,10 @@ function config() {
       • <b>Ouro</b>: valor fixo por conquista (hábito leve 1, médio 2, épico 4; missões em dobro; marco 3; épico 15–45; dia perfeito 3; chefão 30). Sequências aumentam o XP, não o ouro.<br>
       • <b>Avanço em %</b>: em missões e épicos, cada avanço libera XP proporcional (até metade do prêmio); concluir paga o prêmio inteiro.<br>
       • <b>Avatar</b>: muda de forma nos níveis 5, 10, 15, 20, 30, 40 e 50, e ganha itens conforme cada atributo evolui.</div>
-    ${typeof NATIVE !== 'undefined' && NATIVE.on ? `<label>Lembrete diário</label>
+    ${typeof NATIVE !== 'undefined' && NATIVE.on ? `<label>Avisos</label>
+    <div class="mut small" style="margin-bottom:8px;line-height:1.5">Só tocam se faltar algo: resumo do dia, sequência em risco e chefão quase derrotado. Para avisar um hábito num horário próprio, edite o hábito.</div>
     <div class="row between"><span>🔔 Avisar no celular</span><span class="pill ${db.ui.lembrete ? 'on' : ''}" onclick="setLembrete(!db.ui.lembrete)">${db.ui.lembrete ? 'Ligado' : 'Desligado'}</span></div>
-    ${db.ui.lembrete ? `<div class="row between"><span class="mut small">Horário</span><input type="time" id="lemHora" value="${db.ui.lemHora || '20:00'}" style="width:120px" onchange="setLembrete(true,this.value)"></div>` : ''}` : ''}
+    ${db.ui.lembrete ? `<div class="row between"><span class="mut small">Resumo do dia</span><input type="time" id="lemHora" value="${db.ui.lemHora || '20:00'}" style="width:120px" onchange="setLembrete(true,this.value)"></div>` : ''}` : ''}
     <label>Seus dados</label><div class="mut small" style="margin-bottom:8px">Ficam salvos neste aparelho. Faça backup de vez em quando.</div>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="exportar()">⬇ Exportar backup</button>
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
@@ -990,7 +1122,7 @@ function finishOB() {
   db.recompensas = RECOMP_PADRAO.map(r => Object.assign({ id: uid() }, r));
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
-  if (typeof NATIVE !== 'undefined' && NATIVE.on) setTimeout(() => setLembrete(true, '20:00').then(closeModal), 1500);
+  if (typeof NATIVE !== 'undefined' && NATIVE.on) setTimeout(() => setLembrete(true, '20:00', true), 1500);
   setTimeout(() => toast('⚔️', `Bem-vindo ao Be Your Hero, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
 }
 
@@ -1006,5 +1138,5 @@ $('imp').onchange = importar;
 // virada do dia com o app aberto
 let lastDay = hoje();
 setInterval(() => { if (hoje() !== lastDay) { lastDay = hoje(); diaSel = null; S = calc(); render(); } }, 60000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && db.perfil) { S = calc(); celebrate(S, true); render(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && db.perfil) { S = calc(); celebrate(S, true); render(); reagendar(true); } });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => { });

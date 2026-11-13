@@ -5,16 +5,6 @@ const NATIVE = (() => {
   const P = on ? C.Plugins : {};
   const KEY_PREF = 'lendario.db';
 
-  const MSGS = [
-    'Seus hábitos de hoje esperam por você, herói.',
-    'O chefão da semana não vai se derrotar sozinho. ⚔️',
-    'Um passo hoje, uma lenda amanhã.',
-    'Sua sequência está em jogo. Bora manter a chama acesa 🔥',
-    'O ouro do dia ainda está na mesa. 🪙',
-    'Feche o dia como um campeão: marque o que você cumpriu.',
-    'Pequenas vitórias, juros compostos na vida.'
-  ];
-
   async function haptic(kind) {
     if (!on || !P.Haptics) return false;
     try {
@@ -31,25 +21,43 @@ const NATIVE = (() => {
     try { const r = await P.Preferences.get({ key: KEY_PREF }); return r && r.value ? r.value : null; } catch (e) { return null; }
   }
 
-  async function lembrete(ativo, hora) {
-    if (!on || !P.LocalNotifications) return 'indisponivel';
+  async function permitir() {
+    if (!on || !P.LocalNotifications) return false;
+    try { let p = await P.LocalNotifications.checkPermissions(); if (p.display !== 'granted') p = await P.LocalNotifications.requestPermissions(); return p.display === 'granted'; } catch (e) { return false; }
+  }
+
+  // troca todos os avisos agendados pela lista nova [{id,title,body,at}]
+  let fila = Promise.resolve();
+  function agendar(lista) {
+    if (!on || !P.LocalNotifications) return Promise.resolve('indisponivel');
     const LN = P.LocalNotifications;
-    try {
-      const pend = await LN.getPending();
-      if (pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(n => ({ id: n.id })) });
-      if (!ativo) return 'desligado';
-      let perm = await LN.checkPermissions();
-      if (perm.display !== 'granted') perm = await LN.requestPermissions();
-      if (perm.display !== 'granted') return 'negado';
-      const [h, m] = (hora || '20:00').split(':').map(Number);
-      await LN.schedule({
-        notifications: [1, 2, 3, 4, 5, 6, 7].map(wd => ({
-          id: 100 + wd, title: 'Be Your Hero', body: MSGS[wd - 1],
-          schedule: { on: { weekday: wd, hour: h, minute: m }, allowWhileIdle: true }
-        }))
-      });
+    fila = fila.then(async () => {
+      try {
+        const pend = await LN.getPending();
+        if (pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(n => ({ id: n.id })) });
+        if (!lista.length) return 'ok';
+        const perm = await LN.checkPermissions();
+        if (perm.display !== 'granted') return 'negado';
+        await LN.schedule({ notifications: lista.map(n => ({ id: n.id, title: n.title, body: n.body, schedule: { at: n.at, allowWhileIdle: true } })) });
+        return 'ok';
+      } catch (e) { return 'erro'; }
+    });
+    return fila;
+  }
+
+  // compartilha uma imagem (dataURL PNG); no navegador usa o compartilhamento do sistema ou baixa o arquivo
+  async function compartilhar(dataUrl, nome, texto) {
+    if (on && P.Share && P.Filesystem) {
+      const w = await P.Filesystem.writeFile({ path: nome, data: dataUrl.split(',')[1], directory: 'CACHE' });
+      await P.Share.share({ title: 'Be Your Hero', text: texto, files: [w.uri], dialogTitle: 'Compartilhar evolução' }).catch(() => { });
       return 'ok';
-    } catch (e) { return 'erro'; }
+    }
+    try {
+      const blob = await (await fetch(dataUrl)).blob(), file = new File([blob], nome, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: texto }); return 'ok'; }
+    } catch (e) { if (e && e.name === 'AbortError') return 'ok'; }
+    const a = document.createElement('a'); a.href = dataUrl; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    return 'baixado';
   }
 
   async function init() {
@@ -66,5 +74,5 @@ const NATIVE = (() => {
     } catch (e) { }
   }
 
-  return { on, haptic, persist, restore, lembrete, init };
+  return { on, haptic, persist, restore, permitir, agendar, compartilhar, init };
 })();
