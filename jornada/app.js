@@ -954,7 +954,7 @@ function renderOnboarding() {
   let h = '';
   if (OB.step === 0) {
     h = `<img src="logo.svg" alt="Be Your Hero" style="width:148px;height:148px;display:block;margin:0 auto;filter:drop-shadow(0 0 24px rgba(124,92,255,.55))">
-      <div class="wordmark">LENDÁRIO</div>
+      <div class="wordmark">BE YOUR HERO</div>
       <div style="text-align:center;color:#c4b5fd;font-size:12px;font-weight:700;letter-spacing:5px;margin:4px 0 14px">SUA VIDA É O JOGO</div>
       <p class="mut" style="text-align:center;line-height:1.5">Cada hábito cumprido, missão entregue e meta conquistada evolui seu herói — de <b>Aprendiz</b> a <b>Lenda</b>.</p>
       <label>Como chamamos seu herói?</label><input id="obNome" value="${esc(P.nome)}" placeholder="Seu nome" oninput="P.nome=this.value">
