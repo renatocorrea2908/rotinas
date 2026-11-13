@@ -7,7 +7,7 @@
   - Pacote da Play Store (`app-release.aab`), quando a chave de assinatura estiver cadastrada nos Secrets.
   - Verificação de que o app de iPhone compila.
 - Textos, capturas de tela, banner e ícone das lojas em `loja/`.
-- Política de privacidade: https://renatocorrea2908.github.io/rotinas/jornada/privacidade.html
+- Política de privacidade: https://fineapps.com.br/privacidade-be-your-hero
 
 ## Google Play (Android)
 1. Crie a conta em https://play.google.com/console (US$ 25, pagamento único). Conta pessoal pede verificação de identidade e um teste fechado com 12 testadores por 14 dias antes de liberar ao público; conta de empresa (CNPJ + D-U-N-S) não exige o teste.

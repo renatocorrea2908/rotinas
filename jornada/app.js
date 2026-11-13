@@ -897,7 +897,7 @@ function config() {
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
-    <div class="mut small" style="text-align:center;margin-top:14px">Be Your Hero 1.0 · <a href="privacidade.html" target="_blank" style="color:#a78bfa">Política de privacidade</a></div>
+    <div class="mut small" style="text-align:center;margin-top:14px">Be Your Hero 1.0 · <a href="https://fineapps.com.br/privacidade-be-your-hero" target="_blank" rel="noopener" style="color:#a78bfa">Política de privacidade</a></div>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
 async function exportar() {

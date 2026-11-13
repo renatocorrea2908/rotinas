@@ -5,8 +5,8 @@
 - **Categoria:** Produtividade (secundária: Saúde e fitness)
 - **Classificação etária:** Livre / 4+ (sem violência explícita, sem compras, sem chat)
 - **Preço:** Gratuito, sem anúncios e sem compras no app
-- **Política de privacidade (URL):** https://renatocorrea2908.github.io/rotinas/jornada/privacidade.html
-- **Site / suporte (URL):** https://github.com/renatocorrea2908/rotinas/issues
+- **Política de privacidade (URL):** https://fineapps.com.br/privacidade-be-your-hero
+- **Site / suporte (URL):** https://fineapps.com.br/suporte
 - **Coleta de dados:** Nenhuma. (Play: "Segurança dos dados" → "Este app não coleta nem compartilha dados". Apple: "Privacidade do app" → "Dados não coletados".)
 
 ## Google Play
