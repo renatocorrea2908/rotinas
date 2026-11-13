@@ -698,8 +698,9 @@ function renderLoja() {
     <div class="mut small">ouro disponível · ${fmtN(S.goldEarned)} ganho no total · ${fmtN(S.spent)} gasto</div>
     <div class="small" style="margin-top:10px;color:#fde68a;line-height:1.5">Hábito leve 1 · médio 2 · épico 4 · missão em dobro<br>Marco 3 · épico concluído 15–45 · dia perfeito 3 · chefão 30</div></div>`;
   h += `<div class="sec-h"><h2>Recompensas</h2><button class="btn ghost sm" onclick="formRec()">+ Nova</button></div>`;
-  h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. É o seu sistema de “merecimento”.</div>`;
-  h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
+  h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. Toque em ✏️ para mudar o nome, o ícone ou o valor, ou para excluir.</div>`;
+  h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0;cursor:pointer" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
+      <button class="iconbtn" aria-label="Editar recompensa" title="Editar nome e valor" onclick="formRec('${r.id}')">✏️</button>
       <button class="btn gold sm" ${S.gold < r.custo ? 'disabled' : ''} onclick="comprar(event,'${r.id}')">${S.gold < r.custo ? 'faltam ' + fmtN(r.custo - S.gold) : 'Resgatar'}</button></div>`).join('') : '<div class="empty">Nenhuma recompensa cadastrada.</div>';
   const hist = db.compras.slice().reverse().slice(0, 12);
   if (hist.length) h += `<div class="sec-h"><h2>Resgates</h2></div><div class="card">${hist.map(c => `<div class="row between" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(c.ic || '🎁')} ${esc(c.nome)}</span><span class="mut small mono">${fmtD(c.data)} · 🪙 ${fmtN(c.custo)}</span></div>`).join('')}</div>`;
