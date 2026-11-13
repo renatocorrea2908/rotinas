@@ -1,4 +1,4 @@
-# Como publicar o Lendário
+# Como publicar o Be Your Hero
 
 ## O que já está pronto
 - App Android e iOS em `mobile/` (Capacitor), com ícone, tela de abertura, lembrete diário, vibração e armazenamento nativo.
@@ -17,6 +17,6 @@
 
 ## Apple App Store (iPhone)
 1. Crie a conta em https://developer.apple.com/programs (US$ 99/ano). Como empresa, precisa de D-U-N-S do CNPJ.
-2. No App Store Connect, crie o app com o identificador `com.renatocorrea.lendario`.
+2. No App Store Connect, crie o app com o identificador `fineapps.beyourhero`.
 3. Gere uma chave da API do App Store Connect (Users and Access → Integrations → App Store Connect API) e cadastre no GitHub como Secrets: `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (conteúdo do arquivo .p8) e `APPLE_TEAM_ID`.
 4. Com isso, a montagem assinada e o envio ao TestFlight podem ser automatizados no GitHub (Mac na nuvem), sem precisar de um Mac.

@@ -1,6 +1,6 @@
 {
-  "name": "Lendário — Sua vida é o jogo",
-  "short_name": "Lendário",
+  "name": "Be Your Hero — Sua vida é o jogo",
+  "short_name": "Be Your Hero",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

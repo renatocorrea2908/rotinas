@@ -1,6 +1,6 @@
 {
-  "appId": "com.renatocorrea.lendario",
-  "appName": "Lendário",
+  "appId": "fineapps.beyourhero",
+  "appName": "Be Your Hero",
   "webDir": "www",
   "backgroundColor": "#070b16",
   "android": { "allowMixedContent": false },

@@ -1,8 +1,8 @@
 {
-  "name": "lendario-mobile",
+  "name": "beyourhero-mobile",
   "private": true,
   "version": "1.0.0",
-  "description": "Lendário — app nativo (Android e iOS) empacotando o PWA da pasta jornada/",
+  "description": "Be Your Hero — app nativo (Android e iOS) empacotando o PWA da pasta jornada/",
   "scripts": {
     "sync-web": "rm -rf www && mkdir www && cp -r ../jornada/. www/ && rm -f www/sw.js",
     "sync": "npm run sync-web && npx cap sync"

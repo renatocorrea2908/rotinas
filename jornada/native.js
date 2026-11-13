@@ -44,7 +44,7 @@ const NATIVE = (() => {
       const [h, m] = (hora || '20:00').split(':').map(Number);
       await LN.schedule({
         notifications: [1, 2, 3, 4, 5, 6, 7].map(wd => ({
-          id: 100 + wd, title: 'Lendário', body: MSGS[wd - 1],
+          id: 100 + wd, title: 'Be Your Hero', body: MSGS[wd - 1],
           schedule: { on: { weekday: wd, hour: h, minute: m }, allowWhileIdle: true }
         }))
       });

@@ -860,7 +860,7 @@ function ask(msg, yes, okTxt = 'Confirmar', danger = false) {
 function closeModal() { const m = $('modal'); if (m) m.remove(); }
 async function setLembrete(ativo, hora) {
   const r = await NATIVE.lembrete(ativo, hora || db.ui.lemHora || '20:00');
-  if (r === 'negado') { toast('🔕', 'Permita as notificações do Lendário nos ajustes do celular.'); ativo = false; }
+  if (r === 'negado') { toast('🔕', 'Permita as notificações do Be Your Hero nos ajustes do celular.'); ativo = false; }
   db.ui.lembrete = ativo && r === 'ok'; if (hora) db.ui.lemHora = hora; save();
   if (r === 'ok') toast('🔔', `Lembrete diário às ${db.ui.lemHora || '20:00'}.`);
   config();
@@ -897,7 +897,7 @@ function config() {
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
-    <div class="mut small" style="text-align:center;margin-top:14px">Lendário 1.0 · <a href="privacidade.html" target="_blank" style="color:#a78bfa">Política de privacidade</a></div>
+    <div class="mut small" style="text-align:center;margin-top:14px">Be Your Hero 1.0 · <a href="privacidade.html" target="_blank" style="color:#a78bfa">Política de privacidade</a></div>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
 async function exportar() {
@@ -953,7 +953,7 @@ function renderOnboarding() {
   const prev = (tier, mood) => heroPreview({ tier, mood: mood || 'feliz', anim: true });
   let h = '';
   if (OB.step === 0) {
-    h = `<img src="logo.svg" alt="Lendário" style="width:148px;height:148px;display:block;margin:0 auto;filter:drop-shadow(0 0 24px rgba(124,92,255,.55))">
+    h = `<img src="logo.svg" alt="Be Your Hero" style="width:148px;height:148px;display:block;margin:0 auto;filter:drop-shadow(0 0 24px rgba(124,92,255,.55))">
       <div class="wordmark">LENDÁRIO</div>
       <div style="text-align:center;color:#c4b5fd;font-size:12px;font-weight:700;letter-spacing:5px;margin:4px 0 14px">SUA VIDA É O JOGO</div>
       <p class="mut" style="text-align:center;line-height:1.5">Cada hábito cumprido, missão entregue e meta conquistada evolui seu herói — de <b>Aprendiz</b> a <b>Lenda</b>.</p>
@@ -991,7 +991,7 @@ function finishOB() {
   save(); S = calc(); celebrate(S, true); OB = null; view = 'hoje';
   render();
   if (typeof NATIVE !== 'undefined' && NATIVE.on) setTimeout(() => setLembrete(true, '20:00').then(closeModal), 1500);
-  setTimeout(() => toast('⚔️', `Bem-vindo ao Lendário, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
+  setTimeout(() => toast('⚔️', `Bem-vindo ao Be Your Hero, <b>${esc(db.perfil.nome)}</b>. Sua lenda começa agora.`), 300);
 }
 
 /* =================== BOOT =================== */

@@ -1,4 +1,4 @@
-package com.renatocorrea.lendario;
+package fineapps.beyourhero;
 
 import com.getcapacitor.BridgeActivity;
 
