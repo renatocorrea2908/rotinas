@@ -1,4 +1,4 @@
-name: App Android e iOS (Lendário)
+name: App Android e iOS (Be Your Hero)
 
 on:
   workflow_dispatch:
@@ -44,7 +44,7 @@ jobs:
           jarsigner -keystore release.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" app/build/outputs/bundle/release/app-release.aab "$KEY_ALIAS"
       - uses: actions/upload-artifact@v4
         with:
-          name: lendario-android
+          name: beyourhero-android
           path: |
             mobile/android/app/build/outputs/apk/debug/*.apk
             mobile/android/app/build/outputs/bundle/release/*.aab
@@ -97,7 +97,7 @@ jobs:
           echo "$ASC_KEY_P8" > "$KEY"
           AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
-            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/Lendario.xcarchive \
+            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/BeYourHero.xcarchive \
             DEVELOPMENT_TEAM=$TEAM_ID CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             $AUTH archive
           cat > $RUNNER_TEMP/export.plist <<PLIST
@@ -111,5 +111,5 @@ jobs:
           </dict></plist>
           PLIST
           sed -i '' 's/^          //' $RUNNER_TEMP/export.plist
-          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/Lendario.xcarchive \
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/BeYourHero.xcarchive \
             -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath $RUNNER_TEMP/out $AUTH

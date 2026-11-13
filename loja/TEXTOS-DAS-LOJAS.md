@@ -1,7 +1,7 @@
-# Lendário — textos para cadastro nas lojas
+# Be Your Hero — textos para cadastro nas lojas
 
 ## Comum às duas lojas
-- **Nome do app:** Lendário: Hábitos RPG   (21 caracteres)
+- **Nome do app:** Be Your Hero: Hábitos RPG   (25 caracteres)
 - **Categoria:** Produtividade (secundária: Saúde e fitness)
 - **Classificação etária:** Livre / 4+ (sem violência explícita, sem compras, sem chat)
 - **Preço:** Gratuito, sem anúncios e sem compras no app
@@ -16,7 +16,7 @@ Transforme hábitos e metas em um RPG: evolua seu herói de Aprendiz a Lenda.
 **Descrição completa:**
 Sua vida é o jogo.
 
-O Lendário transforma seus hábitos, tarefas e grandes metas num RPG de verdade. Cada coisa que você cumpre vira XP, ouro e evolução para o seu herói.
+O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verdade. Cada coisa que você cumpre vira XP, ouro e evolução para o seu herói.
 
 ⚔️ ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
@@ -50,7 +50,7 @@ Sem conta, sem anúncios, sem rastreamento. Tudo fica salvo só no seu aparelho 
 - **Palavras-chave (até 100):** habitos,rotina,metas,produtividade,rpg,gamificacao,disciplina,tarefas,foco,lembrete,saude,evolucao
 - **Descrição:** use a mesma descrição completa da Google Play.
 - **Notas para a revisão da Apple (em inglês):**
-  Lendário is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed.
+  Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed.
 
 ## Imagens (nesta pasta)
 - android/1..6.png — capturas 1080×1920 (Play Store)
