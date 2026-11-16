@@ -27,6 +27,30 @@ const clsB = a => comboBonus(db.perfil?.raca, db.perfil?.classe)[a] || 0;
    A partir dela o ouro é fixo por conquista, sem multiplicador de sequência. */
 const ECON_DATA = '2026-11-10';
 const ESCUDO = { custo: 20, max: 3 };
+
+/* =================== PREMIUM: Be Your Hero Lenda (compra única) =================== */
+const COBRANCA_ATIVA = false; // ligar quando o perfil de pagamentos da Play estiver pronto
+const PREMIUM_ID = 'beyourhero_lenda';
+const LIM = { habito: 5, missao: 1, meta: 1, recompensa: 3, escudo: 1, forma: 3, dias: 7 };
+// com a cobrança desligada todos têm o Premium; "ver como grátis" (Configurações) simula o plano grátis
+function premium() { return COBRANCA_ATIVA ? !!db.ui.premium : !db.ui.verGratis; }
+const abertos = tipo => db.itens.filter(i => i.tipo === tipo && !i.arq && (tipo === 'habito' || !i.feito));
+const livres = tipo => new Set(abertos(tipo).slice(0, LIM[tipo]).map(i => i.id));
+function travado(it) { if (premium() || it.arq) return false; if (it.tipo === 'habito') return !!it.trava; return !it.feito && !livres(it.tipo).has(it.id); }
+const recTravada = r => !premium() && db.recompensas.indexOf(r) >= LIM.recompensa;
+const escudoMax = () => premium() ? ESCUDO.max : LIM.escudo;
+const podeCriar = tipo => premium() || abertos(tipo).length < LIM[tipo];
+// hábitos acima do limite ficam pausados no grátis (não contam como perdidos); ao liberar, a pausa fica registrada
+function sincronizarTravas() {
+  const T = hoje(), livre = premium() ? null : livres('habito'); let mud = false;
+  db.itens.filter(i => i.tipo === 'habito').forEach(h => {
+    const deve = !!(livre && !h.arq && !livre.has(h.id));
+    if (deve && !h.trava) { h.trava = T; mud = true; }
+    else if (!deve && h.trava) { if (h.trava < T) (h.pausas = h.pausas || []).push({ de: h.trava, ate: addDays(T, -1) }); delete h.trava; mud = true; }
+  });
+  return mud;
+}
+const LOCK = '<span class="lock-tag">🔒 Lenda</span>';
 const OURO = { hab: { 1: 1, 2: 2, 3: 4 }, miss: { 1: 2, 2: 4, 3: 8 }, marco: 3, meta: 15, diario: 1, perfeito: 3, chefe: 30 };
 const mult = run => run >= 30 ? 2 : run >= 14 ? 1.75 : run >= 7 ? 1.5 : run >= 3 ? 1.2 : 1;
 
@@ -67,7 +91,7 @@ async function cloudInit() {
 /* =================== MOTOR DE CÁLCULO =================== */
 function bossOf(ws) { const n = Math.floor(diffDays('2024-01-01', ws) / 7); return BOSSES[((n % BOSSES.length) + BOSSES.length) % BOSSES.length]; }
 function habVisivel(h, ds) { return !(h.arq && h.arq <= ds) && h.dias.includes(D(ds).getDay()); }
-function habAtivo(h, ds) { return h.criado <= ds && !(h.arq && h.arq <= ds) && h.dias.includes(D(ds).getDay()); }
+function habAtivo(h, ds) { return h.criado <= ds && !(h.arq && h.arq <= ds) && !(h.trava && h.trava <= ds) && !(h.pausas && h.pausas.some(p => p.de <= ds && ds <= p.ate)) && h.dias.includes(D(ds).getDay()); }
 function bossHP(ws) {
   let plan = 0;
   const habs = db.itens.filter(i => i.tipo === 'habito');
@@ -148,7 +172,8 @@ function calc() {
   st.spent = db.compras.reduce((s, c) => s + c.custo, 0);
   st.gold = st.goldEarned - st.spent;
   st.compras = db.compras.length;
-  st.tier = AV.tierOf(st.lvl);
+  st.tierReal = AV.tierOf(st.lvl);
+  st.tier = premium() ? st.tierReal : Math.min(st.tierReal, LIM.forma);
   st.mood = st.energia >= 70 ? 'feliz' : st.energia >= 40 ? 'ok' : st.energia >= 15 ? 'cansado' : 'exausto';
   const dom = AREA_KEYS.slice().sort((a, b) => st.area[b] - st.area[a])[0];
   st.dom = st.area[dom] > 0 ? dom : null;
@@ -200,7 +225,7 @@ function floatTxt(x, y, txt, g) {
 /* Compara antes/depois e dispara todas as celebrações */
 function act(ev, fn) {
   const before = S || calc();
-  fn(); save();
+  fn(); sincronizarTravas(); save();
   const after = calc();
   const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2;
   const dxp = after.total - before.total, dg = after.goldEarned - before.goldEarned;
@@ -238,7 +263,7 @@ function celebrate(st, silent) {
   if (st.escudosUsados.length > (ui.escUsados || 0) && !silent) setTimeout(() => toast('🛡️', `Escudo usado em ${fmtD(st.escudosUsados[st.escudosUsados.length - 1])}: suas sequências foram salvas.`, 'ach-t'), 400);
   ui.escUsados = st.escudosUsados.length;
   // galeria: guarda as formas já alcançadas
-  if (db.perfil) { ui.gal = ui.gal || {}; const gk = db.perfil.raca + '-' + db.perfil.classe; ui.gal[gk] = Math.max(ui.gal[gk] ?? -1, st.tier); }
+  if (db.perfil) { ui.gal = ui.gal || {}; const gk = db.perfil.raca + '-' + db.perfil.classe; ui.gal[gk] = Math.max(ui.gal[gk] ?? -1, st.tierReal); }
   // nível do herói
   if (st.lvl > ui.lvl && !silent) levelUp(ui.lvl, st);
   ui.lvl = st.lvl;
@@ -252,7 +277,7 @@ function levelUp(old, st) {
     <div class="av">${AV.render(avOpts(st, { mood: 'feliz' }))}</div>
     <div class="big">NÍVEL ${st.lvl}</div>
     <div class="sub tier">${T.n}</div>
-    ${tNew > tOld ? `<div class="unl">✦ NOVA FORMA DESBLOQUEADA ✦<br><span style="color:#e0e7ff;font-weight:500">${T.d}</span></div>` : `<div class="unl" style="color:#c4b5fd">Próximo nível: ${fmtN(need(st.lvl + 1) - st.total)} XP</div>`}
+    ${!premium() && st.tierReal > tOld && st.tierReal > LIM.forma ? `<div class="unl" onclick="event.stopPropagation();premiumTela('forma')" style="cursor:pointer">✦ ${tierN(st.tierReal).n.toUpperCase()} CONQUISTADO ✦<br><span style="color:#e0e7ff;font-weight:500">Essa forma é liberada no Be Your Hero Lenda. Toque para ver.</span></div>` : tNew > tOld ? `<div class="unl">✦ NOVA FORMA DESBLOQUEADA ✦<br><span style="color:#e0e7ff;font-weight:500">${T.d}</span></div>` : `<div class="unl" style="color:#c4b5fd">Próximo nível: ${fmtN(need(st.lvl + 1) - st.total)} XP</div>`}
     <button class="btn gold" style="margin-top:22px">Continuar jornada</button>`;
   document.body.appendChild(el);
   snd('lvl'); vib([40, 60, 40, 60, 120]);
@@ -288,10 +313,11 @@ function togHab(ev, id) {
     if (logs.length) { h.criado0 = orig; h.criado = logs[0]; } else { h.criado = orig; delete h.criado0; }
   });
 }
-function togMiss(ev, id) { const it = db.itens.find(i => i.id === id); act(ev, () => { it.feito = it.feito ? null : hoje(); }); }
-function togMarco(ev, id, mid) { const it = db.itens.find(i => i.id === id); const m = it.marcos.find(x => x.id === mid); act(ev, () => { m.feito = m.feito ? null : hoje(); }); }
+function togMiss(ev, id) { const it = db.itens.find(i => i.id === id); if (travado(it)) return premiumTela('missao'); act(ev, () => { it.feito = it.feito ? null : hoje(); }); }
+function togMarco(ev, id, mid) { const it = db.itens.find(i => i.id === id); if (travado(it)) return premiumTela('meta'); const m = it.marcos.find(x => x.id === mid); act(ev, () => { m.feito = m.feito ? null : hoje(); }); }
 function concluirMeta(ev, id) {
   const it = db.itens.find(i => i.id === id);
+  if (travado(it)) return premiumTela('meta');
   if (it.feito) { ask('Reabrir este épico? O XP da conclusão será removido.', () => act(null, () => { it.feito = null; }), 'Reabrir'); return; }
   act(ev, () => { it.feito = hoje(); });
   setTimeout(() => toast('🏆', `Épico concluído: <b>${esc(it.nome)}</b>`, 'ach-t'), 100);
@@ -394,6 +420,7 @@ function desafioCard() {
     </div></div>`;
 }
 function habItem(h, ds) {
+  if (travado(h)) { const A = AREAS[h.area]; return `<div class="item locked" onclick="premiumTela('habito')"><div class="area-dot" style="background:${A.cor}"></div><div class="chk">🔒</div><div style="flex:1;min-width:0"><div class="nm">${esc(h.nome)}</div><div class="meta"><span>${A.ic} ${A.attr}</span>${LOCK}<span>pausado: o grátis tem ${LIM.habito} hábitos</span></div></div></div>`; }
   const ok = !!(db.log[ds] && db.log[ds][h.id]), A = AREAS[h.area], stv = S.streaks[h.id] || { cur: 0 };
   const isT = ds === hoje(), next = isT ? (ok ? stv.cur : stv.cur + 1) : 1;
   const xp = Math.round(DIF[h.dif].xp * mult(next) * (1 + clsB(h.area)));
@@ -420,6 +447,7 @@ let AV_P = null;
 function avanco(ev, id) {
   if (ev) ev.stopPropagation();
   const it = db.itens.find(i => i.id === id); if (!it) return;
+  if (travado(it)) return premiumTela(it.tipo);
   AV_P = { id, p: pctManual(it) };
   renderAvanco();
 }
@@ -446,6 +474,7 @@ function salvarAvanco(ev) {
 const pctChip = it => `<span class="xpchip" style="cursor:pointer;background:rgba(251,191,36,.16);color:var(--gold)" onclick="avanco(event,'${it.id}')">📈 ${pctOf(it)}%</span>`;
 function missItem(it) {
   const A = AREAS[it.area];
+  if (travado(it)) return `<div class="item locked" onclick="premiumTela('missao')"><div class="area-dot" style="background:${A.cor}"></div><div class="chk">🔒</div><div style="flex:1;min-width:0"><div class="nm">${esc(it.nome)}</div><div class="meta"><span>📜 Missão</span>${LOCK}<span>o grátis tem ${LIM.missao} missão aberta</span></div></div></div>`;
   return `<div class="item ${it.feito ? 'done' : ''}"><div class="area-dot" style="background:${A.cor}"></div>
     <div class="chk ${it.feito ? 'on' : ''}" onclick="togMiss(event,'${it.id}')">${it.feito ? '✓' : ''}</div>
     <div style="flex:1;min-width:0" onclick="editar('${it.id}')"><div class="nm">${esc(it.nome)}</div>
@@ -455,6 +484,7 @@ function missItem(it) {
 }
 function metaCard(it, full) {
   const A = AREAS[it.area], ms = it.marcos || [], dn = ms.filter(m => m.feito).length;
+  if (travado(it)) return `<div class="card locked" style="border-left:3px solid ${A.cor};cursor:pointer" onclick="premiumTela('meta')"><div class="mut small">🏆 Épico · ${A.ic} ${A.attr} ${LOCK}</div><div style="font-weight:800;font-size:16px;margin-top:3px">🔒 ${esc(it.nome)}</div><div class="mut small" style="margin-top:6px">O grátis tem ${LIM.meta} épico em andamento. Seu progresso está guardado.</div></div>`;
   const pct = pctOf(it);
   return `<div class="card" style="border-left:3px solid ${A.cor}">
     <div class="row between" onclick="editar('${it.id}')" style="cursor:pointer"><div><div class="mut small">🏆 Épico · ${A.ic} ${A.attr}${it.prazo ? ' · até ' + fmtD(it.prazo) : ''}</div><div style="font-weight:800;font-size:16px;margin-top:3px">${esc(it.nome)}</div></div><span class="xpchip">+${100 * it.dif} XP</span></div>
@@ -468,7 +498,8 @@ function renderHoje() {
   const minD = addDays(T, -7);
   if (!diaSel || diaSel > T || diaSel < minD) diaSel = T;
   const ds = diaSel, isT = ds === T;
-  const habs = db.itens.filter(i => i.tipo === 'habito' && habVisivel(i, ds));
+  const habsT = db.itens.filter(i => i.tipo === 'habito' && habVisivel(i, ds));
+  const habs = habsT.filter(h => !travado(h)), presos = habsT.filter(h => travado(h));
   const ok = habs.filter(h => db.log[ds] && db.log[ds][h.id]).length, pct = habs.length ? ok / habs.length * 100 : 0;
   const lbl = isT ? 'Hoje' : ds === addDays(T, -1) ? 'Ontem' : DOW[D(ds).getDay()];
   const miss = db.itens.filter(i => i.tipo === 'missao' && !i.arq && (!i.feito || i.feito === T)).sort((a, b) => (!!a.feito - !!b.feito) || ((a.prazo || '9') < (b.prazo || '9') ? -1 : 1));
@@ -487,8 +518,9 @@ function renderHoje() {
     h += `<div class="row" style="margin:0 2px 10px"><div class="bar" style="flex:1"><i style="width:${pct}%;background:${pct === 100 ? 'linear-gradient(90deg,#fbbf24,#f59e0b)' : 'linear-gradient(90deg,#16a34a,#4ade80)'}"></i></div><b class="small mono">${ok}/${habs.length}</b></div>`;
     if (pct === 100 && habs.length >= 3) h += `<div class="small" style="color:var(--gold);font-weight:800;margin:-4px 2px 10px">💎 Dia perfeito! +30 XP de bônus</div>`;
     else if (habs.length >= 3) h += `<div class="mut small" style="margin:-4px 2px 10px">Complete todos para o bônus 💎 Dia perfeito (+30 XP)</div>`;
-    h += habs.map(x => habItem(x, ds)).join('');
-  } else h += `<div class="empty">Nenhum hábito para ${isT ? 'hoje' : 'este dia'}.<br><button class="btn sm" style="margin-top:12px" onclick="abrirSug()">💡 Ver sugestões</button></div>`;
+    h += habs.map(x => habItem(x, ds)).join('') + presos.map(x => habItem(x, ds)).join('');
+  } else if (presos.length) h += presos.map(x => habItem(x, ds)).join('');
+  else h += `<div class="empty">Nenhum hábito para ${isT ? 'hoje' : 'este dia'}.<br><button class="btn sm" style="margin-top:12px" onclick="abrirSug()">💡 Ver sugestões</button></div>`;
   if (!isT) h += `<div class="mut small" style="text-align:center">Você está lançando um dia passado (até 7 dias).</div>`;
   if (isT) {
     h += `<div class="sec-h"><h2>Missões</h2><button class="btn ghost sm" onclick="novo('missao')">+ Missão</button></div>`;
@@ -537,11 +569,12 @@ function renderJornada() {
   }
   return h;
 }
-function restaurar(id) { const it = db.itens.find(i => i.id === id); it.arq = null; save(); S = calc(); render(); }
+function restaurar(id) { const it = db.itens.find(i => i.id === id); it.arq = null; sincronizarTravas(); save(); S = calc(); render(); }
 
 /* ---------- formulário (modal) ---------- */
 let F = null;
 function novo(tipo, pre) {
+  if (!podeCriar(tipo || 'habito')) return premiumTela(tipo || 'habito');
   F = Object.assign({ id: null, tipo: tipo || 'habito', nome: '', area: 'saude', dif: 1, dias: [0, 1, 2, 3, 4, 5, 6], prazo: '', marcos: [], nota: '' }, pre || {});
   openForm();
 }
@@ -556,7 +589,7 @@ function openForm() {
     <label>Dificuldade</label><div>${[1, 2, 3].map(d => `<span class="pill ${F.dif === d ? 'on' : ''}" onclick="F.dif=${d};[...this.parentNode.children].forEach(e=>e.classList.remove('on'));this.classList.add('on')">${DIF[d].n} · ${F.tipo === 'meta' ? 100 * d : F.tipo === 'missao' ? DIF[d].xp * 2 : DIF[d].xp} XP</span>`).join('')}</div>
     ${F.tipo === 'habito' ? `<label>Dias da semana</label><div id="fDias">${DOW.map((d, i) => `<span class="pill ${F.dias.includes(i) ? 'on' : ''}" onclick="togDia(${i})">${d}</span>`).join('')}</div>
       <div class="row small" style="gap:6px"><span class="pill" onclick="F.dias=[0,1,2,3,4,5,6];syncDias()">Todos</span><span class="pill" onclick="F.dias=[1,2,3,4,5];syncDias()">Úteis</span><span class="pill" onclick="F.dias=[0,6];syncDias()">Fim de semana</span></div>
-      <label>Lembrete neste horário (opcional)</label><div class="row" style="gap:8px"><input type="time" id="fHora" value="${F.hora || ''}" style="width:130px"><span class="mut small">${typeof NATIVE !== 'undefined' && NATIVE.on ? 'Avisa só se ainda não tiver cumprido.' : 'Funciona no app instalado no celular.'}</span></div>` : ''}
+      <label>Lembrete neste horário (opcional) ${premium() ? '' : LOCK}</label><div class="row" style="gap:8px" ${premium() ? '' : `onclick="premiumTela('aviso')"`}><input type="time" id="fHora" value="${F.hora || ''}" style="width:130px" ${premium() ? '' : 'disabled'}><span class="mut small">${typeof NATIVE !== 'undefined' && NATIVE.on ? 'Avisa só se ainda não tiver cumprido.' : 'Funciona no app instalado no celular.'}</span></div>` : ''}
     ${F.tipo !== 'habito' ? `<label>Prazo (opcional)</label><input type="date" id="fPrazo" value="${F.prazo || ''}">` : ''}
     ${F.tipo === 'meta' ? `<label>Marcos</label><div id="fMarcos">${F.marcos.map((m, i) => `<div class="row" style="margin-bottom:8px"><input value="${esc(m.nome)}" oninput="F.marcos[${i}].nome=this.value"><button class="btn ghost sm" onclick="F.marcos.splice(${i},1);keepForm()">✕</button></div>`).join('')}</div>
       <button class="btn ghost sm" onclick="F.marcos.push({id:uid(),nome:'',feito:null});keepForm()">+ Marco</button>` : ''}
@@ -576,6 +609,7 @@ function salvarItem() {
   if (F.tipo === 'habito' && !F.dias.length) { toast('📅', 'Escolha ao menos um dia.'); return; }
   if (F.tipo === 'meta') F.marcos = F.marcos.filter(m => m.nome.trim());
   const isNew = !F.id;
+  if (isNew && !podeCriar(F.tipo)) { closeModal(); return premiumTela(F.tipo); }
   act(null, () => {
     if (isNew) { F.id = uid(); F.criado = hoje(); if (F.tipo !== 'meta') delete F.marcos; if (F.tipo !== 'habito') delete F.dias; db.itens.push(F); }
     else { const i = db.itens.findIndex(x => x.id === F.id); db.itens[i] = F; }
@@ -619,6 +653,7 @@ function addSug(ev, sid) {
   if (s.t === 'h') it.dias = s.dias.slice();
   if (s.t === 'e') it.marcos = s.marcos.map(n => ({ id: uid(), nome: n, feito: null }));
   if (s.t !== 'h') it.prazo = '';
+  if (!podeCriar(it.tipo)) return premiumTela(it.tipo);
   act(ev, () => db.itens.push(it));
   snd('coin'); toast('✨', `<b>${esc(s.n)}</b> adicionado`);
   renderSug();
@@ -657,10 +692,11 @@ function renderHeroi() {
     <div class="mut small" style="margin-top:3px">${rc ? rc.ic + ' ' + rc.n : ''} · ${cl ? cl.ic + ' ' + cl.n : ''}</div><div class="small" style="margin-top:5px">${bonusTxt(comboBonus(db.perfil.raca, db.perfil.classe))}</div>
     <div class="bar xp" style="margin:14px 10px 6px"><i style="width:${li.pct.toFixed(1)}%"></i></div>
     <div class="mut small mono">${fmtN(li.cur)} / ${fmtN(li.next)} XP · total ${fmtN(S.total)}</div>
-    ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min} — faltam ${fmtN(need(nx.min) - S.total)} XP</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
+    ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min}${!premium() && S.tier >= LIM.forma ? ' · 🔒 liberada no Lenda' : ` — faltam ${fmtN(need(nx.min) - S.total)} XP`}</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
     <div class="row" style="justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn gold sm" onclick="compartilharEvolucao()">📤 Compartilhar evolução</button><button class="btn ghost sm" onclick="personalizar()">🎨 Personalizar</button></div>
   </div>`;
-  h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}">${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">Nv ${t.min}</div></div>`).join('')}</div>
+  if (!premium()) h += `<div class="card prem-cta" onclick="premiumTela()"><div style="font-size:26px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">Todas as raças, as 8 formas e tudo ilimitado. Compra única.</div></div><span class="mut">›</span></div>`;
+  h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => { const pl = !premium() && i > LIM.forma; return `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}" ${pl ? `onclick="premiumTela('forma')" style="cursor:pointer"` : ''}>${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">${pl ? (i <= S.tierReal ? '✓ conquistada · 🔒' : `Nv ${t.min} · 🔒`) : `Nv ${t.min}`}</div></div>`; }).join('')}</div>
     <div class="mut small">Cada forma desbloqueia roupas e equipamentos. Os <b>atributos</b> abaixo adicionam itens próprios ao avatar.</div></div>`;
   const gal = galeriaInfo();
   h += `<div class="sec-h"><h2>Galeria</h2><span class="mut small">${gal.n}/240 formas</span></div><div class="card row" style="gap:12px;cursor:pointer" onclick="galeria()"><div style="font-size:30px">🖼️</div><div style="flex:1"><b>Coleção de heróis</b><div class="mut small">As 6 raças e 5 classes, com as 8 formas de cada. Evolua para revelar.</div><div class="bar" style="margin-top:8px"><i style="width:${(gal.n / 240 * 100).toFixed(1)}%;background:var(--gold)"></i></div></div><span class="mut">›</span></div>`;
@@ -671,10 +707,59 @@ function renderHeroi() {
       <div class="bar" style="margin-top:6px"><i style="width:${i.pct.toFixed(1)}%;background:${A.cor}"></i></div>
       <div class="mut" style="font-size:10.5px;margin-top:4px">${A.perk}</div></div><div class="lv" style="color:${A.cor}">${i.lvl}</div></div>`;
   }).join('')}</div>`;
-  h += `<div class="sec-h"><h2>Roda da vida</h2></div><div class="card radar">${radar()}</div>`;
+  h += `<div class="sec-h"><h2>Roda da vida</h2>${premium() ? '' : LOCK}</div>` + (premium() ? `<div class="card radar">${radar()}</div>` : travaCard('Veja o equilíbrio das 6 áreas da sua vida num gráfico.', 'analise'));
   h += tabelaBonus();
   h += `<div class="sec-h"><h2>Conquistas</h2><span class="mut small">${nConq}/${CONQ.length}</span></div><div class="card"><div class="ach-grid">${CONQ.map(c => { const u = db.ui.conq[c.id]; return `<div class="ach ${c.r} ${u ? '' : 'lock'}"><div class="i">${c.ic}</div><div class="n">${esc(c.n)}</div><div class="d">${esc(c.d)}</div>${u ? `<div class="d" style="color:var(--gold)">${fmtD(u)}</div>` : ''}</div>`; }).join('')}</div></div>`;
   return h;
+}
+
+/* ---------- Be Your Hero Lenda ---------- */
+const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'Trocar de raça ou classe depois é do Lenda.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Lenda.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
+let precoLoja = null;
+function premiumTela(motivo) {
+  const tem = premium() && COBRANCA_ATIVA, nat = typeof NATIVE !== 'undefined' && NATIVE.on;
+  const it = [['🧝', 'Todas as 6 raças', 'e trocar de raça ou classe quando quiser'], ['👑', 'As 8 formas', 'evolua até a Lenda'], ['♾️', 'Ilimitado', 'hábitos, missões, épicos e prêmios do Tesouro'], ['🔔', 'Avisos inteligentes', 'sequência em risco, chefão e horário por hábito'], ['📈', 'Análise completa', '30 e 90 dias, por hábito, área e dia da semana, roda da vida'], ['🛡️', 'Até 3 escudos', 'de sequência guardados'], ['🖼️', 'Galeria das 240 formas', 'e compartilhar sem a marca do app']];
+  const preco = precoLoja || 'R$ 49,90';
+  let acao;
+  if (tem) acao = `<div class="insight" style="text-align:center">✅ Você tem o Be Your Hero Lenda. Obrigado!</div>`;
+  else if (!COBRANCA_ATIVA) acao = `<button class="btn gold full" disabled>Disponível em breve</button><div class="mut small" style="text-align:center;margin-top:8px">Por enquanto, tudo está liberado para você.</div>`;
+  else if (!nat) acao = `<button class="btn gold full" disabled>Compre no app da Play Store ou App Store</button>`;
+  else acao = `<button class="btn gold full" onclick="comprarPremium()">Desbloquear por ${preco}</button>
+    <div class="mut small" style="text-align:center;margin-top:8px">Compra única, pela loja. Sem assinatura e sem cobrança recorrente.</div>
+    <button class="btn ghost full" style="margin-top:10px" onclick="restaurarPremium()">Restaurar compra</button>`;
+  modal(`<div style="text-align:center"><div style="font-size:44px">👑</div><h2 class="title" style="margin:4px 0">Be Your Hero Lenda</h2>
+    ${motivo && PREM_MOTIVO[motivo] && !tem ? `<div class="small" style="color:#fde68a;margin-bottom:6px">${PREM_MOTIVO[motivo]}</div>` : ''}
+    <div class="mut small">Libere o jogo inteiro, para sempre.</div></div>
+    <div style="margin:14px 0">${it.map(([i, a, b]) => `<div class="row" style="gap:12px;padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-size:22px;width:30px;text-align:center">${i}</div><div><b>${a}</b><div class="mut small">${b}</div></div></div>`).join('')}</div>
+    <div class="mut small" style="margin-bottom:12px">Grátis para sempre: raça Humano com as 5 classes, formas 1 a 4, ${LIM.habito} hábitos, ${LIM.missao} missão, ${LIM.meta} épico, chefão da semana, desafio do dia e lembrete diário. Seu progresso nunca é apagado.</div>
+    ${acao}
+    <button class="btn ghost full" style="margin-top:10px" onclick="closeModal()">Agora não</button>`);
+  if (COBRANCA_ATIVA && nat && !precoLoja && !tem) NATIVE.preco(PREMIUM_ID).then(p => { if (p) { precoLoja = p; if ($('modal')) premiumTela(motivo); } });
+}
+function liberarPremium(origem) {
+  db.ui.premium = true; db.ui.premiumDesde = db.ui.premiumDesde || hoje();
+  sincronizarTravas(); save(); S = calc(); celebrate(S, true); reagendar(true); closeModal(); render();
+  if (origem) { toast('👑', origem === 'compra' ? 'Bem-vindo ao <b>Be Your Hero Lenda</b>! Tudo liberado.' : 'Compra restaurada. Tudo liberado.', 'ach-t'); snd('lvl'); }
+}
+async function comprarPremium() {
+  toast('⏳', 'Abrindo a loja…');
+  const r = await NATIVE.comprar(PREMIUM_ID);
+  if (r === 'ok') liberarPremium('compra');
+  else if (r === 'pendente') toast('⏳', 'Pagamento pendente. Quando a loja confirmar, o Lenda é liberado sozinho.');
+  else if (r !== 'cancelado') toast('⚠️', 'Não foi possível concluir a compra agora. Nada foi cobrado.');
+}
+async function restaurarPremium() {
+  toast('⏳', 'Consultando a loja…');
+  const r = await NATIVE.temCompra(PREMIUM_ID);
+  if (r === true) liberarPremium('restaurar');
+  else toast('🔍', r === false ? 'Nenhuma compra do Lenda encontrada nesta conta da loja.' : 'Não consegui falar com a loja agora. Tente de novo.');
+}
+// confere com a loja ao abrir o app (sem servidor): libera se achar a compra; só tira se a loja confirmar que não existe
+async function conferirPremium() {
+  if (!COBRANCA_ATIVA || typeof NATIVE === 'undefined' || !NATIVE.on || !db.perfil) return;
+  const r = await NATIVE.temCompra(PREMIUM_ID, true);
+  if (r === true && !db.ui.premium) liberarPremium();
+  else if (r === false && db.ui.premium) { db.ui.premium = false; sincronizarTravas(); save(); S = calc(); render(); }
 }
 
 /* ---------- galeria ---------- */
@@ -683,10 +768,10 @@ function galeriaInfo() { const g = db.ui.gal || {}; return { g, n: Object.values
 let galRaca = null;
 function galeria(r) {
   galRaca = r || galRaca || (RACAS[db.perfil.raca] ? db.perfil.raca : 'humano');
-  const { g, n } = galeriaInfo();
+  const { g, n } = galeriaInfo(), livre = premium();
   modal(`<h2 class="title">🖼️ Galeria</h2><div class="mut small">${n} de 240 formas reveladas. Cada nível alcançado revela a forma da sua raça e classe.</div>
     <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => s + ((g[k + '-' + x] ?? -1) + 1), 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
-    ${CLS_ORD.map(c => { const t = g[galRaca + '-' + c] ?? -1; return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${t + 1}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = i <= t; return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
+    ${CLS_ORD.map(c => { const meu = galRaca === db.perfil.raca && c === db.perfil.classe; if (!livre && !meu) return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> ${LOCK}</div><div class="gal-it lock" style="aspect-ratio:auto;padding:14px;text-align:center;cursor:pointer" onclick="premiumTela('galeria')"><div class="small">No grátis, a galeria mostra só as formas do seu herói.</div></div>`; const t = Math.min(g[galRaca + '-' + c] ?? -1, livre ? 7 : LIM.forma); return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${t + 1}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = i <= t; return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`, true);
 }
 function verForma(r, c, i) {
@@ -710,7 +795,8 @@ async function compartilharEvolucao() {
     x.fillStyle = bg; x.fillRect(0, 0, W, H);
     const gold = (y0, y1) => { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#fff4c2'); g.addColorStop(.55, '#f7c948'); g.addColorStop(1, '#b07c1c'); return g; };
     x.textAlign = 'center';
-    x.font = '900 46px Cinzel'; x.fillStyle = gold(40, 100); x.fillText('BE YOUR HERO', W / 2, 96);
+    const marca = !premium();
+    if (marca) { x.font = '900 46px Cinzel'; x.fillStyle = gold(40, 100); x.fillText('BE YOUR HERO', W / 2, 96); }
     const cur = await carregarImg(AV.artOf(p.raca, p.classe, S.tier));
     const card = (im, cx, cy, w, h, brilho) => {
       x.save(); x.shadowColor = brilho ? 'rgba(247,201,72,.55)' : 'rgba(0,0,0,.6)'; x.shadowBlur = brilho ? 60 : 30;
@@ -729,7 +815,7 @@ async function compartilharEvolucao() {
     x.font = '600 34px Inter'; x.fillStyle = '#ddd6fe'; x.fillText(`${T.n} · ${RACAS[p.raca].n} ${CLASSES[p.classe].n}`, W / 2, 1090);
     const nConq = CONQ.filter(c => db.ui.conq[c.id]).length;
     x.font = '700 32px Inter'; x.fillStyle = '#fff'; x.fillText(`🔥 ${S.maxStreak} dias de sequência   ⚔️ ${S.bossKills} ${S.bossKills === 1 ? 'chefão' : 'chefões'}   🏆 ${nConq} conquistas`, W / 2, 1180);
-    x.font = '500 30px Inter'; x.fillStyle = '#a78bfa'; x.fillText('Sua vida é o jogo', W / 2, 1280);
+    if (marca) { x.font = '500 30px Inter'; x.fillStyle = '#a78bfa'; x.fillText('Feito com Be Your Hero · Sua vida é o jogo', W / 2, 1280); }
     const url = cv.toDataURL('image/png');
     const r = await NATIVE.compartilhar(url, 'be-your-hero.png', `Cheguei ao nível ${S.lvl} no Be Your Hero! 🛡️ Minha vida virou um RPG.`);
     if (r === 'baixado') toast('⬇', 'Imagem salva. Agora é só postar.');
@@ -741,7 +827,7 @@ let P = null;
 function heroPreview(o) { return AV.render(Object.assign({ race: P.raca || 'humano', cls: P.classe || 'guerreiro', skin: P.pele, hair: P.cabelo, hairColor: P.corCabelo, beard: P.barba, glasses: P.oculos, mood: 'feliz', areas: {}, aura: '#7c5cff', anim: false }, o)); }
 function setRaca(k) { P.raca = k; const sk = AV.RACES[k].skins; if (!sk.includes(P.pele)) P.pele = sk[1]; }
 function racaPicker(target) {
-  return `<label>Raça</label><div class="pick-grid">${Object.entries(RACAS).map(([k, r]) => `<div class="pick ${P.raca === k ? 'on' : ''}" onclick="setRaca('${k}');${target}()">${heroPreview({ race: k, tier: 1 })}<b>${r.ic} ${r.n}</b><div class="pk-d">${r.d}</div><div class="pk-b">${bonusTxt(comboBonus(k, null))}</div></div>`).join('')}</div>`;
+  return `<label>Raça</label><div class="pick-grid">${Object.entries(RACAS).map(([k, r]) => { const lk = !premium() && k !== 'humano' && k !== (db.perfil && db.perfil.raca); return `<div class="pick ${P.raca === k ? 'on' : ''} ${lk ? 'locked' : ''}" onclick="${lk ? "premiumTela('raca')" : `setRaca('${k}');${target}()`}">${heroPreview({ race: k, tier: 1 })}<b>${r.ic} ${r.n}${lk ? ' 🔒' : ''}</b><div class="pk-d">${r.d}</div><div class="pk-b">${bonusTxt(comboBonus(k, null))}</div></div>`; }).join('')}</div>`;
 }
 function classePicker(target) {
   return `<label>Classe</label><div class="pick-grid">${Object.entries(CLASSES).map(([k, c]) => `<div class="pick ${P.classe === k ? 'on' : ''}" onclick="P.classe='${k}';${target}()">${heroPreview({ cls: k, tier: 4 })}<b>${c.ic} ${c.n}</b><div class="pk-d">${c.d}</div><div class="pk-b">${bonusTxt(comboBonus(null, k))}</div></div>`).join('')}</div>`;
@@ -759,12 +845,11 @@ function escolhaHeroi() {
 function salvarEscolha() { delete P.__escolha; const np = P; closeModal(); act(null, () => { db.perfil = np; }); P = null; toast(RACAS[np.raca].ic, `${RACAS[np.raca].n} ${CLASSES[np.classe].n}: sua nova jornada começa.`); }
 function personalizar() { P = Object.assign({}, db.perfil); renderPers(); }
 function renderPers() {
-  const st = S;
+  const st = S, livre = premium();
   modal(`<h2 class="title">🎨 Personalizar</h2>
     <div style="width:180px;height:225px;margin:0 auto">${heroPreview({ tier: st.tier, areas: st.areaLv, anim: true })}</div>
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
-    ${comboLine()}${racaPicker('renderPers')}${classePicker('renderPers')}
-    <div class="mut small" style="margin-top:6px">Mudar raça ou classe recalcula o bônus em todo o histórico.</div>
+    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Mudar raça ou classe recalcula o bônus em todo o histórico.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Lenda</b>. Toque para ver.</div>`}
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
 function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); act(null, () => { db.perfil = P; }); closeModal(); }
@@ -775,21 +860,22 @@ function renderLoja() {
     <div style="font-size:44px">🪙</div><div class="title" style="font-size:34px;font-weight:900;color:var(--gold)">${fmtN(S.gold)}</div>
     <div class="mut small">ouro disponível · ${fmtN(S.goldEarned)} ganho no total · ${fmtN(S.spent)} gasto</div>
     <div class="small" style="margin-top:10px;color:#fde68a;line-height:1.5">Hábito leve 1 · médio 2 · épico 4 · missão em dobro<br>Marco 3 · épico concluído 15–45 · dia perfeito 3 · chefão 30</div></div>`;
-  const ult = S.escudosUsados.length ? S.escudosUsados[S.escudosUsados.length - 1] : null, cheio = S.escudos >= ESCUDO.max;
-  h += `<div class="sec-h"><h2>Escudo de sequência</h2><span class="mut small">${S.escudos}/${ESCUDO.max}</span></div>
+  const ult = S.escudosUsados.length ? S.escudosUsados[S.escudosUsados.length - 1] : null, cheio = S.escudos >= escudoMax();
+  h += `<div class="sec-h"><h2>Escudo de sequência</h2><span class="mut small">${S.escudos}/${escudoMax()}</span></div>
     <div class="reward"><div class="ic">🛡️</div><div style="flex:1;min-width:0"><div style="font-weight:700">${S.escudos ? `${S.escudos} escudo${S.escudos > 1 ? 's' : ''} pronto${S.escudos > 1 ? 's' : ''}` : 'Nenhum escudo'}</div><div class="mut small">Protege suas sequências em 1 dia perdido. Vale também para ontem.${ult ? ` Último uso: ${fmtD(ult).replace(/\.$/, '')}.` : ''}</div><div class="price">🪙 ${ESCUDO.custo}</div></div>
-      <button class="btn gold sm" ${S.gold < ESCUDO.custo || cheio ? 'disabled' : ''} onclick="comprarEscudo(event)">${cheio ? 'Máximo' : S.gold < ESCUDO.custo ? 'faltam ' + fmtN(ESCUDO.custo - S.gold) : 'Comprar'}</button></div>`;
+      <button class="btn gold sm" ${S.gold < ESCUDO.custo || (cheio && premium()) ? 'disabled' : ''} onclick="${cheio && !premium() ? "premiumTela('escudo')" : 'comprarEscudo(event)'}">${cheio ? (premium() ? 'Máximo' : '🔒 Lenda') : S.gold < ESCUDO.custo ? 'faltam ' + fmtN(ESCUDO.custo - S.gold) : 'Comprar'}</button></div>`;
   h += `<div class="sec-h"><h2>Recompensas</h2><button class="btn ghost sm" onclick="formRec()">+ Nova</button></div>`;
   h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. Toque em ✏️ para mudar o nome, o ícone ou o valor, ou para excluir.</div>`;
   h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0;cursor:pointer" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
       <button class="iconbtn" aria-label="Editar recompensa" title="Editar nome e valor" onclick="formRec('${r.id}')">✏️</button>
-      <button class="btn gold sm" ${S.gold < r.custo ? 'disabled' : ''} onclick="comprar(event,'${r.id}')">${S.gold < r.custo ? 'faltam ' + fmtN(r.custo - S.gold) : 'Resgatar'}</button></div>`).join('') : '<div class="empty">Nenhuma recompensa cadastrada.</div>';
+      ${recTravada(r) ? `<button class="btn ghost sm" onclick="premiumTela('recompensa')">🔒 Lenda</button>` : `<button class="btn gold sm" ${S.gold < r.custo ? 'disabled' : ''} onclick="comprar(event,'${r.id}')">${S.gold < r.custo ? 'faltam ' + fmtN(r.custo - S.gold) : 'Resgatar'}</button>`}</div>`).join('') : '<div class="empty">Nenhuma recompensa cadastrada.</div>';
   const hist = db.compras.slice().reverse().slice(0, 12);
   if (hist.length) h += `<div class="sec-h"><h2>Resgates</h2></div><div class="card">${hist.map(c => `<div class="row between" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(c.ic || '🎁')} ${esc(c.nome)}</span><span class="mut small mono">${fmtD(c.data)} · 🪙 ${fmtN(c.custo)}</span></div>`).join('')}</div>`;
   return h;
 }
 function comprar(ev, id) {
   const r = db.recompensas.find(x => x.id === id);
+  if (recTravada(r)) return premiumTela('recompensa');
   if (S.gold < r.custo) return;
   const x = ev.clientX, y = ev.clientY;
   ask(`Resgatar <b>${esc(r.ic + ' ' + r.nome)}</b> por 🪙 ${fmtN(r.custo)}?`, () => comprarOk(r, x, y), 'Resgatar');
@@ -801,7 +887,8 @@ function comprarOk(r, x, y) {
   toast(r.ic, `Aproveite: <b>${esc(r.nome)}</b>. Você mereceu.`); render();
 }
 function comprarEscudo(ev) {
-  if (S.gold < ESCUDO.custo || S.escudos >= ESCUDO.max) return;
+  if (S.escudos >= escudoMax()) return premium() ? null : premiumTela('escudo');
+  if (S.gold < ESCUDO.custo) return;
   const x = ev.clientX, y = ev.clientY;
   ask(`Comprar <b>🛡️ Escudo de sequência</b> por 🪙 ${ESCUDO.custo}?<br><span class="mut small">Ele é usado sozinho no primeiro dia em que você perder um hábito, e suas sequências continuam. Se ontem você perdeu algum, ele já protege ontem.</span>`, () => {
     const antes = S.escudosUsados.length;
@@ -812,7 +899,7 @@ function comprarEscudo(ev) {
 }
 let R = null;
 const EMOJIS = ['🎁', '🍷', '🍰', '📺', '📚', '🎧', '🏖️', '✈️', '🎮', '⛳', '🍣', '💆', '👟', '⌚', '🎬', '🛍️'];
-function formRec(id) { R = id ? Object.assign({}, db.recompensas.find(r => r.id === id)) : { id: null, nome: '', custo: 100, ic: '🎁' }; renderRec(); }
+function formRec(id) { if (!id && !premium() && db.recompensas.length >= LIM.recompensa) return premiumTela('recompensa'); R = id ? Object.assign({}, db.recompensas.find(r => r.id === id)) : { id: null, nome: '', custo: 100, ic: '🎁' }; renderRec(); }
 function renderRec() {
   modal(`<h2 class="title">${R.id ? 'Editar' : 'Nova'} recompensa</h2>
     <label>Ícone</label><div>${EMOJIS.map(e => `<span class="pill ${R.ic === e ? 'on' : ''}" style="font-size:18px" onclick="R.nome=$('rNome').value;R.custo=+$('rCusto').value;R.ic='${e}';renderRec()">${e}</span>`).join('')}</div>
@@ -852,15 +939,18 @@ function aCor(r) { return r >= .8 ? 'var(--ok)' : r >= .5 ? 'var(--warn)' : 'var
 function aBar(label, r, extra) {
   return `<div style="margin-bottom:11px"><div class="row between small"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span><b class="mono" style="color:${aCor(r)}">${Math.round(r * 100)}%${extra ? ` <span class="mut" style="font-weight:500">${extra}</span>` : ''}</b></div><div class="bar" style="margin-top:5px;height:7px"><i style="width:${(r * 100).toFixed(1)}%;background:${aCor(r)}"></i></div></div>`;
 }
+function travaCard(txt, motivo) { return `<div class="card locked" style="cursor:pointer;text-align:center" onclick="premiumTela('${motivo}')"><div style="font-size:24px">🔒</div><div class="small" style="margin-top:6px">${txt}</div><div class="small" style="margin-top:8px;color:var(--gold);font-weight:800">Liberado no Be Your Hero Lenda ›</div></div>`; }
 function renderAderencia() {
+  if (!premium()) aPer = LIM.dias;
   const a = aderencia(), r = a.s ? a.d / a.s : 0;
-  let h = `<div class="sec-h"><h2>Aderência</h2><div>${[7, 30, 90].map(p => `<span class="pill ${p === aPer ? 'on' : ''}" style="margin:0 0 0 6px" onclick="aPer=${p};render()">${p}d</span>`).join('')}</div></div>`;
+  let h = `<div class="sec-h"><h2>Aderência</h2><div>${[7, 30, 90].map(p => { const lk = !premium() && p > LIM.dias; return `<span class="pill ${p === aPer ? 'on' : ''}" style="margin:0 0 0 6px" onclick="${lk ? "premiumTela('analise')" : `aPer=${p};render()`}">${p}d${lk ? ' 🔒' : ''}</span>`; }).join('')}</div></div>`;
   if (!a.s) return h + `<div class="card mut small">Sem hábitos programados neste período.</div>`;
   h += `<div class="card"><div class="grid3">
       <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Aderência</div><div class="title" style="font-size:30px;font-weight:900;color:${aCor(r)}">${Math.round(r * 100)}%</div></div>
       <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Cumpridos</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.d}/${a.s}</div></div>
       <div><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Dias 100%</div><div class="mono" style="font-size:20px;font-weight:800;margin-top:6px">${a.perf}/${a.dias}</div></div>
     </div><div class="mut small" style="margin-top:8px">Últimos ${aPer} dias, incluindo hoje.</div></div>`;
+  if (!premium()) return h + travaCard('Aderência de 30 e 90 dias, por dia da semana, por hábito e por área, e seus pontos fortes e fracos.', 'analise');
   const wk = [1, 2, 3, 4, 5, 6, 0].filter(i => a.pw[i].s);
   h += `<div class="card"><div class="mut small" style="margin-bottom:10px;font-weight:700">Por dia da semana</div><div class="bars" style="height:110px;align-items:flex-end">${wk.map(i => { const v = a.pw[i].d / a.pw[i].s; return `<div style="height:${Math.max(3, v * 100)}%;background:${aCor(v)};opacity:.85" title="${DOW[i]}: ${Math.round(v * 100)}%"></div>`; }).join('')}</div>
     <div class="row small mut" style="gap:3px;margin-top:6px">${wk.map(i => `<span style="flex:1;text-align:center">${DOW[i]}<br><b class="mono" style="color:${aCor(a.pw[i].d / a.pw[i].s)}">${Math.round(a.pw[i].d / a.pw[i].s * 100)}%</b></span>`).join('')}</div></div>`;
@@ -886,6 +976,7 @@ function renderAnalise() {
     <div class="kpi"><div class="l">Chefões</div><div class="v">⚔️ ${kills}/${S.bosses.length}</div><div class="mut small">semanas vencidas</div></div>
     <div class="kpi"><div class="l">Concluídos</div><div class="v">${fmtN(S.habDone + S.missDone)}</div><div class="mut small">${S.habDone} hábitos · ${S.missDone} missões</div></div>
   </div>`;
+  if (!premium()) return h + `<div class="sec-h"><h2>Histórico</h2>${LOCK}</div>` + travaCard('XP dos últimos 30 dias, consistência de 18 semanas e a Leitura do Oráculo.', 'analise');
   // barras 30 dias
   let bars = '', mx = 1;
   for (let i = 29; i >= 0; i--) mx = Math.max(mx, S.daily[addDays(T, -i)] || 0);
@@ -972,14 +1063,14 @@ function planoAvisos() {
     const ds = addDays(T, k);
     const pend = habs.filter(h => habAtivo(h, ds) && !(db.log[ds] && db.log[ds][h.id]));
     if (!pend.length) continue;
-    pend.filter(h => h.hora).forEach(h => {
+    if (premium()) pend.filter(h => h.hora).forEach(h => {
       const at = quando(ds, h.hora), cur = k === 0 ? (st.streaks[h.id] || {}).cur || 0 : 0;
       if (at > agora) L.push({ at, title: `${AREAS[h.area].ic} ${h.nome}`, body: cur >= 3 ? `🔥 Sequência de ${cur} dias. Não deixe quebrar.` : 'Hora de cumprir. Seu herói agradece.' });
     });
     const at = quando(ds, lem);
     if (at > agora) {
       let body = `Faltam ${pend.length} ${pend.length > 1 ? 'hábitos' : 'hábito'} hoje: ${pend.slice(0, 2).map(h => h.nome).join(', ')}${pend.length > 2 ? '…' : ''}`;
-      if (k === 0) {
+      if (k === 0 && premium()) {
         const fogo = pend.map(h => ({ h, c: (st.streaks[h.id] || {}).cur || 0 })).sort((a, b) => b.c - a.c)[0];
         const b = st.bosses[st.bosses.length - 1];
         if (fogo && fogo.c >= 3) body = `🔥 Sua sequência de ${fogo.c} dias em "${fogo.h.nome}" acaba hoje. ${body}`;
@@ -987,7 +1078,7 @@ function planoAvisos() {
       }
       L.push({ at, title: 'Be Your Hero', body });
       // alerta de sequência em risco, mais tarde, se o resumo for cedo
-      if (k === 0 && lem < '21:00') {
+      if (k === 0 && lem < '21:00' && premium()) {
         const fogo = pend.map(h => (st.streaks[h.id] || {}).cur || 0).sort((a, b) => b - a)[0];
         const at2 = quando(ds, '21:30');
         if (fogo >= 3 && at2 > agora) L.push({ at: at2, title: '🔥 Sequência em risco', body: `Sua sequência de ${fogo} dias acaba hoje. Faltam ${pend.length} ${pend.length > 1 ? 'hábitos' : 'hábito'}.` });
@@ -1004,9 +1095,12 @@ async function nativeBoot() {
     if (j) { try { db = Object.assign(DEF(), { migr: null }, JSON.parse(j)); db.ui = Object.assign(DEF().ui, db.ui || {}); migrar(); S = db.perfil ? calc() : null; if (S) celebrate(S, true); OB = null; render(); } catch (e) { } }
   } else NATIVE.persist(JSON.stringify(db));
   reagendar(true);
+  conferirPremium();
 }
 function config() {
   modal(`<h2 class="title">⚙️ Configurações</h2>
+    <div class="card prem-cta" style="margin-top:12px" onclick="premiumTela()"><div style="font-size:24px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">${premium() && COBRANCA_ATIVA ? 'Ativo. Obrigado!' : COBRANCA_ATIVA ? 'Ver o que está incluído' : 'Em breve · tudo liberado por enquanto'}</div></div><span class="mut">›</span></div>
+    ${COBRANCA_ATIVA ? '' : `<div class="row between"><span class="small">🧪 Ver o app como grátis <span class="mut">(teste)</span></span><span class="pill ${db.ui.verGratis ? 'on' : ''}" onclick="db.ui.verGratis=!db.ui.verGratis;sincronizarTravas();save();S=calc();render();reagendar(true);config()">${db.ui.verGratis ? 'Ligado' : 'Desligado'}</span></div>`}
     <div class="row between" style="margin-top:14px"><span>🔊 Sons</span><span class="pill ${db.ui.som ? 'on' : ''}" onclick="db.ui.som=!db.ui.som;save();config()">${db.ui.som ? 'Ligado' : 'Desligado'}</span></div>
     <div class="row between"><span>📳 Vibração</span><span class="pill ${db.ui.vib ? 'on' : ''}" onclick="db.ui.vib=!db.ui.vib;save();config()">${db.ui.vib ? 'Ligada' : 'Desligada'}</span></div>
     <label>Como o jogo funciona</label>
@@ -1078,6 +1172,16 @@ function zerar() { ask('Apagar <b>todo</b> o progresso, itens e conquistas? Isso
 
 /* =================== ONBOARDING =================== */
 let OB = null;
+function obTog(id) {
+  if (OB.sel.has(id)) OB.sel.delete(id);
+  else {
+    const t = { h: 'habito', m: 'missao', e: 'meta' }[SUG.find(x => x.id === id).t];
+    const n = [...OB.sel].filter(x => ({ h: 'habito', m: 'missao', e: 'meta' }[SUG.find(z => z.id === x).t]) === t).length;
+    if (!premium() && n >= LIM[t]) { toast('🔒', `No grátis: até ${LIM.habito} hábitos, ${LIM.missao} missão e ${LIM.meta} épico.`); return; }
+    OB.sel.add(id);
+  }
+  renderOnboarding();
+}
 const STARTER = ['s3', 's1', 'm1', 'c1', 'c2', 'f1', 'r1', 'p1', 's2', 'p2', 'c5', 'f4'];
 function renderOnboarding() {
   $('app').classList.add('hide'); $('ob').classList.remove('hide');
@@ -1103,7 +1207,7 @@ function renderOnboarding() {
   } else {
     h = `<div class="mut small" style="text-align:center">Passo 3 de 3</div><h1 class="title" style="text-align:center;font-size:24px;margin:6px 0">Primeiras missões</h1>
       <p class="mut small" style="text-align:center">Comece com 3 a 6. Menos é mais: constância vence ambição.</p>
-      ${STARTER.map(id => { const s = SUG.find(x => x.id === id), A = AREAS[s.a], on = OB.sel.has(id); return `<div class="sug" style="cursor:pointer;${on ? 'border-color:var(--acc);background:rgba(124,92,255,.14)' : ''}" onclick="OB.sel.has('${id}')?OB.sel.delete('${id}'):OB.sel.add('${id}');renderOnboarding()"><div class="chk ${on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${on ? '✓' : ''}</div><div style="flex:1"><div class="nm">${esc(s.n)}</div><div class="mut small">${A.ic} ${A.nome} · ${{ h: 'Hábito', m: 'Missão', e: 'Épico' }[s.t]}</div></div></div>`; }).join('')}
+      ${STARTER.map(id => { const s = SUG.find(x => x.id === id), A = AREAS[s.a], on = OB.sel.has(id); return `<div class="sug" style="cursor:pointer;${on ? 'border-color:var(--acc);background:rgba(124,92,255,.14)' : ''}" onclick="obTog('${id}')"><div class="chk ${on ? 'on' : ''}" style="width:26px;height:26px;min-width:26px;font-size:14px">${on ? '✓' : ''}</div><div style="flex:1"><div class="nm">${esc(s.n)}</div><div class="mut small">${A.ic} ${A.nome} · ${{ h: 'Hábito', m: 'Missão', e: 'Épico' }[s.t]}</div></div></div>`; }).join('')}
       <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="OB.step=2;renderOnboarding()">←</button><button class="btn gold" style="flex:1" onclick="finishOB()">⚔️ Iniciar jornada</button></div>`;
   }
   $('ob').innerHTML = `<div class="ob">${h}</div>`;
@@ -1130,6 +1234,7 @@ function finishOB() {
 load();
 migrar();
 aplicarSeeds();
+if (db.perfil && sincronizarTravas()) save();
 if (db.perfil) { S = calc(); celebrate(S, true); }
 render();
 cloudInit();

@@ -60,6 +60,34 @@ const NATIVE = (() => {
     return 'baixado';
   }
 
+  /* Compra do Be Your Hero Lenda pela loja (Google Play Billing / StoreKit), sem servidor.
+     Se houver oferta de lançamento ativa, a loja devolve a oferta mais barata e ela é usada. */
+  const LJ = () => (on && P.NativePurchases) || null;
+  async function oferta(id) {
+    const L = LJ(); if (!L) return null;
+    try { const r = await L.getProducts({ productIdentifiers: [id], productType: 'inapp' }); const ps = (r.products || []).filter(x => x.identifier === id); return ps.sort((a, b) => a.price - b.price)[0] || null; } catch (e) { return null; }
+  }
+  async function preco(id) { const o = await oferta(id); return o ? o.priceString + (o.fullPrice && o.fullPrice > o.price ? ' (preço de lançamento)' : '') : null; }
+  const valida = t => t && (t.purchaseState === undefined || t.purchaseState === '1') && !t.revocationDate;
+  async function comprar(id) {
+    const L = LJ(); if (!L) return 'erro';
+    try {
+      const o = await oferta(id);
+      const t = await L.purchaseProduct(Object.assign({ productIdentifier: id, productType: 'inapp' }, o && o.offerToken ? { offerToken: o.offerToken } : {}));
+      if (valida(t)) return 'ok';
+      return t && t.purchaseState === '0' ? 'pendente' : 'erro';
+    } catch (e) { const m = String(e && (e.code || e.message) || '').toLowerCase(); return m.includes('cancel') ? 'cancelado' : 'erro'; }
+  }
+  // true = tem a compra; false = a loja confirmou que não tem; null = não deu para consultar
+  async function temCompra(id, silencioso) {
+    const L = LJ(); if (!L) return null;
+    try {
+      if (!silencioso) await L.restorePurchases().catch(() => { });
+      const r = await L.getPurchases({ productType: 'inapp', onlyCurrentEntitlements: true });
+      return (r.purchases || []).some(t => t.productIdentifier === id && valida(t));
+    } catch (e) { return null; }
+  }
+
   async function init() {
     if (!on) return;
     try { if (P.StatusBar) { await P.StatusBar.setStyle({ style: 'DARK' }); if (C.getPlatform() === 'android') await P.StatusBar.setBackgroundColor({ color: '#070b16' }); } } catch (e) { }
@@ -74,5 +102,5 @@ const NATIVE = (() => {
     } catch (e) { }
   }
 
-  return { on, haptic, persist, restore, permitir, agendar, compartilhar, init };
+  return { on, haptic, persist, restore, permitir, agendar, compartilhar, preco, comprar, temCompra, init };
 })();
