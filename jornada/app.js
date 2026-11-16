@@ -23,6 +23,20 @@ const lvlOf = (xp, f = need) => { let L = 1; while (f(L + 1) <= xp) L++; return 
 const lvlInfo = (xp, f = need) => { const L = lvlOf(xp, f), a = f(L), b = f(L + 1); return { lvl: L, cur: xp - a, next: b - a, pct: (xp - a) / (b - a) * 100 }; };
 const tierN = i => AV.tierInfo(CLASSES[db.perfil?.classe] ? db.perfil.classe : 'guerreiro', i);
 const clsB = a => comboBonus(db.perfil?.raca, db.perfil?.classe)[a] || 0;
+/* Histórico de raça/classe: o bônus de cada dia é o da escolha vigente naquele dia.
+   Trocar de raça ou classe só vale daí para a frente; o que já foi ganho não muda. */
+function histPerfil() { const h = (db.perfilHist || []).slice().sort((a, b) => a.de < b.de ? -1 : 1); return h.length ? h : [{ de: '0000-00-00', raca: db.perfil?.raca, classe: db.perfil?.classe }]; }
+function registrarTroca(np) {
+  const old = db.perfil || {};
+  if (old.raca === np.raca && old.classe === np.classe) return;
+  const T = hoje();
+  if (!db.perfilHist || !db.perfilHist.length) db.perfilHist = [{ de: '0000-00-00', raca: old.raca, classe: old.classe }];
+  db.perfilHist = db.perfilHist.filter(x => x.de !== T);
+  db.perfilHist.push({ de: T, raca: np.raca, classe: np.classe });
+  // coleção: a nova raça/classe entra só com a forma atual
+  const gk = np.raca + '-' + np.classe, t = S ? S.tierReal : 0, g = (db.ui.gal2 = db.ui.gal2 || {});
+  if (!g[gk]) g[gk] = [t, t];
+}
 /* Economia do ouro: até ECON_DATA valia 1 ouro a cada 4 XP (+100 por chefão).
    A partir dela o ouro é fixo por conquista, sem multiplicador de sequência. */
 const ECON_DATA = '2026-11-10';
@@ -103,9 +117,10 @@ function calc() {
   const T = hoje();
   const st = { escudosUsados: [], escudos: 0, total: 0, area: {}, daily: {}, dailyArea: {}, streaks: {}, habDone: 0, missDone: 0, metaDone: 0, perfect: 0, bosses: [], bossKills: 0, desafios: 0, diario: 0, maxStreak: 0, energia: 80, goldBonus: 0, goldOldXP: 0, goldNew: 0, sched: {} };
   AREA_KEYS.forEach(a => st.area[a] = 0);
-  const cls = comboBonus(db.perfil?.raca, db.perfil?.classe);
+  const hist = histPerfil().map(x => Object.assign({}, x, { b: comboBonus(x.raca, x.classe) }));
+  const bonusEm = d => { let b = hist[0].b; for (const x of hist) { if (x.de <= d) b = x.b; else break; } return b; };
   const add = (a, xp, d) => {
-    xp = Math.round(xp * (1 + (a ? cls[a] || 0 : 0)));
+    xp = Math.round(xp * (1 + (a ? bonusEm(d)[a] || 0 : 0)));
     st.total += xp; if (a) st.area[a] += xp;
     st.daily[d] = (st.daily[d] || 0) + xp;
     if (a) { st.dailyArea[d] = st.dailyArea[d] || {}; st.dailyArea[d][a] = (st.dailyArea[d][a] || 0) + xp; }
@@ -263,7 +278,11 @@ function celebrate(st, silent) {
   if (st.escudosUsados.length > (ui.escUsados || 0) && !silent) setTimeout(() => toast('🛡️', `Escudo usado em ${fmtD(st.escudosUsados[st.escudosUsados.length - 1])}: suas sequências foram salvas.`, 'ach-t'), 400);
   ui.escUsados = st.escudosUsados.length;
   // galeria: guarda as formas já alcançadas
-  if (db.perfil) { ui.gal = ui.gal || {}; const gk = db.perfil.raca + '-' + db.perfil.classe; ui.gal[gk] = Math.max(ui.gal[gk] ?? -1, st.tierReal); }
+  if (db.perfil) {
+    if (!ui.gal2) { ui.gal2 = {}; Object.entries(ui.gal || {}).forEach(([k, t]) => { if (t >= 0) ui.gal2[k] = [0, t]; }); }
+    const gk = db.perfil.raca + '-' + db.perfil.classe, r = ui.gal2[gk];
+    ui.gal2[gk] = r ? [Math.min(r[0], st.tierReal), Math.max(r[1], st.tierReal)] : [st.tierReal, st.tierReal];
+  }
   // nível do herói
   if (st.lvl > ui.lvl && !silent) levelUp(ui.lvl, st);
   ui.lvl = st.lvl;
@@ -764,14 +783,15 @@ async function conferirPremium() {
 
 /* ---------- galeria ---------- */
 const RACA_ORD = ['humano', 'elfo', 'anao', 'orc', 'goblin', 'gigante'], CLS_ORD = ['guerreiro', 'clerigo', 'mago', 'ladrao', 'druida'];
-function galeriaInfo() { const g = db.ui.gal || {}; return { g, n: Object.values(g).reduce((s, t) => s + t + 1, 0) }; }
+function galeriaInfo() { const g = db.ui.gal2 || {}; return { g, n: Object.values(g).reduce((s, r) => s + r[1] - r[0] + 1, 0) }; }
+const temForma = (g, k, i) => { const r = g[k]; return !!r && i >= r[0] && i <= r[1]; };
 let galRaca = null;
 function galeria(r) {
   galRaca = r || galRaca || (RACAS[db.perfil.raca] ? db.perfil.raca : 'humano');
   const { g, n } = galeriaInfo(), livre = premium();
-  modal(`<h2 class="title">🖼️ Galeria</h2><div class="mut small">${n} de 240 formas reveladas. Cada nível alcançado revela a forma da sua raça e classe.</div>
-    <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => s + ((g[k + '-' + x] ?? -1) + 1), 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
-    ${CLS_ORD.map(c => { const meu = galRaca === db.perfil.raca && c === db.perfil.classe; if (!livre && !meu) return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> ${LOCK}</div><div class="gal-it lock" style="aspect-ratio:auto;padding:14px;text-align:center;cursor:pointer" onclick="premiumTela('galeria')"><div class="small">No grátis, a galeria mostra só as formas do seu herói.</div></div>`; const t = Math.min(g[galRaca + '-' + c] ?? -1, livre ? 7 : LIM.forma); return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${t + 1}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = i <= t; return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
+  modal(`<h2 class="title">🖼️ Galeria</h2><div class="mut small">${n} de 240 formas reveladas. Cada forma entra na coleção com a raça e a classe em que você a conquistou.</div>
+    <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => { const r = g[k + '-' + x]; return s + (r ? r[1] - r[0] + 1 : 0); }, 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
+    ${CLS_ORD.map(c => { const meu = galRaca === db.perfil.raca && c === db.perfil.classe; if (!livre && !meu) return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> ${LOCK}</div><div class="gal-it lock" style="aspect-ratio:auto;padding:14px;text-align:center;cursor:pointer" onclick="premiumTela('galeria')"><div class="small">No grátis, a galeria mostra só as formas do seu herói.</div></div>`; const gk = galRaca + '-' + c, nOk = AV.MIN.filter((_, i) => temForma(g, gk, i) && (livre || i <= LIM.forma)).length; return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${nOk}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = temForma(g, gk, i) && (livre || i <= LIM.forma); return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`, true);
 }
 function verForma(r, c, i) {
@@ -837,22 +857,22 @@ const precisaEscolha = () => db.perfil && (!RACAS[db.perfil.raca] || !CLASSES[db
 function escolhaHeroi() {
   if (!P || !P.__escolha) { P = Object.assign({}, db.perfil, { __escolha: true }); if (!RACAS[P.raca]) P.raca = 'humano'; if (!CLASSES[P.classe]) P.classe = 'guerreiro'; }
   modal(`<h2 class="title">⚔️ Nova era: raça e classe</h2>
-    <div class="mut small" style="line-height:1.5">Agora seu herói tem raça e classe. Cada combinação dá mais ou menos XP em cada área da vida, e a classe define as 8 formas de evolução. O bônus vale para todo o histórico.</div>
+    <div class="mut small" style="line-height:1.5">Agora seu herói tem raça e classe. Cada combinação dá mais ou menos XP em cada área da vida, e a classe define as 8 formas de evolução. O bônus vale daqui para a frente.</div>
     <div style="width:170px;height:212px;margin:8px auto 0">${heroPreview({ tier: S ? S.tier : 0, areas: S ? S.areaLv : {} })}</div>
     ${comboLine()}${racaPicker('escolhaHeroi')}${classePicker('escolhaHeroi')}
     <button class="btn gold full" style="margin-top:16px" onclick="salvarEscolha()">Confirmar</button>`, true);
 }
-function salvarEscolha() { delete P.__escolha; const np = P; closeModal(); act(null, () => { db.perfil = np; }); P = null; toast(RACAS[np.raca].ic, `${RACAS[np.raca].n} ${CLASSES[np.classe].n}: sua nova jornada começa.`); }
+function salvarEscolha() { delete P.__escolha; const np = P; closeModal(); act(null, () => { registrarTroca(np); db.perfil = np; }); P = null; toast(RACAS[np.raca].ic, `${RACAS[np.raca].n} ${CLASSES[np.classe].n}: sua nova jornada começa.`); }
 function personalizar() { P = Object.assign({}, db.perfil); renderPers(); }
 function renderPers() {
   const st = S, livre = premium();
   modal(`<h2 class="title">🎨 Personalizar</h2>
     <div style="width:180px;height:225px;margin:0 auto">${heroPreview({ tier: st.tier, areas: st.areaLv, anim: true })}</div>
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
-    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Mudar raça ou classe recalcula o bônus em todo o histórico.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Lenda</b>. Toque para ver.</div>`}
+    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Trocar de raça ou classe vale daqui para a frente: o que você já conquistou não muda.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Lenda</b>. Toque para ver.</div>`}
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
-function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); act(null, () => { db.perfil = P; }); closeModal(); }
+function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); const np = P; act(null, () => { registrarTroca(np); db.perfil = np; }); closeModal(); }
 
 /* =================== TESOURO (loja) =================== */
 function renderLoja() {
