@@ -63,9 +63,10 @@ const NATIVE = (() => {
   /* Compra do Be Your Hero Lenda pela loja (Google Play Billing / StoreKit), sem servidor.
      Se houver oferta de lançamento ativa, a loja devolve a oferta mais barata e ela é usada. */
   const LJ = () => (on && P.NativePurchases) || null;
+  const OPCAO = 'compra-unica'; // ID da opção de compra na Play (compatível com versões anteriores)
   async function oferta(id) {
     const L = LJ(); if (!L) return null;
-    try { const r = await L.getProducts({ productIdentifiers: [id], productType: 'inapp' }); const ps = (r.products || []).filter(x => x.identifier === id); return ps.sort((a, b) => a.price - b.price)[0] || null; } catch (e) { return null; }
+    try { const r = await L.getProducts({ productIdentifiers: [id], productType: 'inapp' }); let ps = (r.products || []).filter(x => x.identifier === id); const op = ps.filter(x => !x.purchaseOptionId || x.purchaseOptionId === OPCAO); if (op.length) ps = op; return ps.sort((a, b) => a.price - b.price)[0] || null; } catch (e) { return null; }
   }
   async function preco(id) { const o = await oferta(id); return o ? o.priceString + (o.fullPrice && o.fullPrice > o.price ? ' (preço de lançamento)' : '') : null; }
   const valida = t => t && (t.purchaseState === undefined || t.purchaseState === '1') && !t.revocationDate;
