@@ -271,3 +271,5 @@ nav button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
 .item.locked .chk{font-size:13px;border-style:dashed}
 .pick.locked{opacity:.5}
 .prem-cta{display:flex;align-items:center;gap:12px;cursor:pointer;border:1px solid rgba(251,191,36,.4);background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(124,92,255,.12))}
+.gal-rec{flex-direction:column;gap:5px;background:rgba(7,6,15,.55)}
+.gal-bt{display:block;padding:3px 7px;border-radius:999px;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.5);color:#fde68a;font-size:10px;cursor:pointer;white-space:nowrap}

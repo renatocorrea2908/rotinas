@@ -22,7 +22,7 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
 🛡️ EVOLUA DE APRENDIZ A LENDA
-8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e ganha itens próprios em cada área que você desenvolve: um grimório para a mente, um lobo companheiro para as relações, moedas para as finanças.
+8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 📜 HÁBITOS, MISSÕES E ÉPICOS
 • Hábitos recorrentes com sequências que multiplicam o XP

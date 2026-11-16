@@ -186,7 +186,7 @@ function calc() {
   st.goldEarned = Math.floor(st.goldOldXP / 4) + st.goldBonus + st.goldNew;
   st.spent = db.compras.reduce((s, c) => s + c.custo, 0);
   st.gold = st.goldEarned - st.spent;
-  st.compras = db.compras.length;
+  st.compras = db.compras.filter(c => !c.tipo).length;
   st.tierReal = AV.tierOf(st.lvl);
   st.tier = premium() ? st.tierReal : Math.min(st.tierReal, LIM.forma);
   st.mood = st.energia >= 70 ? 'feliz' : st.energia >= 40 ? 'ok' : st.energia >= 15 ? 'cansado' : 'exausto';
@@ -269,11 +269,11 @@ function celebrate(st, silent) {
   AREA_KEYS.forEach(a => {
     const o = ui.areaLv[a] || 1, n = st.areaLv[a];
     if (n > o && !silent) {
-      const perk = [5, 10, 15].includes(n) ? '<div class="small" style="color:var(--gold)">Novo item no seu avatar!</div>' : '';
-      setTimeout(() => toast(AREAS[a].ic, `${AREAS[a].attr} subiu para <b>Nv ${n}</b>${perk}`), 200);
+      setTimeout(() => toast(AREAS[a].ic, `${AREAS[a].attr} subiu para <b>Nv ${n}</b>`), 200);
     }
     ui.areaLv[a] = n;
   });
+  checarRecup(silent);
   // escudo usado
   if (st.escudosUsados.length > (ui.escUsados || 0) && !silent) setTimeout(() => toast('🛡️', `Escudo usado em ${fmtD(st.escudosUsados[st.escudosUsados.length - 1])}: suas sequências foram salvas.`, 'ach-t'), 400);
   ui.escUsados = st.escudosUsados.length;
@@ -528,7 +528,7 @@ function renderHoje() {
   let h = hudCard();
   h += `<div class="mut small" style="text-align:center;margin:-2px 8px 14px;font-style:italic;line-height:1.4">“${frase}”</div>`;
   h += bossCard();
-  if (isT) h += desafioCard();
+  if (isT) h += desafioCard() + recupCard(true);
   h += `<div class="sec-h"><h2>Hábitos</h2><div class="row" style="gap:6px">
       <button class="btn ghost sm" ${ds <= minD ? 'disabled' : ''} onclick="diaSel=addDays(diaSel,-1);render()">‹</button>
       <span class="small" style="min-width:74px;text-align:center;font-weight:700">${lbl} <span class="mut">${fmtD(ds)}</span></span>
@@ -716,15 +716,15 @@ function renderHeroi() {
   </div>`;
   if (!premium()) h += `<div class="card prem-cta" onclick="premiumTela()"><div style="font-size:26px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">Todas as raças, as 8 formas e tudo ilimitado. Compra única.</div></div><span class="mut">›</span></div>`;
   h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => { const pl = !premium() && i > LIM.forma; return `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}" ${pl ? `onclick="premiumTela('forma')" style="cursor:pointer"` : ''}>${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">${pl ? (i <= S.tierReal ? '✓ conquistada · 🔒' : `Nv ${t.min} · 🔒`) : `Nv ${t.min}`}</div></div>`; }).join('')}</div>
-    <div class="mut small">Cada forma desbloqueia roupas e equipamentos. Os <b>atributos</b> abaixo adicionam itens próprios ao avatar.</div></div>`;
+    <div class="mut small">Cada forma desbloqueia roupas, armas e poderes novos.</div></div>`;
   const gal = galeriaInfo();
+  h += recupCard(false);
   h += `<div class="sec-h"><h2>Galeria</h2><span class="mut small">${gal.n}/240 formas</span></div><div class="card row" style="gap:12px;cursor:pointer" onclick="galeria()"><div style="font-size:30px">🖼️</div><div style="flex:1"><b>Coleção de heróis</b><div class="mut small">As 6 raças e 5 classes, com as 8 formas de cada. Evolua para revelar.</div><div class="bar" style="margin-top:8px"><i style="width:${(gal.n / 240 * 100).toFixed(1)}%;background:var(--gold)"></i></div></div><span class="mut">›</span></div>`;
   h += `<div class="sec-h"><h2>Atributos</h2></div><div class="card">${AREA_KEYS.map(a => {
     const A = AREAS[a], i = lvlInfo(S.area[a], needA);
     return `<div class="attr"><div class="ic" style="background:${A.cor}22">${A.ic}</div><div style="flex:1;min-width:0">
       <div class="row between"><b>${A.attr} <span class="mut small" style="font-weight:600">· ${A.nome}</span></b><span class="mut small mono">${fmtN(i.cur)}/${fmtN(i.next)}</span></div>
-      <div class="bar" style="margin-top:6px"><i style="width:${i.pct.toFixed(1)}%;background:${A.cor}"></i></div>
-      <div class="mut" style="font-size:10.5px;margin-top:4px">${A.perk}</div></div><div class="lv" style="color:${A.cor}">${i.lvl}</div></div>`;
+      <div class="bar" style="margin-top:6px"><i style="width:${i.pct.toFixed(1)}%;background:${A.cor}"></i></div></div><div class="lv" style="color:${A.cor}">${i.lvl}</div></div>`;
   }).join('')}</div>`;
   h += `<div class="sec-h"><h2>Roda da vida</h2>${premium() ? '' : LOCK}</div>` + (premium() ? `<div class="card radar">${radar()}</div>` : travaCard('Veja o equilíbrio das 6 áreas da sua vida num gráfico.', 'analise'));
   h += tabelaBonus();
@@ -783,15 +783,72 @@ async function conferirPremium() {
 
 /* ---------- galeria ---------- */
 const RACA_ORD = ['humano', 'elfo', 'anao', 'orc', 'goblin', 'gigante'], CLS_ORD = ['guerreiro', 'clerigo', 'mago', 'ladrao', 'druida'];
-function galeriaInfo() { const g = db.ui.gal2 || {}; return { g, n: Object.values(g).reduce((s, r) => s + r[1] - r[0] + 1, 0) }; }
-const temForma = (g, k, i) => { const r = g[k]; return !!r && i >= r[0] && i <= r[1]; };
+function galeriaInfo() { const g = db.ui.gal2 || {}, ex = formasExtras(); const ks = new Set([...Object.keys(g), ...Object.keys(ex)]); let n = 0; ks.forEach(k => { for (let i = 0; i < 8; i++) if (temForma(g, k, i)) n++; }); return { g, n }; }
+function formasExtras() { const x = {}; const put = (k, i) => (x[k] = x[k] || new Set()).add(i); db.compras.filter(c => c.tipo === 'forma').forEach(c => put(c.gk, c.forma)); ((db.recup && db.recup.feitos) || []).forEach(f => put(f.gk, f.forma)); return x; }
+const temForma = (g, k, i) => { const r = g[k]; return (!!r && i >= r[0] && i <= r[1]) || !!(formasExtras()[k] && formasExtras()[k].has(i)); };
+
+/* ---------- recuperar formas anteriores ao trocar de raça/classe (Lenda) ---------- */
+const PRECO_FORMA = [80, 120, 180, 250, 350, 480, 650];
+const CLS_AREAS = { guerreiro: ['saude', 'carreira'], clerigo: ['proposito', 'relacoes'], mago: ['mente'], ladrao: ['financas'], druida: ['saude', 'proposito', 'relacoes'] };
+const metaForma = i => 6 + 2 * i, PRAZO_REC = 14;
+const gkAtual = () => db.perfil.raca + '-' + db.perfil.classe;
+function faltantes() {
+  if (!premium() || !db.perfil) return [];
+  const g = db.ui.gal2 || {}, gk = gkAtual(), r = g[gk]; if (!r) return [];
+  const out = []; for (let i = 0; i < r[0]; i++) if (!temForma(g, gk, i)) out.push(i); return out;
+}
+function recAtivo() { const a = db.recup && db.recup.ativo; return a && a.gk === gkAtual() ? a : null; }
+function recProgresso(a) {
+  const areas = CLS_AREAS[a.cls] || [], fim = addDays(a.ini, PRAZO_REC - 1); let n = 0;
+  db.itens.filter(h => h.tipo === 'habito' && areas.includes(h.area)).forEach(h => { for (let d = a.ini; d <= fim && d <= hoje(); d = addDays(d, 1)) if (db.log[d] && db.log[d][h.id]) n++; });
+  return { n, meta: metaForma(a.forma), fim, resta: Math.max(0, diffDays(hoje(), fim) + 1) };
+}
+function iniciarRecup(i) {
+  if (!premium()) return premiumTela('troca');
+  db.recup = db.recup || { feitos: [] };
+  db.recup.ativo = { gk: gkAtual(), cls: db.perfil.classe, forma: i, ini: hoje() };
+  save(); closeModal(); render();
+  const nm = CLS_AREAS[db.perfil.classe].map(a => AREAS[a].attr).join(' ou ');
+  toast('⚔️', `Desafio iniciado: ${metaForma(i)} hábitos de ${nm} em até ${PRAZO_REC} dias.`);
+}
+function checarRecup(silent) {
+  const a = db.recup && db.recup.ativo; if (!a) return;
+  const p = recProgresso(a);
+  if (p.n >= p.meta) {
+    db.recup.feitos.push({ gk: a.gk, forma: a.forma, data: hoje() }); db.recup.ativo = null; save();
+    if (!silent) setTimeout(() => { toast('🖼️', `Forma recuperada: <b>${esc(AV.tierInfo(a.cls, a.forma).n)}</b>. Já está na sua coleção.`, 'ach-t'); snd('ach'); }, 600);
+  } else if (hoje() > p.fim) {
+    a.ini = hoje(); save();
+    if (!silent) setTimeout(() => toast('⏳', 'O prazo do desafio de forma acabou. Ele recomeçou hoje, sem penalidade.'), 600);
+  }
+}
+function comprarForma(ev, i) {
+  if (!premium()) return premiumTela('troca');
+  const c = PRECO_FORMA[i], tf = AV.tierInfo(db.perfil.classe, i);
+  if (S.gold < c) return toast('🪙', `Faltam ${fmtN(c - S.gold)} de ouro para esta forma.`);
+  ask(`Liberar a forma <b>${esc(tf.n)}</b> (${RACAS[db.perfil.raca].n} ${CLASSES[db.perfil.classe].n}) por 🪙 ${fmtN(c)}?`, () => {
+    act(null, () => db.compras.push({ tipo: 'forma', rid: 'forma', nome: `Forma ${tf.n}`, ic: '🖼️', custo: c, data: hoje(), gk: gkAtual(), forma: i }));
+    snd('coin'); toast('🖼️', `<b>${esc(tf.n)}</b> entrou na sua coleção.`); if ($('modal')) galeria(db.perfil.raca);
+  }, 'Liberar');
+}
+function recupCard(curto) {
+  const f = faltantes(), a = recAtivo();
+  if (!f.length && !a) return '';
+  const nmA = CLS_AREAS[db.perfil.classe].map(x => AREAS[x].attr).join(' ou ');
+  if (a) { const p = recProgresso(a), tf = AV.tierInfo(a.cls, a.forma);
+    return `<div class="card" style="cursor:pointer" onclick="galeria('${db.perfil.raca}')"><div class="row between"><b>🖼️ Recuperar forma: ${esc(tf.n)}</b><span class="mut small">${p.resta} dia${p.resta === 1 ? '' : 's'}</span></div>
+      <div class="mut small" style="margin-top:4px">${p.n}/${p.meta} hábitos de ${nmA}</div><div class="bar" style="margin-top:8px"><i style="width:${Math.min(100, p.n / p.meta * 100)}%;background:var(--gold)"></i></div></div>`; }
+  if (curto) return '';
+  return `<div class="card row" style="gap:12px;cursor:pointer" onclick="galeria('${db.perfil.raca}')"><div style="font-size:26px">🖼️</div><div style="flex:1"><b>Formas para recuperar: ${f.length}</b><div class="mut small">Formas anteriores do seu ${CLASSES[db.perfil.classe].n} ${RACAS[db.perfil.raca].n}. Conquiste com um desafio de ${nmA} ou com ouro.</div></div><span class="mut">›</span></div>`;
+}
 let galRaca = null;
 function galeria(r) {
   galRaca = r || galRaca || (RACAS[db.perfil.raca] ? db.perfil.raca : 'humano');
   const { g, n } = galeriaInfo(), livre = premium();
   modal(`<h2 class="title">🖼️ Galeria</h2><div class="mut small">${n} de 240 formas reveladas. Cada forma entra na coleção com a raça e a classe em que você a conquistou.</div>
-    <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => { const r = g[k + '-' + x]; return s + (r ? r[1] - r[0] + 1 : 0); }, 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
-    ${CLS_ORD.map(c => { const meu = galRaca === db.perfil.raca && c === db.perfil.classe; if (!livre && !meu) return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> ${LOCK}</div><div class="gal-it lock" style="aspect-ratio:auto;padding:14px;text-align:center;cursor:pointer" onclick="premiumTela('galeria')"><div class="small">No grátis, a galeria mostra só as formas do seu herói.</div></div>`; const gk = galRaca + '-' + c, nOk = AV.MIN.filter((_, i) => temForma(g, gk, i) && (livre || i <= LIM.forma)).length; return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${nOk}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = temForma(g, gk, i) && (livre || i <= LIM.forma); return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
+    <div style="margin:12px 0 4px">${RACA_ORD.map(k => { const c = CLS_ORD.reduce((s, x) => s + AV.MIN.filter((_, i) => temForma(g, k + '-' + x, i)).length, 0); return `<span class="pill ${k === galRaca ? 'on' : ''}" onclick="galeria('${k}')">${RACAS[k].ic} ${RACAS[k].n} <span class="mut" style="font-size:10px">${c}/40</span></span>`; }).join('')}</div>
+    ${CLS_ORD.map(c => { const meu = galRaca === db.perfil.raca && c === db.perfil.classe; if (!livre && !meu) return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> ${LOCK}</div><div class="gal-it lock" style="aspect-ratio:auto;padding:14px;text-align:center;cursor:pointer" onclick="premiumTela('galeria')"><div class="small">No grátis, a galeria mostra só as formas do seu herói.</div></div>`; const gk = galRaca + '-' + c, nOk = AV.MIN.filter((_, i) => temForma(g, gk, i) && (livre || i <= LIM.forma)).length; return `<div class="gal-cls"><b>${CLASSES[c].ic} ${CLASSES[c].n}</b> <span class="mut small">${nOk}/8</span></div><div class="gal-grid">${AV.MIN.map((mn, i) => { const tf = AV.tierInfo(c, i), src = AV.artOf(galRaca, c, i), ok = temForma(g, gk, i) && (livre || i <= LIM.forma); const rec = !ok && meu && faltantes().includes(i), ra = rec && recAtivo() && recAtivo().forma === i, rp = ra ? recProgresso(recAtivo()) : null, prim = rec && !recAtivo() && faltantes()[0] === i;
+          return `<div class="gal-it ${ok ? '' : 'lock'}" ${ok ? `onclick="verForma('${galRaca}','${c}',${i})"` : ''}>${src ? `<img src="${src}" loading="lazy" alt="">` : ''}${ok ? '' : rec ? `<div class="gal-lk gal-rec">${ra ? `⚔️ ${rp.n}/${rp.meta}<br>${rp.resta}d` : `${prim ? `<span class="gal-bt" onclick="event.stopPropagation();iniciarRecup(${i})">⚔️ Desafio</span>` : ''}<span class="gal-bt" onclick="event.stopPropagation();comprarForma(event,${i})">🪙 ${PRECO_FORMA[i]}</span>`}</div>` : `<div class="gal-lk">🔒<br>Nv ${mn}</div>`}<div class="gal-n">${ok ? esc(tf.n) : '???'}</div></div>`; }).join('')}</div>`; }).join('')}
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`, true);
 }
 function verForma(r, c, i) {
@@ -1133,7 +1190,7 @@ function config() {
       • <b>Energia</b>: +4 por hábito cumprido, −10 por hábito perdido. Define o humor do avatar.<br>
       • <b>Ouro</b>: valor fixo por conquista (hábito leve 1, médio 2, épico 4; missões em dobro; marco 3; épico 15–45; dia perfeito 3; chefão 30). Sequências aumentam o XP, não o ouro.<br>
       • <b>Avanço em %</b>: em missões e épicos, cada avanço libera XP proporcional (até metade do prêmio); concluir paga o prêmio inteiro.<br>
-      • <b>Avatar</b>: muda de forma nos níveis 5, 10, 15, 20, 30, 40 e 50, e ganha itens conforme cada atributo evolui.</div>
+      • <b>Avatar</b>: muda de forma nos níveis 5, 10, 15, 20, 30, 40 e 50.</div>
     ${typeof NATIVE !== 'undefined' && NATIVE.on ? `<label>Avisos</label>
     <div class="mut small" style="margin-bottom:8px;line-height:1.5">Só tocam se faltar algo: resumo do dia, sequência em risco e chefão quase derrotado. Para avisar um hábito num horário próprio, edite o hábito.</div>
     <div class="row between"><span>🔔 Avisar no celular</span><span class="pill ${db.ui.lembrete ? 'on' : ''}" onclick="setLembrete(!db.ui.lembrete)">${db.ui.lembrete ? 'Ligado' : 'Desligado'}</span></div>
