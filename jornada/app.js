@@ -1175,6 +1175,7 @@ async function nativeBoot() {
   conferirPremium();
 }
 function config() {
+  if (typeof NATIVE !== 'undefined' && NATIVE.on) NATIVE.versao().then(v => { const el = $('verApp'); if (v && el) el.textContent = `Be Your Hero · versão ${v.nome} (${v.cod})`; });
   modal(`<h2 class="title">⚙️ Configurações</h2>
     <div class="card prem-cta" style="margin-top:12px" onclick="premiumTela()"><div style="font-size:24px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">${premium() && COBRANCA_ATIVA ? 'Ativo. Obrigado!' : COBRANCA_ATIVA ? 'Ver o que está incluído' : 'Em breve · tudo liberado por enquanto'}</div></div><span class="mut">›</span></div>
     ${COBRANCA_ATIVA ? '' : `<div class="row between"><span class="small">🧪 Ver o app como grátis <span class="mut">(teste)</span></span><span class="pill ${db.ui.verGratis ? 'on' : ''}" onclick="db.ui.verGratis=!db.ui.verGratis;sincronizarTravas();save();S=calc();render();reagendar(true);config()">${db.ui.verGratis ? 'Ligado' : 'Desligado'}</span></div>`}
@@ -1200,7 +1201,7 @@ function config() {
     <button class="btn ghost full" style="margin-bottom:8px" onclick="$('imp').click()">⬆ Importar backup</button>
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
-    <div class="mut small" style="text-align:center;margin-top:14px">Be Your Hero 1.0 · <a href="https://fineapps.com.br/privacidade-be-your-hero" target="_blank" rel="noopener" style="color:#a78bfa">Política de privacidade</a></div>
+    <div class="mut small" style="text-align:center;margin-top:14px"><span id="verApp">Be Your Hero 1.0</span> · <a href="https://fineapps.com.br/privacidade-be-your-hero" target="_blank" rel="noopener" style="color:#a78bfa">Política de privacidade</a></div>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
 async function exportar() {

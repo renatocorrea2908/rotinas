@@ -88,6 +88,11 @@ const NATIVE = (() => {
     } catch (e) { return null; }
   }
 
+  async function versao() {
+    if (!on || !P.App) return null;
+    try { const i = await P.App.getInfo(); return { nome: i.version, cod: i.build }; } catch (e) { return null; }
+  }
+
   async function init() {
     if (!on) return;
     try { if (P.StatusBar) { await P.StatusBar.setStyle({ style: 'DARK' }); if (C.getPlatform() === 'android') await P.StatusBar.setBackgroundColor({ color: '#070b16' }); } } catch (e) { }
@@ -102,5 +107,5 @@ const NATIVE = (() => {
     } catch (e) { }
   }
 
-  return { on, haptic, persist, restore, permitir, agendar, compartilhar, preco, comprar, temCompra, init };
+  return { on, versao, haptic, persist, restore, permitir, agendar, compartilhar, preco, comprar, temCompra, init };
 })();
