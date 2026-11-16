@@ -38,7 +38,7 @@ const NATIVE = (() => {
         if (!lista.length) return 'ok';
         const perm = await LN.checkPermissions();
         if (perm.display !== 'granted') return 'negado';
-        await LN.schedule({ notifications: lista.map(n => ({ id: n.id, title: n.title, body: n.body, schedule: { at: n.at, allowWhileIdle: true } })) });
+        await LN.schedule({ notifications: lista.map(n => ({ id: n.id, title: n.title, body: n.body, schedule: { at: n.at, allowWhileIdle: true }, isExactNotification: false })) });
         return 'ok';
       } catch (e) { return 'erro'; }
     });
