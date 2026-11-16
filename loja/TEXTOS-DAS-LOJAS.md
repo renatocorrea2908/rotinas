@@ -3,11 +3,11 @@
 ## Comum às duas lojas
 - **Nome do app:** Be Your Hero: Hábitos RPG   (25 caracteres)
 - **Categoria:** Produtividade (secundária: Saúde e fitness)
-- **Classificação etária:** Livre / 4+ (sem violência explícita, sem chat). No questionário, responder que o app oferece compra digital (Be Your Hero Lenda).
-- **Preço:** Gratuito, sem anúncios. Compra opcional dentro do app: **Be Your Hero Lenda**, compra única (não é assinatura) de R$ 49,90, com preço de lançamento de R$ 29,90 nos primeiros 30 dias.
+- **Classificação etária:** Livre / 4+ (sem violência explícita, sem chat). No questionário, responder que o app oferece compra digital (Be Your Hero Legend).
+- **Preço:** Gratuito, sem anúncios. Compra opcional dentro do app: **Be Your Hero Legend**, compra única (não é assinatura) de R$ 49,90, com preço de lançamento de R$ 29,90 nos primeiros 30 dias.
 - **Política de privacidade (URL):** https://fineapps.com.br/privacidade-be-your-hero
 - **Site / suporte (URL):** https://fineapps.com.br/suporte
-- **Coleta de dados:** Nenhuma. (Play: "Segurança dos dados" → "Este app não coleta nem compartilha dados". Apple: "Privacidade do app" → "Dados não coletados".) A compra do Lenda é processada inteiramente pela Google Play / App Store; o app não recebe nem envia dados de pagamento e só consulta a loja no próprio aparelho para saber se a compra existe — por isso a resposta continua "não coleta".
+- **Coleta de dados:** Nenhuma. (Play: "Segurança dos dados" → "Este app não coleta nem compartilha dados". Apple: "Privacidade do app" → "Dados não coletados".) A compra do Legend é processada inteiramente pela Google Play / App Store; o app não recebe nem envia dados de pagamento e só consulta a loja no próprio aparelho para saber se a compra existe — por isso a resposta continua "não coleta".
 
 ## Google Play
 **Descrição curta (até 80):**
@@ -46,7 +46,7 @@ Sem conta, sem anúncios, sem rastreamento. Tudo fica salvo só no seu aparelho 
 
 👑 GRÁTIS PARA COMEÇAR, LENDA PARA IR ALÉM
 Grátis para sempre: raça Humano com as 5 classes, evolução até a forma 4, até 5 hábitos, 1 missão e 1 épico, chefão da semana, desafio do dia, Tesouro com 3 prêmios, lembrete diário e análise dos últimos 7 dias.
-Be Your Hero Lenda (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos inteligentes, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
+Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos inteligentes, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
 
 ## Apple App Store
 - **Subtítulo (até 30):** Hábitos e metas viram RPG
@@ -54,7 +54,7 @@ Be Your Hero Lenda (compra única, sem assinatura): todas as 6 raças e troca de
 - **Palavras-chave (até 100):** habitos,rotina,metas,produtividade,rpg,gamificacao,disciplina,tarefas,foco,lembrete,saude,evolucao
 - **Descrição:** use a mesma descrição completa da Google Play.
 - **Notas para a revisão da Apple (em inglês):**
-  Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional non-consumable in-app purchase, "Be Your Hero Lenda" (unlocks all races, forms and unlimited items); "Restaurar compra" (Restore Purchases) is in Settings → Be Your Hero Lenda.
+  Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional non-consumable in-app purchase, "Be Your Hero Legend" (unlocks all races, forms and unlimited items); "Restaurar compra" (Restore Purchases) is in Settings → Be Your Hero Legend.
 
 ## Imagens (nesta pasta)
 - android/1..6.png — capturas 1080×1920 (Play Store)

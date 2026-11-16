@@ -42,12 +42,12 @@ function registrarTroca(np) {
 const ECON_DATA = '2026-11-10';
 const ESCUDO = { custo: 20, max: 3 };
 
-/* =================== PREMIUM: Be Your Hero Lenda (compra única) =================== */
-const COBRANCA_ATIVA = false; // ligar quando o perfil de pagamentos da Play estiver pronto
-const PREMIUM_ID = 'beyourhero_lenda';
+/* =================== PREMIUM: Be Your Hero Legend (compra única) =================== */
+const COBRANCA_ATIVA = true; // cobrança pela loja ligada (16/11)
+const PREMIUM_ID = 'beyourhero_legend';
 const LIM = { habito: 5, missao: 1, meta: 1, recompensa: 3, escudo: 1, forma: 3, dias: 7 };
 // com a cobrança desligada todos têm o Premium; "ver como grátis" (Configurações) simula o plano grátis
-function premium() { return COBRANCA_ATIVA ? !!db.ui.premium : !db.ui.verGratis; }
+function premium() { const loja = COBRANCA_ATIVA && typeof NATIVE !== 'undefined' && NATIVE.on; return loja ? !!db.ui.premium : !db.ui.verGratis; }
 const abertos = tipo => db.itens.filter(i => i.tipo === tipo && !i.arq && (tipo === 'habito' || !i.feito));
 const livres = tipo => new Set(abertos(tipo).slice(0, LIM[tipo]).map(i => i.id));
 function travado(it) { if (premium() || it.arq) return false; if (it.tipo === 'habito') return !!it.trava; return !it.feito && !livres(it.tipo).has(it.id); }
@@ -64,7 +64,7 @@ function sincronizarTravas() {
   });
   return mud;
 }
-const LOCK = '<span class="lock-tag">🔒 Lenda</span>';
+const LOCK = '<span class="lock-tag">🔒 Legend</span>';
 const OURO = { hab: { 1: 1, 2: 2, 3: 4 }, miss: { 1: 2, 2: 4, 3: 8 }, marco: 3, meta: 15, diario: 1, perfeito: 3, chefe: 30 };
 const mult = run => run >= 30 ? 2 : run >= 14 ? 1.75 : run >= 7 ? 1.5 : run >= 3 ? 1.2 : 1;
 
@@ -296,7 +296,7 @@ function levelUp(old, st) {
     <div class="av">${AV.render(avOpts(st, { mood: 'feliz' }))}</div>
     <div class="big">NÍVEL ${st.lvl}</div>
     <div class="sub tier">${T.n}</div>
-    ${!premium() && st.tierReal > tOld && st.tierReal > LIM.forma ? `<div class="unl" onclick="event.stopPropagation();premiumTela('forma')" style="cursor:pointer">✦ ${tierN(st.tierReal).n.toUpperCase()} CONQUISTADO ✦<br><span style="color:#e0e7ff;font-weight:500">Essa forma é liberada no Be Your Hero Lenda. Toque para ver.</span></div>` : tNew > tOld ? `<div class="unl">✦ NOVA FORMA DESBLOQUEADA ✦<br><span style="color:#e0e7ff;font-weight:500">${T.d}</span></div>` : `<div class="unl" style="color:#c4b5fd">Próximo nível: ${fmtN(need(st.lvl + 1) - st.total)} XP</div>`}
+    ${!premium() && st.tierReal > tOld && st.tierReal > LIM.forma ? `<div class="unl" onclick="event.stopPropagation();premiumTela('forma')" style="cursor:pointer">✦ ${tierN(st.tierReal).n.toUpperCase()} CONQUISTADO ✦<br><span style="color:#e0e7ff;font-weight:500">Essa forma é liberada no Be Your Hero Legend. Toque para ver.</span></div>` : tNew > tOld ? `<div class="unl">✦ NOVA FORMA DESBLOQUEADA ✦<br><span style="color:#e0e7ff;font-weight:500">${T.d}</span></div>` : `<div class="unl" style="color:#c4b5fd">Próximo nível: ${fmtN(need(st.lvl + 1) - st.total)} XP</div>`}
     <button class="btn gold" style="margin-top:22px">Continuar jornada</button>`;
   document.body.appendChild(el);
   snd('lvl'); vib([40, 60, 40, 60, 120]);
@@ -711,10 +711,10 @@ function renderHeroi() {
     <div class="mut small" style="margin-top:3px">${rc ? rc.ic + ' ' + rc.n : ''} · ${cl ? cl.ic + ' ' + cl.n : ''}</div><div class="small" style="margin-top:5px">${bonusTxt(comboBonus(db.perfil.raca, db.perfil.classe))}</div>
     <div class="bar xp" style="margin:14px 10px 6px"><i style="width:${li.pct.toFixed(1)}%"></i></div>
     <div class="mut small mono">${fmtN(li.cur)} / ${fmtN(li.next)} XP · total ${fmtN(S.total)}</div>
-    ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min}${!premium() && S.tier >= LIM.forma ? ' · 🔒 liberada no Lenda' : ` — faltam ${fmtN(need(nx.min) - S.total)} XP`}</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
+    ${nx ? `<div class="small" style="margin-top:10px;color:var(--gold)">Próxima forma: <b>${nx.n}</b> no nível ${nx.min}${!premium() && S.tier >= LIM.forma ? ' · 🔒 liberada no Legend' : ` — faltam ${fmtN(need(nx.min) - S.total)} XP`}</div>` : '<div class="small" style="margin-top:10px;color:var(--gold)">Forma máxima alcançada. Você é uma Lenda.</div>'}
     <div class="row" style="justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn gold sm" onclick="compartilharEvolucao()">📤 Compartilhar evolução</button><button class="btn ghost sm" onclick="personalizar()">🎨 Personalizar</button></div>
   </div>`;
-  if (!premium()) h += `<div class="card prem-cta" onclick="premiumTela()"><div style="font-size:26px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">Todas as raças, as 8 formas e tudo ilimitado. Compra única.</div></div><span class="mut">›</span></div>`;
+  if (!premium()) h += `<div class="card prem-cta" onclick="premiumTela()"><div style="font-size:26px">👑</div><div style="flex:1"><b>Be Your Hero Legend</b><div class="mut small">Todas as raças, as 8 formas e tudo ilimitado. Compra única.</div></div><span class="mut">›</span></div>`;
   h += `<div class="sec-h"><h2>Evolução</h2><span class="mut small">${S.tier + 1}/8 formas</span></div><div class="card"><div class="road">${AV.MIN.map((_, i) => tierN(i)).map((t, i) => { const pl = !premium() && i > LIM.forma; return `<div class="st ${i === S.tier ? 'cur' : ''} ${i > S.tier ? 'locked' : ''}" ${pl ? `onclick="premiumTela('forma')" style="cursor:pointer"` : ''}>${AV.render(avOpts(S, { tier: i, anim: false, mood: 'feliz' }))}<div class="n">${t.n}</div><div class="mut small">${pl ? (i <= S.tierReal ? '✓ conquistada · 🔒' : `Nv ${t.min} · 🔒`) : `Nv ${t.min}`}</div></div>`; }).join('')}</div>
     <div class="mut small">Cada forma desbloqueia roupas, armas e poderes novos.</div></div>`;
   const gal = galeriaInfo();
@@ -732,21 +732,21 @@ function renderHeroi() {
   return h;
 }
 
-/* ---------- Be Your Hero Lenda ---------- */
-const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'Trocar de raça ou classe depois é do Lenda.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Lenda.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
+/* ---------- Be Your Hero Legend ---------- */
+const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'Trocar de raça ou classe depois é do Legend.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Legend.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
 let precoLoja = null;
 function premiumTela(motivo) {
-  const tem = premium() && COBRANCA_ATIVA, nat = typeof NATIVE !== 'undefined' && NATIVE.on;
+  const nat = typeof NATIVE !== 'undefined' && NATIVE.on, tem = premium() && COBRANCA_ATIVA && nat;
   const it = [['🧝', 'Todas as 6 raças', 'e trocar de raça ou classe quando quiser'], ['👑', 'As 8 formas', 'evolua até a Lenda'], ['♾️', 'Ilimitado', 'hábitos, missões, épicos e prêmios do Tesouro'], ['🔔', 'Avisos inteligentes', 'sequência em risco, chefão e horário por hábito'], ['📈', 'Análise completa', '30 e 90 dias, por hábito, área e dia da semana, roda da vida'], ['🛡️', 'Até 3 escudos', 'de sequência guardados'], ['🖼️', 'Galeria das 240 formas', 'e compartilhar sem a marca do app']];
   const preco = precoLoja || 'R$ 49,90';
   let acao;
-  if (tem) acao = `<div class="insight" style="text-align:center">✅ Você tem o Be Your Hero Lenda. Obrigado!</div>`;
+  if (tem) acao = `<div class="insight" style="text-align:center">✅ Você tem o Be Your Hero Legend. Obrigado!</div>`;
   else if (!COBRANCA_ATIVA) acao = `<button class="btn gold full" disabled>Disponível em breve</button><div class="mut small" style="text-align:center;margin-top:8px">Por enquanto, tudo está liberado para você.</div>`;
   else if (!nat) acao = `<button class="btn gold full" disabled>Compre no app da Play Store ou App Store</button>`;
   else acao = `<button class="btn gold full" onclick="comprarPremium()">Desbloquear por ${preco}</button>
     <div class="mut small" style="text-align:center;margin-top:8px">Compra única, pela loja. Sem assinatura e sem cobrança recorrente.</div>
     <button class="btn ghost full" style="margin-top:10px" onclick="restaurarPremium()">Restaurar compra</button>`;
-  modal(`<div style="text-align:center"><div style="font-size:44px">👑</div><h2 class="title" style="margin:4px 0">Be Your Hero Lenda</h2>
+  modal(`<div style="text-align:center"><div style="font-size:44px">👑</div><h2 class="title" style="margin:4px 0">Be Your Hero Legend</h2>
     ${motivo && PREM_MOTIVO[motivo] && !tem ? `<div class="small" style="color:#fde68a;margin-bottom:6px">${PREM_MOTIVO[motivo]}</div>` : ''}
     <div class="mut small">Libere o jogo inteiro, para sempre.</div></div>
     <div style="margin:14px 0">${it.map(([i, a, b]) => `<div class="row" style="gap:12px;padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-size:22px;width:30px;text-align:center">${i}</div><div><b>${a}</b><div class="mut small">${b}</div></div></div>`).join('')}</div>
@@ -758,20 +758,20 @@ function premiumTela(motivo) {
 function liberarPremium(origem) {
   db.ui.premium = true; db.ui.premiumDesde = db.ui.premiumDesde || hoje();
   sincronizarTravas(); save(); S = calc(); celebrate(S, true); reagendar(true); closeModal(); render();
-  if (origem) { toast('👑', origem === 'compra' ? 'Bem-vindo ao <b>Be Your Hero Lenda</b>! Tudo liberado.' : 'Compra restaurada. Tudo liberado.', 'ach-t'); snd('lvl'); }
+  if (origem) { toast('👑', origem === 'compra' ? 'Bem-vindo ao <b>Be Your Hero Legend</b>! Tudo liberado.' : 'Compra restaurada. Tudo liberado.', 'ach-t'); snd('lvl'); }
 }
 async function comprarPremium() {
   toast('⏳', 'Abrindo a loja…');
   const r = await NATIVE.comprar(PREMIUM_ID);
   if (r === 'ok') liberarPremium('compra');
-  else if (r === 'pendente') toast('⏳', 'Pagamento pendente. Quando a loja confirmar, o Lenda é liberado sozinho.');
+  else if (r === 'pendente') toast('⏳', 'Pagamento pendente. Quando a loja confirmar, o Legend é liberado sozinho.');
   else if (r !== 'cancelado') toast('⚠️', 'Não foi possível concluir a compra agora. Nada foi cobrado.');
 }
 async function restaurarPremium() {
   toast('⏳', 'Consultando a loja…');
   const r = await NATIVE.temCompra(PREMIUM_ID);
   if (r === true) liberarPremium('restaurar');
-  else toast('🔍', r === false ? 'Nenhuma compra do Lenda encontrada nesta conta da loja.' : 'Não consegui falar com a loja agora. Tente de novo.');
+  else toast('🔍', r === false ? 'Nenhuma compra do Legend encontrada nesta conta da loja.' : 'Não consegui falar com a loja agora. Tente de novo.');
 }
 // confere com a loja ao abrir o app (sem servidor): libera se achar a compra; só tira se a loja confirmar que não existe
 async function conferirPremium() {
@@ -787,7 +787,7 @@ function galeriaInfo() { const g = db.ui.gal2 || {}, ex = formasExtras(); const 
 function formasExtras() { const x = {}; const put = (k, i) => (x[k] = x[k] || new Set()).add(i); db.compras.filter(c => c.tipo === 'forma').forEach(c => put(c.gk, c.forma)); ((db.recup && db.recup.feitos) || []).forEach(f => put(f.gk, f.forma)); return x; }
 const temForma = (g, k, i) => { const r = g[k]; return (!!r && i >= r[0] && i <= r[1]) || !!(formasExtras()[k] && formasExtras()[k].has(i)); };
 
-/* ---------- recuperar formas anteriores ao trocar de raça/classe (Lenda) ---------- */
+/* ---------- recuperar formas anteriores ao trocar de raça/classe (Legend) ---------- */
 const PRECO_FORMA = [80, 120, 180, 250, 350, 480, 650];
 const CLS_AREAS = { guerreiro: ['saude', 'carreira'], clerigo: ['proposito', 'relacoes'], mago: ['mente'], ladrao: ['financas'], druida: ['saude', 'proposito', 'relacoes'] };
 const metaForma = i => 6 + 2 * i, PRAZO_REC = 14;
@@ -926,7 +926,7 @@ function renderPers() {
   modal(`<h2 class="title">🎨 Personalizar</h2>
     <div style="width:180px;height:225px;margin:0 auto">${heroPreview({ tier: st.tier, areas: st.areaLv, anim: true })}</div>
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
-    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Trocar de raça ou classe vale daqui para a frente: o que você já conquistou não muda.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Lenda</b>. Toque para ver.</div>`}
+    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Trocar de raça ou classe vale daqui para a frente: o que você já conquistou não muda.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Legend</b>. Toque para ver.</div>`}
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
 function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); const np = P; act(null, () => { registrarTroca(np); db.perfil = np; }); closeModal(); }
@@ -940,12 +940,12 @@ function renderLoja() {
   const ult = S.escudosUsados.length ? S.escudosUsados[S.escudosUsados.length - 1] : null, cheio = S.escudos >= escudoMax();
   h += `<div class="sec-h"><h2>Escudo de sequência</h2><span class="mut small">${S.escudos}/${escudoMax()}</span></div>
     <div class="reward"><div class="ic">🛡️</div><div style="flex:1;min-width:0"><div style="font-weight:700">${S.escudos ? `${S.escudos} escudo${S.escudos > 1 ? 's' : ''} pronto${S.escudos > 1 ? 's' : ''}` : 'Nenhum escudo'}</div><div class="mut small">Protege suas sequências em 1 dia perdido. Vale também para ontem.${ult ? ` Último uso: ${fmtD(ult).replace(/\.$/, '')}.` : ''}</div><div class="price">🪙 ${ESCUDO.custo}</div></div>
-      <button class="btn gold sm" ${S.gold < ESCUDO.custo || (cheio && premium()) ? 'disabled' : ''} onclick="${cheio && !premium() ? "premiumTela('escudo')" : 'comprarEscudo(event)'}">${cheio ? (premium() ? 'Máximo' : '🔒 Lenda') : S.gold < ESCUDO.custo ? 'faltam ' + fmtN(ESCUDO.custo - S.gold) : 'Comprar'}</button></div>`;
+      <button class="btn gold sm" ${S.gold < ESCUDO.custo || (cheio && premium()) ? 'disabled' : ''} onclick="${cheio && !premium() ? "premiumTela('escudo')" : 'comprarEscudo(event)'}">${cheio ? (premium() ? 'Máximo' : '🔒 Legend') : S.gold < ESCUDO.custo ? 'faltam ' + fmtN(ESCUDO.custo - S.gold) : 'Comprar'}</button></div>`;
   h += `<div class="sec-h"><h2>Recompensas</h2><button class="btn ghost sm" onclick="formRec()">+ Nova</button></div>`;
   h += `<div class="mut small" style="margin:0 2px 10px">Defina prêmios reais e só se permita resgatar quando tiver ouro. Toque em ✏️ para mudar o nome, o ícone ou o valor, ou para excluir.</div>`;
   h += db.recompensas.length ? db.recompensas.map(r => `<div class="reward"><div class="ic" onclick="formRec('${r.id}')">${r.ic}</div><div style="flex:1;min-width:0;cursor:pointer" onclick="formRec('${r.id}')"><div style="font-weight:700">${esc(r.nome)}</div><div class="price">🪙 ${fmtN(r.custo)}</div></div>
       <button class="iconbtn" aria-label="Editar recompensa" title="Editar nome e valor" onclick="formRec('${r.id}')">✏️</button>
-      ${recTravada(r) ? `<button class="btn ghost sm" onclick="premiumTela('recompensa')">🔒 Lenda</button>` : `<button class="btn gold sm" ${S.gold < r.custo ? 'disabled' : ''} onclick="comprar(event,'${r.id}')">${S.gold < r.custo ? 'faltam ' + fmtN(r.custo - S.gold) : 'Resgatar'}</button>`}</div>`).join('') : '<div class="empty">Nenhuma recompensa cadastrada.</div>';
+      ${recTravada(r) ? `<button class="btn ghost sm" onclick="premiumTela('recompensa')">🔒 Legend</button>` : `<button class="btn gold sm" ${S.gold < r.custo ? 'disabled' : ''} onclick="comprar(event,'${r.id}')">${S.gold < r.custo ? 'faltam ' + fmtN(r.custo - S.gold) : 'Resgatar'}</button>`}</div>`).join('') : '<div class="empty">Nenhuma recompensa cadastrada.</div>';
   const hist = db.compras.slice().reverse().slice(0, 12);
   if (hist.length) h += `<div class="sec-h"><h2>Resgates</h2></div><div class="card">${hist.map(c => `<div class="row between" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(c.ic || '🎁')} ${esc(c.nome)}</span><span class="mut small mono">${fmtD(c.data)} · 🪙 ${fmtN(c.custo)}</span></div>`).join('')}</div>`;
   return h;
@@ -1016,7 +1016,7 @@ function aCor(r) { return r >= .8 ? 'var(--ok)' : r >= .5 ? 'var(--warn)' : 'var
 function aBar(label, r, extra) {
   return `<div style="margin-bottom:11px"><div class="row between small"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span><b class="mono" style="color:${aCor(r)}">${Math.round(r * 100)}%${extra ? ` <span class="mut" style="font-weight:500">${extra}</span>` : ''}</b></div><div class="bar" style="margin-top:5px;height:7px"><i style="width:${(r * 100).toFixed(1)}%;background:${aCor(r)}"></i></div></div>`;
 }
-function travaCard(txt, motivo) { return `<div class="card locked" style="cursor:pointer;text-align:center" onclick="premiumTela('${motivo}')"><div style="font-size:24px">🔒</div><div class="small" style="margin-top:6px">${txt}</div><div class="small" style="margin-top:8px;color:var(--gold);font-weight:800">Liberado no Be Your Hero Lenda ›</div></div>`; }
+function travaCard(txt, motivo) { return `<div class="card locked" style="cursor:pointer;text-align:center" onclick="premiumTela('${motivo}')"><div style="font-size:24px">🔒</div><div class="small" style="margin-top:6px">${txt}</div><div class="small" style="margin-top:8px;color:var(--gold);font-weight:800">Liberado no Be Your Hero Legend ›</div></div>`; }
 function renderAderencia() {
   if (!premium()) aPer = LIM.dias;
   const a = aderencia(), r = a.s ? a.d / a.s : 0;
@@ -1177,7 +1177,7 @@ async function nativeBoot() {
 function config() {
   if (typeof NATIVE !== 'undefined' && NATIVE.on) NATIVE.versao().then(v => { const el = $('verApp'); if (v && el) el.textContent = `Be Your Hero · versão ${v.nome} (${v.cod})`; });
   modal(`<h2 class="title">⚙️ Configurações</h2>
-    <div class="card prem-cta" style="margin-top:12px" onclick="premiumTela()"><div style="font-size:24px">👑</div><div style="flex:1"><b>Be Your Hero Lenda</b><div class="mut small">${premium() && COBRANCA_ATIVA ? 'Ativo. Obrigado!' : COBRANCA_ATIVA ? 'Ver o que está incluído' : 'Em breve · tudo liberado por enquanto'}</div></div><span class="mut">›</span></div>
+    <div class="card prem-cta" style="margin-top:12px" onclick="premiumTela()"><div style="font-size:24px">👑</div><div style="flex:1"><b>Be Your Hero Legend</b><div class="mut small">${premium() && COBRANCA_ATIVA && typeof NATIVE !== 'undefined' && NATIVE.on ? 'Ativo. Obrigado!' : COBRANCA_ATIVA ? 'Ver o que está incluído' : 'Em breve · tudo liberado por enquanto'}</div></div><span class="mut">›</span></div>
     ${COBRANCA_ATIVA ? '' : `<div class="row between"><span class="small">🧪 Ver o app como grátis <span class="mut">(teste)</span></span><span class="pill ${db.ui.verGratis ? 'on' : ''}" onclick="db.ui.verGratis=!db.ui.verGratis;sincronizarTravas();save();S=calc();render();reagendar(true);config()">${db.ui.verGratis ? 'Ligado' : 'Desligado'}</span></div>`}
     <div class="row between" style="margin-top:14px"><span>🔊 Sons</span><span class="pill ${db.ui.som ? 'on' : ''}" onclick="db.ui.som=!db.ui.som;save();config()">${db.ui.som ? 'Ligado' : 'Desligado'}</span></div>
     <div class="row between"><span>📳 Vibração</span><span class="pill ${db.ui.vib ? 'on' : ''}" onclick="db.ui.vib=!db.ui.vib;save();config()">${db.ui.vib ? 'Ligada' : 'Desligada'}</span></div>
