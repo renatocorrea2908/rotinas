@@ -98,8 +98,10 @@ jobs:
           AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/BeYourHero.xcarchive \
-            DEVELOPMENT_TEAM=$TEAM_ID CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION=${{ github.run_number }} \
-            $AUTH archive
+            DEVELOPMENT_TEAM=$TEAM_ID CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive
+          # o arquivo sai sem assinatura; a exportação abaixo assina para a App Store
+          # (certificado e perfil de distribuição criados automaticamente pela chave da API)
           cat > $RUNNER_TEMP/export.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
