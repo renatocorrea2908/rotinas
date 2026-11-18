@@ -70,7 +70,7 @@ jobs:
   ios-release:
     # Roda só quando a chave da App Store Connect estiver cadastrada nos Secrets
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: macos-15
+    runs-on: macos-26
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
