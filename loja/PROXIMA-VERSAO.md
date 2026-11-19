@@ -12,3 +12,10 @@ Itens que NÃO entram nas versões em revisão (Android 1.0.88, iOS build 95). A
 Suporte: a página /suporte do site envia para suporte@fineapps.com.br (hoje cai no sistema de chamados do Stratum). Se o BYH ganhar canal próprio de suporte, avisar o Judge para ajustar a política do site.
 
 Regra (Judge): se o app ganhar conta, analytics, anúncio ou envio de dado, passa pelo Judge antes de ir ao ar.
+
+## Na publicação (decisão 109, 19/11/2026)
+Preço de lançamento R$ 29,90 (cheio R$ 49,90) até **data da publicação + 30 dias**.
+1. Apple: agendar preço na compra beyourhero_legend (R$ 29,90 até o fim → R$ 49,90 depois).
+2. Google: oferta na compra com data de término.
+3. Mandar a data exata de fim ao Jarvis e ao Mark. Só depois disso a ficha pode dizer "preço de lançamento"/"por tempo limitado".
+Se uma loja não aceitar data de fim, não anunciar a promoção nela e avisar o Jarvis.
