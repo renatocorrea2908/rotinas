@@ -20,3 +20,12 @@
 2. No App Store Connect, crie o app com o identificador `fineapps.beyourhero`.
 3. Gere uma chave da API do App Store Connect (Users and Access → Integrations → App Store Connect API) e cadastre no GitHub como Secrets: `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (conteúdo do arquivo .p8) e `APPLE_TEAM_ID`.
 4. Com isso, a montagem assinada e o envio ao TestFlight podem ser automatizados no GitHub (Mac na nuvem), sem precisar de um Mac.
+
+## Autorização do Renato para publicar (19/11/2026)
+Pode publicar sem pedir ok, avisando depois, quando TODOS valerem:
+- testes passaram;
+- revisão independente aprovou;
+- nenhuma mudança apaga ou altera dados em produção (nos aparelhos dos usuários, inclusive formato do armazenamento `lendario.db`);
+- fora de período de congelamento.
+
+Continua precisando do ok do Renato: preço e cobrança; texto jurídico ou ao cliente (lojas, telas, avisos); apagar dados; gasto novo; decisão de produto.
