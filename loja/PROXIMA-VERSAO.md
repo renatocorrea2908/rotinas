@@ -9,6 +9,9 @@ Itens que NÃO entram nas versões em revisão (Android 1.0.88, iOS build 95). A
    Fazer (Judge confirmou): copiar o texto do site palavra por palavra, ou trocar a página por um link para o site.
 2. **Textos da ficha da Google Play**: aplicar a frase nova da classe ("raça Humano com a classe que você escolher no início") — responsabilidade do Mark.
 
+3. **Renomear "Avisos inteligentes" para "Avisos personalizados"** no app (tela Legend, PREM_MOTIVO.aviso), para bater com a ficha do Mark (F2).
+4. **Fichas das lojas (Mark)**: F1 (dados no aparelho + cópia de segurança do celular), F2, F3 (palavras-chave Apple) entram na próxima versão; na Apple descrição e palavras-chave só mudam com versão nova.
+
 Suporte: a página /suporte do site envia para suporte@fineapps.com.br (hoje cai no sistema de chamados do Stratum). Se o BYH ganhar canal próprio de suporte, avisar o Judge para ajustar a política do site.
 
 Regra (Judge): se o app ganhar conta, analytics, anúncio ou envio de dado, passa pelo Judge antes de ir ao ar.
