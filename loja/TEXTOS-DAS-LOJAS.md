@@ -45,7 +45,7 @@ Um aviso no horário que você escolher para não perder a sequência.
 Sem conta, sem anúncios, sem rastreamento. Tudo fica salvo só no seu aparelho e funciona offline.
 
 👑 GRÁTIS PARA COMEÇAR, LENDA PARA IR ALÉM
-Grátis para sempre: raça Humano com as 5 classes, evolução até a forma 4, até 5 hábitos, 1 missão e 1 épico, chefão da semana, desafio do dia, Tesouro com 3 prêmios, lembrete diário e análise dos últimos 7 dias.
+Grátis para sempre: raça Humano com a classe que você escolher no início (uma das 5), evolução até a forma 4, até 5 hábitos, 1 missão e 1 épico, chefão da semana, desafio do dia, Tesouro com 3 prêmios, lembrete diário e análise dos últimos 7 dias.
 Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos inteligentes, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
 
 ## Apple App Store
