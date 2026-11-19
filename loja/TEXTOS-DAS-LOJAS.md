@@ -54,7 +54,7 @@ Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca d
 - **Palavras-chave (até 100):** habitos,rotina,metas,produtividade,rpg,gamificacao,disciplina,tarefas,foco,lembrete,saude,evolucao
 - **Descrição:** use a mesma descrição completa da Google Play.
 - **Notas para a revisão da Apple (em inglês):**
-  Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional non-consumable in-app purchase, "Be Your Hero Legend" (unlocks all races, forms and unlimited items); "Restaurar compra" (Restore Purchases) is in Settings → Be Your Hero Legend.
+  Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional in-app purchase, "Be Your Hero Legend" (product ID beyourhero_legend), a one-time NON-CONSUMABLE purchase (not a subscription) that unlocks all races, all 8 forms and unlimited items. To open the purchase screen: tap the gear icon (Configurações) → "Be Your Hero Legend", or the "Be Your Hero Legend" card at the top of the "Herói" tab, or any item marked with a lock (🔒). On that screen, "Desbloquear por R$ 49,90" buys it and "Restaurar compra" (Restore Purchases) is right below it.
 
 ## Imagens (nesta pasta)
 - android/1..6.png — capturas 1080×1920 (Play Store)
