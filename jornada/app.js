@@ -733,7 +733,7 @@ function renderHeroi() {
 }
 
 /* ---------- Be Your Hero Legend ---------- */
-const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'Trocar de raça ou classe depois é do Legend.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Legend.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
+const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'No grátis, a classe escolhida no início fica fixa. Trocar de raça ou classe depois é do Legend.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Legend.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
 let precoLoja = null;
 function premiumTela(motivo) {
   const nat = typeof NATIVE !== 'undefined' && NATIVE.on, tem = premium() && COBRANCA_ATIVA && nat;
@@ -750,7 +750,7 @@ function premiumTela(motivo) {
     ${motivo && PREM_MOTIVO[motivo] && !tem ? `<div class="small" style="color:#fde68a;margin-bottom:6px">${PREM_MOTIVO[motivo]}</div>` : ''}
     <div class="mut small">Libere o jogo inteiro, para sempre.</div></div>
     <div style="margin:14px 0">${it.map(([i, a, b]) => `<div class="row" style="gap:12px;padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-size:22px;width:30px;text-align:center">${i}</div><div><b>${a}</b><div class="mut small">${b}</div></div></div>`).join('')}</div>
-    <div class="mut small" style="margin-bottom:12px">Grátis para sempre: raça Humano com as 5 classes, formas 1 a 4, ${LIM.habito} hábitos, ${LIM.missao} missão, ${LIM.meta} épico, chefão da semana, desafio do dia e lembrete diário. Seu progresso nunca é apagado.</div>
+    <div class="mut small" style="margin-bottom:12px">Grátis para sempre: raça Humano com a classe que você escolher no início (uma das 5), formas 1 a 4, ${LIM.habito} hábitos, ${LIM.missao} missão, ${LIM.meta} épico, chefão da semana, desafio do dia e lembrete diário. Seu progresso nunca é apagado.</div>
     ${acao}
     <button class="btn ghost full" style="margin-top:10px" onclick="closeModal()">Agora não</button>`);
   if (COBRANCA_ATIVA && nat && !precoLoja && !tem) NATIVE.preco(PREMIUM_ID).then(p => { if (p) { precoLoja = p; if ($('modal')) premiumTela(motivo); } });
@@ -926,7 +926,7 @@ function renderPers() {
   modal(`<h2 class="title">🎨 Personalizar</h2>
     <div style="width:180px;height:225px;margin:0 auto">${heroPreview({ tier: st.tier, areas: st.areaLv, anim: true })}</div>
     <label>Nome do herói</label><input id="pNome" value="${esc(P.nome)}" oninput="P.nome=this.value">
-    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Trocar de raça ou classe vale daqui para a frente: o que você já conquistou não muda.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 Trocar de raça ou classe é do <b>Be Your Hero Legend</b>. Toque para ver.</div>`}
+    ${comboLine()}${livre ? racaPicker('renderPers') + classePicker('renderPers') + '<div class="mut small" style="margin-top:6px">Trocar de raça ou classe vale daqui para a frente: o que você já conquistou não muda.</div>' : `<div class="insight" style="cursor:pointer" onclick="premiumTela('troca')">🔒 No grátis, a classe escolhida no início fica fixa. Trocar de raça ou classe é do <b>Be Your Hero Legend</b>. Toque para ver.</div>`}
     <div class="row" style="margin-top:16px"><button class="btn" style="flex:1" onclick="salvarPers()">Salvar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`, true);
 }
 function salvarPers() { if (!P.nome.trim()) return toast('✏️', 'Dê um nome ao herói.'); const np = P; act(null, () => { registrarTroca(np); db.perfil = np; }); closeModal(); }
