@@ -1,0 +1,122 @@
+{
+ "sessions": {
+  "session_014uWdpn4vBeqs3ekVpgbepn": {
+   "nome": "Plan-2-Travel — principal",
+   "ultimo_status": "SESSION_STATUS_BUCKET_COMPLETED",
+   "ultimo_updated_at": "2026-11-13T17:18:43Z",
+   "assunto": "16/11: T161 conferida; ajustes de clareza (Entrar, plano atual no topo, texto reembolso, Pix) enviados"
+  },
+  "session_01LxsooUCbLW2SA9eBXasRYm": {
+   "nome": "Be Your Hero — principal",
+   "ultimo_status": "SESSION_STATUS_BUCKET_WORKING",
+   "ultimo_updated_at": "2026-11-13T19:43:31Z",
+   "assunto": "v86 com cobrança ligada pronta; aguarda Renato: teste de licença + teste de compra + 15% + produção (item 17)"
+  },
+  "session_014uWdpot2e387vopUAzU8sP": {
+   "nome": "Stratum — Core OS",
+   "ultimo_status": "SESSION_STATUS_BUCKET_WORKING",
+   "ultimo_updated_at": "2026-11-13T19:37:25Z",
+   "assunto": "T82: p580/p581/p582 no ar; aguarda Renato: CNPJ (18), chaves Vercel (14), A1 (16), contador (19)"
+  },
+  "site_fineapps": "session_014uWdpkQFTybSsUuNfi5ons"
+ },
+ "protocolo": {
+  "desde": "2026-11-13",
+  "autorizacao": "Renato: Implanta e considera o stratum tbm",
+  "regras": [
+   "Jarvis manda decisões do Renato direto aos chats (send_message)",
+   "Jarvis responde sozinho o técnico ou já decidido no cronograma",
+   "Chats avisam esta sessão ao concluir/bloquear/precisar do Renato",
+   "Renato recebe 1 item por vez com recomendação",
+   "Resumo 8h37 e 17h37 dias úteis com cronograma para baixar"
+  ]
+ },
+ "lembretes": [
+  "T81: só falta o ID AW- + rótulo da conversão Cadastro (Renato, Google Ads)",
+  "T82 passo 2: Renato marcar as chaves do cofre como Sensitive na Vercel (passo a passo virá do chat do Stratum). Agente na nuvem NÃO lê variáveis da Vercel (403); o Cowork no Mac tem VERCEL_TOKEN.",
+  "BYH Premium: após T108 (~30/11) Renato cadastra na Play o produto beyourhero_legend (R$ 49,90; oferta R$ 29,90 por 30 dias a partir do lançamento; teste de licença com e-mails) — passo a passo na mensagem do chat do BYH de 16/11 15:46 UTC",
+  "BYH Premium: privacidade v2 do site pronta no fineapps-site, branch claude/hopeful-ritchie-tjcl3f (commit b0ce628) — abrir PR e Renato juntar quando a cobrança ligar; advogado olhar a seção Compras",
+  "BYH: pacote pago = \"Be Your Hero Legend\" (ID beyourhero_legend); forma 8 continua Lenda",
+  {
+   "quando": "ao '18 feito'",
+   "o_que": "Avisar Stratum para conferir CNPJ 0001-07 no banco (Renato corrige em Configurações > Organização; conferir Stripe)."
+  },
+  {
+   "quando": "ao '14 feito'",
+   "o_que": "Avisar Stratum para republicar e conferir cofre ligado; depois item 16 (A1)."
+  },
+  {
+   "quando": "ao '22 feito'",
+   "o_que": "Avisar BYH para mandar ao TestFlight; P2T usa a mesma chave API (item 21)."
+  },
+  {
+   "data": "2026-12-04",
+   "texto": "Lembrete agendado do item 26 (crédito Google Ads) ficou obsoleto: decidido em 18/11 (aproveitar). Ao disparar, só confirmar o andamento das campanhas (pausadas até 04/12, ligam 10/12)."
+  },
+  "18/11: regra do Renato — contabilidade/fiscal/folha vai ao chat especialista session_014uWdpnviLeiiqadjZBxfEX (fila A1–A4 ponto×folha e C1–C5 NFS-e da assinatura). O que exigir CRC vem marcado e vai ao Jonas.",
+  "18/11 (ampliada): o chat Contabilidade e Fiscal (session_014uWdpnviLeiiqadjZBxfEX) também faz o papel de CONTADOR e ADVOGADO TRABALHISTA: perguntas que iriam ao Jonas ou a advogado trabalhista vão para lá; devolve decisão com base legal; Renato assume o risco. Advogado de Termos/Privacidade (não trabalhista) não muda.",
+  "20/11 sex: homologação T70 com o Renato (item 74). Pôr roteiro do Stratum na mesa cedo. Perguntas 4,5,8 do T181 (item 75) também vencem 20/11.",
+  "19/11 9h24: Stratum confirmou passo 5 P1; Renato respondeu no chat P1 (CNPJ+razão social antes do checkout, CNPJ com letras barrado), P2 (A1 da FineApps no espelho por horas p/ 2ª nota de teste), P3 (valor bruto, taxa como despesa); desenho v2 em curso, versões p595+, M786+, trava 4 ~10/01/2027.",
+  "19/11: parecer [Contabilidade] 78 — Modo relógio OK; 'manual' vira ponto por exceção (acordo individual escrito); digitado só ≤20 por estabelecimento sem AFD; risco: Stratum não é REP-P certificado (INPI, Atestado art. 89, AFD/AEJ ICP) — perguntado ao Stratum estado + textos do site. Se houver claim de REP-P → item na mesa.",
+  "P2T: notas para o revisor Apple prontas em docs/lojas/notas-revisor-apple.md (PR #29); colar em App Review Information → Notes no envio à revisão (T157); 'Sign-in required' desmarcado. Contrato Paid Apps ATIVO em 19/11.",
+  "19/11: BYH (1.0 build 95 + legend) e P2T (0.1.0 + 3 IAPs) em revisão Apple, liberação MANUAL. Chat BYH monitora e-mails Apple em renato@fineapps.com.br para os dois. Após aprovação: publicar junto com Google Play (BYH, T136 preço lançamento); P2T precisa link da ficha → chat P2T preenche lojas.appStore no site.",
+  "Renato 19/11: Google Play do P2T só volta à mesa quando eu liberar (após 'exclusão NO AR'), com roteiro de 12 passos + arquivos (docs/lojas/envio-google-play.md, capturas-play/, AAB run 44564177963).",
+  "P2T Play: Renato escolheu 'código ok' (código de revisor no servidor, AAB 0.1.0 código 2). Após aprovação do Google: pedir ao chat P2T para APAGAR o código.",
+  "20/11 após T70: avisar chat do site FineApps o resultado. Se T70 FALHAR → aplicar opção A na /stratum (telas da T70 'em preparação'). Q14 rodapé 'Jundiaí, SP' aguardando ok do Renato com prévia."
+ ],
+ "canal": {
+  "Stratum": "ok via send_message (13/11 20:34)",
+  "Plan2Travel": "ok via send_message (13/11 20:34)",
+  "Be Your Hero": "ok via send_message (13/11 20:35)"
+ },
+ "ultimo_resumo": "2026-11-19 08:37 BRT — sem mudança desde a pauta das 7h50; Stratum espera 'p594 ok' (72); P2T espera decisão 77; BYH e site sem pendência nova.",
+ "mesa": {
+  "slug": "76b45c6a-a878-4908-b6a6-78a84275274e",
+  "url": "https://claude.ai/artifact/FfAzR4uWhhjceAJd86otDB",
+  "arquivo": "/home/user/FineApps_Mesa_do_Renato.html",
+  "versao": "1794840642-1412",
+  "regra": "Toda pendência do Renato vai para a Mesa (numerada, em ordem). No chat: respostas curtas + link. Republicar a Mesa a cada mudança."
+ },
+ "ultima_rodada": "2026-11-18T11:38Z (resumo da manhã, quarta: Renato na Acta)",
+ "cronograma_vigente": "/home/user/FineApps_Cronograma_Unico_v2.html (v2 desde 17/11; manter até o Renato pedir v3)",
+ "agenda_renato": {
+  "18/11 (qua)": "Renato na Acta. Se trabalhar aqui, SÓ Stratum. Resumo da manhã curto e só do Stratum; Apple (20/22/21) fica para quinta.",
+  "19/11 (qui)": "Renato volta focado: (1) revisar o que está parado em Be Your Hero, Plan2Travel e site; (2) foco MUITO forte no Stratum. Preparar pauta: lista de travas por app + plano Stratum (T66 Launch Gate, T70, T73, T181, p589, campanha 13/01, lançamento 11/01)."
+ },
+ "pauta_quinta_19_11": [
+  "PAUTA ENTREGUE 19/11 7h50. Ordem: 72 p594 ok · 73 passo 5 prioridade 1 · 74 data T70 (rec. até 04/12) · 75 T181 perguntas 4,5,8 até 20/11 · 70 empresa teste ponto · 71 manual Acta · 67 BYH TestFlight · 69 P2T TestFlight+login · 66 contrato + refazer 3 compras P2T (prints novos PR #28) · 76 Play Console status.",
+  "66 P2T: Renato criou por engano 1 compra DENTRO do Be Your Hero (ref 'Plan2Travel', product id 'plan2travel', 3 produtos como 3 idiomas EN/PT-BR/PT-PT). Amanhã: apagar essa no BYH; criar 3 compras separadas no app Plan2Travel com IDs fineapps.plan2travel.basico/completo/complemento, preços 199,90/699,90/499,90 (Apple não tem 197/697/500), só Brasil, só PT-BR, prints P2T_print_revisao_*.png. Depois avisar chat P2T dos preços para alinhar Play e site.",
+  "Renato parou em 18/11 ~11h30 com o 66 pela metade: BYH legend FEITO (Ready for Review, 18/11); conferir P2T (BYH legend com print BYH_print_revisao_Legend.png + nota; P2T 3 compras com P2T_print_revisao_*.png, disponibilidade só Brasil, preços 197/697/500), e o status do contrato Apps Pagos (precisa Ativo p/ sandbox). Depois 67 e 69 com iPhone (compras de teste incluídas).",
+  "Com o iPhone: itens 67 (Be Your Hero no TestFlight, build 92) e 69 (Plan2Travel no TestFlight 0.1.0 build 1 + teste do Entrar com a Apple/Google/Microsoft). Renato sem iPhone na Acta em 18/11.",
+  "Stratum cronograma dez/2026 (documentacao/CRONOGRAMA-SITE-E-CAMPANHAS-DEZ-2026.md): site abre ter 08/12 (reserva 11/12); campanhas começam qui 10/12; posts 1º em 10/12, pausa 24/12–04/01, voltam 05/01.",
+  "Calendário Renato: 20/11 perguntas T181; 24/11 ok interruptor 'vendas liberadas' no botão Assinar; 27/11 orçamento + conta Google + verificação do anunciante; 04/12 campanhas pausadas, advogado, DMARC/CAA, saldo; 07/12 ok da prévia; 08/12 DNS manhã + anúncios/conversão/posts à tarde; segundas: revisão; 04/01 Empresa Demo; 11/01 ajuste verba.",
+  "Decisões (a) orçamento A/B/C (rec. B: R$40/dia até 16/01, R$24/dia depois) — conferir conta de dezembro; (b) O2–O5; (c) ok interruptor no Assinar até 24/11 (rec. sim); (d) abrir com visual de hoje (rec. sim); (e) advogado pergunta 3 até 04/12: abrir com Jundiaí/SP ou adiar; (f) Empresa Demo: estender teste ou resemear.",
+  "ST-04 p590/p591: baixa da Stripe gera lançamento contábil sem ato humano → (1) exceção declarada ou (2) REC: baixa por 1 clique do Renato junto da emissão da nota (D4).",
+  "Apple 20/22/21 cedo; Google Ads conferir 1 conversão (57); e-mail ao Jonas C1–C5 (enviado?).",
+  "Orçamento B correto: dez 22d×R$40=R$880; jan R$640+R$360=R$1.000. Pior caso Google (2×/dia) contido porque a conta é PRÉ-PAGA: depositar só até R$1.000 em dez.",
+  "O2 teto = gasto no painel, crédito dentro do teto (rec. sim); O3 subir CPC de R$4 até R$6 se gasto abaixo do marco semanal (rec. sim); O4 Renato confere em Faturamento > Promoções as regras exatas da oferta até 27/11 (inclui 16/01? imposto? código aplicado?); O5 11/01 vira marco de comunicação (rec. sim).",
+  "(e) Advogado pergunta 3: rodapé só 'Jundiaí/SP' pode até o Launch Gate (Decreto 7.962)? SIM → nada muda; NÃO → endereço comercial (escritório virtual) + Termos v7 antes de 08/12. Resposta até 04/12. Mandar a pergunta ao advogado JÁ na quinta.",
+  "Stratum 18/11 tarde: Renato decidiu passo 5 — (1) Simples por competência 2026 e 2027; (2) cancelamento vale no fim do período pago, sem devolução proporcional (Termos v6). Chat Contabilidade confere impacto em B1–B6. p593 (período do ponto, M783) em implementação.",
+  "Teste de compra no TestFlight: se o preço não aparecer → (1) contrato Ativo, (2) ~1h após criar a compra, (3) país da conta Apple = Brasil. Conta Sandbox em Ajustes NÃO é necessária no TestFlight (BYH chat sugeriu, corrigi).",
+  "Stratum 18/11 14h30: p593 NO AR (período do ponto com dia de fechamento configurável, M783 em produção; advisors 220→223 com ok escrito do Renato). Pendências FD-97 a FD-105. Próximo: item 2b (correção de marcação com aprovação) e manual do Apontamento para o key user da Acta.",
+  "Item 70 (pedido do Renato via Stratum): testes diários na empresa 'Teste Renato Ponto' (M784, PR #497), passos únicos 1–6 na mesa. Item 71 sem data: enviar manual do Apontamento ao key user da Acta (artifact BDJox1Vgay3o7MSKme79S7).",
+  "P2T: APK de teste Android (selo + Jundiaí/SP) pronto, opcional, run 44510271422 (Artifacts). AAB bloqueado pela chave (item 77, rec. B)."
+ ],
+ "sessoes": {
+  "stratum": "p590 no ar (interna); cronograma dez/2026 pronto; aguarda decisões de quinta (interruptor Assinar até 24/11, ST-04, orçamento, O2–O5, advogado pergunta 3)",
+  "be_your_hero": "ocioso; aguarda revisão da Play (T131) e Apple (quinta)",
+  "plan2travel": "ocioso; T182 concluída (só lojas); aguarda Apple (quinta)",
+  "site_fineapps": "ocioso; concluído",
+  "Contabilidade e Fiscal (Stratum)": "session_014uWdpnviLeiiqadjZBxfEX",
+  "Stray (Stratum)": "session_014uWdpot2e387vopUAzU8sP",
+  "Travis (Plan2Travel)": "session_014uWdpn4vBeqs3ekVpgbepn",
+  "Herus (BYH)": "session_01LxsooUCbLW2SA9eBXasRYm",
+  "Bia (Site FineApps)": "session_014uWdpkQFTybSsUuNfi5ons",
+  "Connor (Contabilidade e Fiscal)": "session_014uWdpnviLeiiqadjZBxfEX",
+  "Mark (Marketing)": "session_014uWdpksK9bPyCY1YWX4LWd",
+  "Judge (Jurídico)": "session_014uWdpkrHeEgftKdMCZfwuo"
+ },
+ "regras_mesa": [
+  "19/11: Mesa do Renato = SÓ o que depende dele agora. Item que não depende dele vai para a mesa do chat responsável e volta só quando precisar dele. Cada card tem botões de resposta (comentário enviado ao Claude acorda o Jarvis)."
+ ]
+}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa do Renato — FineApps</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#5d6678; --line:#e3e6ec; --accent:#3b5bdb; --ok:#2b8a3e; --wait:#b7791f; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161b; --card:#1d2027; --ink:#e7e9ee; --muted:#9aa3b5; --line:#2c313b; --accent:#8ea2ff; --ok:#69db7c; --wait:#f0b85a; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:760px; margin:0 auto; padding:20px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 20px; }
+  h2 { font-size:15px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:28px 0 10px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:0 0 10px; }
+  .agora { border:2px solid var(--accent); }
+  .n { display:inline-block; min-width:26px; height:26px; line-height:26px; text-align:center; border-radius:13px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; margin-right:8px; }
+  .t { font-weight:650; }
+  .tag { font-size:12px; color:var(--muted); margin-left:6px; }
+  .rec { margin:8px 0 0; }
+  .resp { margin:8px 0 0; font-size:14px; color:var(--muted); }
+  .resp b { color:var(--ink); }
+  ul { margin:6px 0 0 18px; padding:0; }
+  li { margin:2px 0; }
+  .row { display:flex; gap:8px; align-items:baseline; padding:6px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; }
+  .dot { width:9px; height:9px; border-radius:5px; flex:none; margin-top:6px; }
+  .w { background:var(--wait); } .o { background:var(--ok); }
+  a { color:var(--accent); }
+  details.mesa { background:var(--card); border:1px solid var(--line); border-radius:12px; margin:0 0 10px; }
+  details.mesa > summary { cursor:pointer; padding:12px 16px; font-weight:650; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+  details.mesa > summary::-webkit-details-marker { display:none; }
+  details.mesa > summary::after { content:"▸"; color:var(--muted); transition:transform .15s; }
+  details.mesa[open] > summary::after { transform:rotate(90deg); }
+  details.mesa > summary .cnt { font-size:12px; font-weight:500; color:var(--muted); margin-left:auto; margin-right:10px; }
+  details.mesa .corpo { padding:0 16px 12px; }
+  details.mesa .card { margin:0 0 10px; }
+.botoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.botoes button{font:inherit;font-weight:600;border:1px solid #2f6f4f;background:#2f6f4f;color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer}
+.botoes button.alt{background:#fff;color:#2f6f4f}
+.botoes button:disabled{opacity:.55;cursor:default}
+.botoes .msg{font-size:.9em;align-self:center;color:#555}
+</style>
+</head>
+<body>
+<main>
+  <h1>Mesa do Renato</h1>
+  <p class="sub">Só o que depende de você, em ordem. Atualizado em 19/11/2026, 14h. Sexta 20/11, 9h15: homologação do Stratum (roteiro às 7h45). Responda no chat com o número e a palavra-chave.</p>
+
+  
+
+  
+            <h2>Mesas</h2>
+  <details class="mesa" open><summary>🧑‍💼 Mesa do Renato — só o que depende de você agora <span class="cnt">0 itens</span></summary><div class="corpo">
+<div class="row"><span class="dot o"></span><div><b>Nada depende de você agora.</b> O comando para ressemear a Empresa Demo chega do Stray depois das 12h e aparece aqui.</div></div>
+</div></details>
+  <details class="mesa"><summary>💻 Stray — Stratum <span class="cnt">em andamento</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Passo 5, nota automática (prioridade 1):</b> p595, p596 e p596.1 no ar; p597 (CNPJ obrigatório para assinar) publicando com o ok de 19/11. Trava 4 em 20/01; prazo duro ~01/02.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Fila depois da p597:</b> p598 (passo 5) junto com os e-mails do teste T49 (no ar antes de 08/12) → Política do Stratum T192 → Marco Civil T190.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Prepara guias:</b> site do Stratum T181 (até 23/11); e-mail da Stripe com domínio próprio T180; LinkedIn T175: o Renato já criou o app e pediu a API em 19/11; o Stray só liga a publicação depois que o LinkedIn aprovar. Cada guia só vai para a mesa do Renato quando estiver pronto.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Correções da T70 (10 achados):</b> avisos à requisitante em Suprimentos sem e-mail e sem sino (2, 4, 6, 7); reaprovação fora da Central de Aprovações (9) e "Valor real R$ 0,00" (10); botão Gerar OC repetido (5); tela de aprovação de RD quebrada no celular (8); preço da concorrência escondido (3); sem logout no celular (1). O Stray monta o plano sem atrasar o passo 5. Depois do passo 5: Apontamento de Horas (item 3 e 78).</div></div>
+</div></details>
+  <details class="mesa"><summary>✈️ Travis — Plan2Travel <span class="cnt">em andamento</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Google Play:</b> 0.1.0 (2) EM REVISÃO desde 19/11 (1 a 7 dias). Na aprovação: o Travis apaga o código de revisor com o seu ok (vence sozinho em 18/01/2027) e publica o link da loja no site.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Apple:</b> 0.1.0 + 3 compras em revisão (liberação manual). Depois de publicado: link da ficha no site.</div></div>
+<div class="row"><span class="dot o"></span><div>Login com Apple/Google/Microsoft e compras testados no iPhone (69). Página de exclusão da conta no ar.</div></div>
+</div></details>
+  <details class="mesa"><summary>🦸 Herus — Be Your Hero <span class="cnt">Apple aprovou · falta o Google</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Google Play:</b> 1.0.88 em revisão desde 17/11 (até ~24/11).</div></div>
+<div class="row"><span class="dot o"></span><div><b>Apple: APROVADO</b> em 19/11 às 17h55 (1.0 build 95 + compra Legend). Liberação manual: segura até o Google aprovar o Android, para sair junto, com o preço de lançamento (109 ok). Link da loja (ativo só depois de liberar): apps.apple.com/app/be-your-hero/id6836347782.</div></div>
+<div class="row"><span class="dot w"></span><div>Aprovado nas duas lojas: publicar junto + preço de lançamento R$ 29,90 por 30 dias (T136, 109 ok). No dia, o Herus traz para a mesa do Renato o passo a passo para cadastrar a data de fim nas duas lojas (só você tem acesso).</div></div>
+</div></details>
+  <details class="mesa"><summary>🌐 Bia — Site FineApps <span class="cnt">no ar · próximos passos</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Registros de acesso do site (T191, Marco Civil):</b> opção A (Cloudflare na frente do site). A Bia monta o código e o passo a passo depois da T70; vai para a mesa do Renato só a parte de clicar na Cloudflare.</div></div>
+<div class="row"><span class="dot w"></span><div>Pendente: link exato da política do Plan2Travel (Travis) e selos das lojas quando os apps forem publicados.</div></div>
+<div class="row"><span class="dot o"></span><div>NO AR desde 19/11 16h03: rodapé "Jundiaí, SP" (Q14), Política de Privacidade v2, Patrion fora; conferido em produção; no mesmo lote entram a Política do site (texto do Judge) e a saída da página do Patrion; esperando as telas novas do Stratum para a página /stratum (Q13). Vai para a mesa do Renato para um ok único antes de publicar. Depois: trocar os selos "Em breve" pelos links das lojas quando os apps forem publicados.</div></div>
+</div></details>
+  <details class="mesa"><summary>📒 Connor — Contabilidade e Fiscal <span class="cnt">consultas</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div>Contador e trabalhista de folha/ponto (sua regra de 18/11). Parecer do 78 entregue (modo relógio + ponto por exceção com acordo escrito).</div></div>
+<div class="row"><span class="dot w"></span><div>Em dezembro: conferir a parametrização da reforma para 2027 e o impacto das decisões B1–B6 do passo 5.</div></div>
+</div></details>
+  <details class="mesa"><summary>📣 Mark — Marketing <span class="cnt">em andamento</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Dono do conteúdo:</b> T38 (campanha Google, só Google), T40 (LinkedIn/YouTube), textos da T49, conteúdo e calendário do gerador de posts (T176/T177), textos de loja do P2T e do BYH (inclui o R$ 29,90 da T136). Código continua nos chats de produto.</div></div>
+<div class="row"><span class="dot w"></span><div><b>LinkedIn e YouTube da marca (T40, antigo 93):</b> páginas FineApps Sistemas e vitrine Stratum já criadas por você em 17/11. Mark escreve os 6 posts dentro da fila da T176 (primeiro post da vitrine em 10/12). O canal do YouTube e os cortes do vídeo só depois da T70 e do vídeo de demonstração. Vai para a mesa do Renato só quando precisar dele (aprovar posts, criar o canal).</div></div>
+<div class="row"><span class="dot w"></span><div><b>Gerador de posts do LinkedIn (T176, antigo 92):</b> Mark faz agora a régua e os modelos de post; o Stray constrói a fila "Posts" de 24/11 a 04/12. Vai para a mesa do Renato só para testar e aprovar, até 05/12. Primeiro post da vitrine: 10/12.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Campanha T38:</b> aprovada pelo advogado; anúncios ligam ~10/12 (com ou sem os textos que dependem da T70, conforme o resultado de amanhã); e-mails só depois da Política nova do Stratum no ar. <b>E-mails do teste T49:</b> texto fechado, com o Stray.</div></div>
+</div></details>
+  <details class="mesa"><summary>⚖️ Judge — Jurídico <span class="cnt">em andamento</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>ROPA revisão 2 (T193):</b> aplicada em 19/11. O Judge fecha as pendências em amarelo que dependem só dele (DPA e acesso de suporte da Oracle). As que dependem do Renato vão para a mesa dele. Achado novo: o banco do Plan2Travel fica nos EUA (us-east-1) e entra no inventário do P2T.</div></div>
+<div class="row"><span class="dot w"></span><div><b>Aguardando o advogado:</b> acordos de ponto da Acta (104, enviados em 19/11). <b>Em andamento:</b> conferir a Política do Stratum publicada pelo Stray; inventário legal do Plan2Travel (Travis).</div></div>
+<div class="row"><span class="dot w"></span><div><b>Escopo:</b> termos, privacidade e LGPD de todos os produtos; textos legais das lojas; revisão jurídica das afirmações de marketing; contratos; prepara as notas que você envia ao advogado.</div></div>
+<div class="row"><span class="dot w"></span><div>Inventário entregue (19/11): Stratum e site em ordem. Parecer sobre a Anthropic: aprovado pelo advogado (99). Lacunas: Política do site remetendo à do Stratum e saída da página do Patrion: aprovados por você, em redação. Falta o Plan2Travel (pedido ao Travis).</div></div>
+</div></details>
+  <details class="mesa"><summary>🏛️ Terceiros (Apple, Google, advogado, Acta) <span class="cnt">acompanhando</span></summary><div class="corpo">
+<div class="row"><span class="dot w"></span><div><b>Apple / Google:</b> revisões acima. <b>LinkedIn:</b> analisando o pedido da API (pode pedir documentos por e-mail). <b>Google Ads:</b> conversão "Cadastro" pronta; conta só depois de clique em anúncio (a partir de 10/12).</div></div>
+<div class="row"><span class="dot w"></span><div><b>Acta:</b> acordos individuais escritos do ponto por exceção antes do uso oficial (80). Manual enviado (71).</div></div>
+<div class="row"><span class="dot o"></span><div><b>Advogado:</b> 2ª exceção do ST-04 ciente (81) e frase da exclusão de conta aprovada (86).</div></div>
+</div></details>
+
+    <details class="mesa"><summary>✅ Feito hoje (20/11)</summary><div class="corpo">
+<div class="row"><span class="dot o"></span><div><b>Homologação T70 APROVADA:</b> todas as cenas rodaram de ponta a ponta em produção (requisição, aprovação no celular, concorrência, leitura de proposta por IA, OC, recebimento, reembolso completo e reaprovação). 10 achados foram para o Stray corrigir; os da reaprovação (9 e 10) por ordem sua. O plano A do site não entra. A frase das aprovações no celular está validada para o Mark.</div></div>
+<div class="row"><span class="dot o"></span><div>ROPA final no lugar (sem nenhum item em amarelo): FineApps › Dev › ropa-fineapps.xlsx. Versões anteriores em arquivo › ropa-backups.</div></div>
+<div class="row"><span class="dot o"></span><div>Be Your Hero para iPhone APROVADO pela Apple (19/11, 17h55); aguarda o Android para publicar junto.</div></div>
+</div></details>
+  <details class="mesa"><summary>✅ Feito em 19/11</summary><div class="corpo">
+<div class="row"><span class="dot o"></span><div>ROPA revisão 2 NO LUGAR: FineApps › Dev › ropa-fineapps.xlsx (o original foi para arquivo › ropa-backups › ropa-fineapps.v1-ate-19nov.xlsx). Suas 4 respostas gravadas; restam só as 2 células da Oracle (Judge).</div></div>
+<div class="row"><span class="dot o"></span><div>Plan2Travel: Google Play concluída e enviada (112). LinkedIn: pedido da API enviado (T175).</div></div>
+<div class="row"><span class="dot o"></span><div>LinkedIn T175: app "FineApps Publicador" criado, página verificada e pedido da Community Management API enviado (uso: só as nossas páginas; publicar e medir). Aguardando o e-mail da Microsoft Vetting Services em renato@fineapps.com.br e a decisão do LinkedIn.</div></div>
+<div class="row"><span class="dot o"></span><div>112: Plan2Travel ENVIADO à revisão da Google Play (versão 0.1.0 (2), Brasil). Função do código de revisor publicada e conferida pelo Travis; Detalhes do login, Público-alvo e Segurança dos dados concluídos. Agora nas duas lojas em revisão.</div></div>
+<div class="row"><span class="dot o"></span><div>111: "p597 ok" dado no chat do Stray. Ele publica (CNPJ e razão social obrigatórios para assinar; aviso de valores não salvos no Emissor) e confere a produção.</div></div>
+<div class="row"><span class="dot o"></span><div>104: os dois acordos de ponto da Acta foram enviados ao advogado (modelos inteiros). Aguardando o parecer; se ele pedir ajuste, o Connor e o Judge cuidam.</div></div>
+<div class="row"><span class="dot o"></span><div><b>ROPA revisão 2 APLICADA</b> no seu Excel (OneDrive, FineApps › Dev), com backup e conferência célula a célula; cores e listas preservadas. Restam pendências em amarelo dentro da planilha; o Judge separa o que ele fecha sozinho e o que precisa de você.</div></div>
+<div class="row"><span class="dot o"></span><div>103: o ROPA está sendo atualizado direto no Excel, por uma sessão do Jarvis no seu Mac, com backup antes e conferência célula a célula depois. As 23 correções do Judge viraram 19 blocos; o que depende de você fica pintado de amarelo dentro da planilha.</div></div>
+<div class="row"><span class="dot o"></span><div>Site da FineApps NO AR (16h03): rodapé Jundiaí, Política de Privacidade v2, Patrion fora. As páginas que as lojas usam continuam funcionando.</div></div>
+<div class="row"><span class="dot o"></span><div>Política do Stratum com os e-mails da campanha e a base legal da Anthropic: pacote do Judge entregue ao Stray. Como a mudança não é material, não exige novo aceite dos clientes.</div></div>
+<div class="row"><span class="dot o"></span><div>110: o advogado aprovou os e-mails da campanha T38 e os trechos novos da Política do Stratum. O Judge monta o pacote final (com a base legal da Anthropic) e o Stray publica. Os envios começam depois disso.</div></div>
+<div class="row"><span class="dot o"></span><div>109 ok: o preço de lançamento do BYH (R$ 29,90) vale por 30 dias a partir da publicação, com o fim cadastrado nas duas lojas. A ficha só fala em "lançamento" depois disso.</div></div>
+<div class="row"><span class="dot o"></span><div>108 ok: e-mails do teste do Stratum. Primeira Vitória = primeiro reembolso pago ou primeiro pedido de compra; e-mail da metade do teste; 3 correções. O Mark fecha o texto e o Stray implementa antes de 08/12. O antigo 94 foi coberto por esta decisão.</div></div>
+<div class="row"><span class="dot o"></span><div>107 ok: a Bia publica o pacote do site (rodapé Jundiaí, Política de Privacidade nova, Patrion fora) e confere em produção.</div></div>
+<div class="row"><span class="dot o"></span><div>106 ok: registros de acesso por 6 meses (Marco Civil). No Stratum, o Stray grava IP, data e hora de cada login, depois da p597 e antes das vendas pagas. No site, a Bia faz o robô gratuito na Cloudflare, neste trimestre. Custo zero.</div></div>
+<div class="row"><span class="dot o"></span><div>98: Herus liberado para falar direto com o Judge e o Mark.</div></div>
+<div class="row"><span class="dot o"></span><div>105 retirado: alarme falso. O time da Vercel está no plano Pro (medição do Stray: logs de quase 4 h atrás estão disponíveis, o que o plano gratuito não guarda; e já constava "Pro" no registro de 01/09). Conferir no Billing fica opcional.</div></div>
+<div class="row"><span class="dot o"></span><div>Pesquisa com 21 empresas: o Judge liberou a frase também para peças novas. Higiene sem prazo: um dia, exportar o CSV do Tally e guardar ao lado do relatório.</div></div>
+<div class="row"><span class="dot o"></span><div>102 ok: a base legal da Anthropic vai escrita no acordo de dados e na Política do Stratum, na próxima versão de texto (Judge escreve, Stray publica).</div></div>
+<div class="row"><span class="dot o"></span><div>100: fonte da pesquisa com 21 empresas localizada no seu OneDrive (FineApps › 7. Marketing › 7.1 › "09 - Pesquisa ICP_concluída.pdf", base: exportação do Tally de 14/10). Números conferidos, todos batem. O Judge avalia se o CSV bruto ainda é necessário.</div></div>
+<div class="row"><span class="dot o"></span><div>101 ok: e-mails da campanha com lista de bloqueio enquanto a campanha existir e prova do aceite por 5 anos. O Judge fecha o texto e prepara a nota ao advogado.</div></div>
+<div class="row"><span class="dot o"></span><div>95: Cloudflare conferido — o e-mail dmarc@stratum-tool.com já existia e o registro _dmarc já estava com o texto certo. Nada a mudar.</div></div>
+<div class="row"><span class="dot o"></span><div>97 sim: os acordos de banco de horas e de ponto por exceção passam pela revisão de redação do Judge (Connor manda os textos a ele). Primeiro uso dos botões da Mesa.</div></div>
+<div class="row"><span class="dot o"></span><div>Aprovados: Política da FineApps no site remete à do Stratum; página de termos do Patrion sai do ar. Judge escreve, Bia publica no lote do rodapé Jundiaí (um ok seu com a prévia).</div></div>
+<div class="row"><span class="dot o"></span><div>99: advogado aprovou a base legal do uso do Claude (Anthropic) no suporte e desenvolvimento do Stratum (LGPD art. 33, IX c/c art. 7º, V).</div></div>
+<div class="row"><span class="dot o"></span><div>96: liberada a confirmação do Supabase para o Travis seguir com a Google Play.</div></div>
+<div class="row"><span class="dot o"></span><div>Chats com nome: Stray (Stratum), Travis (Plan2Travel), Herus (BYH), Bia (Site), Connor (Contabilidade e Fiscal); criados Mark (Marketing) e Judge (Jurídico).</div></div>
+  <div class="card">
+    <div class="row"><span class="dot o"></span><div><b>p594 NO AR</b> (72; liberada às 9h12, no ar às 9h52): correção de marcação do ponto com aprovação. <b>Contrato "Paid Apps" da Apple ATIVO</b> (66). <b>Chave do Android do Plan2Travel criada</b> (77: 4 segredos no GitHub; pacote da Google Play gerado verde). <b>Plan2Travel ENVIADO à revisão da Apple</b> (85, ~13h40: versão 0.1.0 + 3 compras; liberação manual). <b>Be Your Hero ENVIADO à revisão da Apple</b> (83, ~12h55: versão 1.0 build 95 + compra Legend; "Waiting for Review"; liberação manual, junto com a Google Play). <b>Plan2Travel testado no iPhone</b> (69): login com Apple, Google e Microsoft e as 3 compras OK (preço em dólar só no ambiente de teste). <b>p594.1 NO AR</b> (84, 12h09): Ajuda do Apontamento revisada, sem "REP-P", com o aviso do acordo escrito. <b>p596 NO AR</b> (87, 14h05: tela "Assinatura do Stratum"). <b>p595 NO AR</b> (82, 11h45): cancelamento da nota pela regra de Jundiaí. <b>Advogado ciente da 2ª exceção do ST-04</b> (81, sem óbice; registrado no Stratum). <b>Google Play conferido</b> (76): Be Your Hero 1.0.88 "Alterações em análise", sem pendência; publica sozinho quando aprovar. <b>Be Your Hero testado no iPhone</b> (67): app, compra Legend e restaurar OK; país-base da compra = Brazil R$ 49,90 (dólar no teste é do ambiente de teste da Apple); texto "no grátis a classe fica fixa" corrigido e no main (entra no build 93 do iPhone antes da revisão). <b>p596.1 liberada</b> (96: tela da assinatura mais clara). <b>Assinatura do Stratum cadastrada na FineApps</b> (91: conta Stripe, R.01.04, D.05.04, fornecedor Stripe, emissora FineApps, cIndOp 100501 salvo; vendas seguem desligadas). <b>Campanha do Stratum aprovada</b> (90 ok: segmentação, palavras-chave, anúncios; liga em 10/12 após a T70; só Google, sem Instagram). <b>Site do Stratum revisado</b> (89 ok: textos aprovados, visual atual mantido). <b>Plan2Travel: 3 compras criadas certas</b> (basico 199,90 · completo 699,90 · complemento 499,90; a errada apagada do Be Your Hero). <b>Empresa de teste do ponto pronta e 1ª correção testada</b> (70: entrada das 9h incluída e aprovada pelo +gestor). <b>Acta segue com ponto por exceção</b> (80): o acordo individual escrito com cada colaborador precisa existir antes do uso oficial. Manual no padrão Acta (17 páginas) <b>enviado ao key user da Acta</b> (71). Texto "REP-P" da Ajuda do Stratum corrigido para "controle de ponto no formato da Portaria 671" (79 ok, em construção). Perguntas 4, 5 e 8 da revisão do site respondidas (75). Modo de marcação do ponto configurável (78 ok): 2 modos (relógio, como hoje, e lançamento manual com aprovação), sem edição livre; em validação trabalhista no chat Contabilidade e Fiscal; entra depois do passo 5. <b>Homologação final do Stratum (T70) marcada para AMANHÃ, sex 20/11</b> (74); o chat do Stratum prepara o roteiro e o horário. <b>Passo 5 da nota automática = prioridade 1</b> (73, repassado ao Stratum; metas: desenho 26/11, pronto ~15/12, 2ª nota de teste ~10/01). O manual do key user está sendo atualizado com a correção de ponto, para você enviar (71).</div></div>
+  </div>
+
+  </div></details>
+
+  <details class="mesa"><summary>✅ Feito em 17 e 18/11</summary><div class="corpo">
+  <div class="card">
+    <div class="row"><span class="dot o"></span><div><b>Stratum, nota automática (passo 5):</b> Simples por competência em 2026 e 2027; cancelamento vale no fim do período pago, sem devolução proporcional (como nos Termos v6). O chat de Contabilidade confere o impacto.</div></div>
+    <div class="row"><span class="dot o"></span><div><b>Be Your Hero:</b> correção do envio ao TestFlight autorizada no código principal (68).</div></div>
+    <div class="row"><span class="dot o"></span><div><b>Plan2Travel: "Entrar com a Apple" configurado</b> na Apple e no Supabase (65, decisão B: manter os 3 logins). O chat do app liga o botão e te pede o teste.</div></div>
+    <div class="row"><span class="dot o"></span><div>Stripe revisado no painel (44 ok): nome público Stratum, CEP retirado da fatura, memo e rodapé com CNPJ salvos; os ajustes de código do Stripe foram liberados ao chat do Stratum. Códigos de 2027 gravados no emissor (49). Site: 3 páginas de produto aprovadas (43) e publicadas, com a correção conferida. LinkedIn: slogan da vitrine do Stratum trocado (48). Plan2Travel só pelas lojas: frases aprovadas pelo advogado (54); frase do Suporte da FineApps aprovada (55); Mercado Pago desligado de vez (56: integração excluída, servidor republicado sem pagamento, 7 chaves apagadas; T182 concluída); site vitrine do Plan2Travel e página /plan2travel da FineApps NO AR (só lojas). PDF da nota gerado pelo Stratum aprovado (58). Posts do LinkedIn: 12 decisões tomadas (60), pausa de 24/12 a 05/01. Crédito do Google Ads: VAMOS APROVEITAR → site do Stratum abre 08/12, campanhas 10/12. Decisões de 18/11 (direto no Stratum): orçamento B (R$ 40/dia até 16/01, depois R$ 24/dia); teto = gasto no painel, crédito dentro; lance até R$ 6; 11/01 vira marco de comunicação; trava no "Assinar" aprovada (pronta até 04/12); abrir o site com o visual de hoje; Empresa Demo com teste estendido; lançamento contábil da assinatura AUTOMÁTICO com tela de conferência (sem impedimento, 62.2). Apple: contrato, banco, impostos e taxa de 15% feitos (20); Be Your Hero e Plan2Travel criados no App Store Connect, com a chave da API e os segredos no GitHub (22, 21). Rodapé do site do Stratum só com "Jundiaí/SP" pode ficar até o lançamento (62.1). Google Ads (63): anunciante verificado; conversões otimizadas desligadas também no painel (64); oferta conferida (gastar R$ 1.200 até 16/01/2027; crédito sai em até 35 dias e vale 60 dias). Nota automática a cada pagamento: 4 decisões tomadas (59: CNPJ obrigatório, certificado só na produção, valor cheio com taxa como despesa, botão "vendas liberadas"). Nota de teste nº 1 cancelada pelo Stratum no governo e consulta conferida (53). Nota das vendas pelas lojas DECIDIDA (52): 1 nota por mês por loja, valor cheio das vendas no Brasil, consumidor final não identificado, código 1.05; Jundiaí aceita a nota mensal e não houve opção do IBS/CBS fora do DAS (nada a cancelar): T110 concluída. Site: ajustes de acessibilidade aprovados (50), acessibilidade 100.</div></div>
+    <div class="row"><span class="dot o"></span><div><b>Stratum (itens 39 e 42):</b> o rodapé do stratum-tool.com mostra só "Jundiaí/SP"; os Termos v6 estão valendo desde hoje, com só cidade e estado; o guia da Stripe (T180) está guardado.</div></div>
+    <div class="row"><span class="dot o"></span><div>Apple aprovou a conta de desenvolvedor (taxa paga). Inscrição na taxa de 15% da Google Play feita. CNPJ da FineApps corrigido para 0001-07 (18, conferido no banco às 9h47). Chaves do cofre criadas na Vercel (14). Advogado aprovou as 3 frases do cofre (23). Stratum fazendo o cofre em autosserviço para todas as empresas (p583). Contador respondeu as 4 perguntas da nota (19): 6% editável, códigos 01.05.01 / 01.05.01.001 / NBS 115062100, estorno = cancelar a nota, XML guardado 5 anos. Repassado ao Stratum. 1ª NOTA FISCAL DE TESTE AUTORIZADA pelo governo (34): nº 1, R$ 1,00, sem o grupo IBS/CBS. Limpeza das notas de teste aprovada (45). Nota automática definida (46): valor pós-desconto, descrição padrão, produção na 1ª venda. Pergunta do IBS/CBS enviada ao Jonas (24), sem travar o teste. Campanha do Stratum aprovada (12) com teto de R$ 1.000/mês (R$ 16,40/dia em cada campanha); liga em 13/01. Conta do Google Ads criada (sem campanha, sem saldo) e conversão "Cadastro" criada (6): AW-18578822999; repassado ao Stratum. LinkedIn: página FineApps Sistemas + vitrine Stratum criadas; canal do YouTube fica para quando o vídeo de demonstração estiver pronto (29A). Posts automáticos aprovados (28). Advogado aprovou os 2 últimos pontos do cofre, opção b (27). Publicação do cofre em autosserviço APROVADA (31 ok); PUBLICADA às 13h55 (p583): o cofre está no ar para todas as empresas. Certificado A1 da FineApps carregado no Stratum (16). Conversão "Cadastro" do Google Ads testada e funcionando (30). Empresa "Teste Renato": retirar o CNPJ aprovado (35 ok), feito por você no item 37. Site: sem o seu nome, sem Jundiaí e sem endereço; o Sobre fala da experiência de CFO/CEO (36); site novo NO AR em fineapps.com.br (38), com só "Jundiaí/SP"; versão mais rica, com o logo em destaque e as páginas de produto, publicada depois (43). Repositório do site agora privado (40). Advogado aprovou os Termos v6 do Stratum sem a rua (42). As 3 empresas de teste foram expurgadas (37), conferido no banco. Contador respondeu o IBS/CBS (24): CST 000 e cClassTrib 000001 cadastrados para 2027; em nov/dez de 2026 a nota sai sem esse grupo. Repassado ao Stratum. Endereço (39): a sede não muda; em tudo o que é público aparece só cidade/estado (Stratum, Plan2Travel e site ajustando; Termos v6 do Stratum vão ao advogado). Site da FineApps: direção A · Razão escolhida (33); o chat do site faz o site completo na prévia. Be Your Hero 1.0.88: teste de licença e compra de teste OK (17A e 17B). Site da FineApps publicado (32): privacidade do Be Your Hero com a seção Compras (Legend) + símbolo da FineApps. Be Your Hero 1.0.88 ENVIADO para revisão de Produção na Google Play, Brasil (17D); o Google leva de horas a 7 dias. Variáveis do Google Ads na Vercel + Redeploy (25); o Stratum confere e manda o teste da conversão.</div></div>
+    <div class="row"><span class="dot o"></span><div>Stratum: nota fiscal pelo Emissor Nacional pronta, por ora no ambiente de testes do governo (p581). A 1ª nota de teste sai depois das chaves (14), do CNPJ (18), do certificado (16) e da resposta do contador (19).</div></div>
+    <div class="row"><span class="dot o"></span><div>Stratum: a tela do certificado agora aceita o arquivo .pfx direto, só com a senha.</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero versão 84 no celular, certa: as frases dos atributos sumiram e o número da versão aparece. Advogado aprovou o texto do cofre de certificado do Stratum (Privacidade e DPA v10).</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero versão 82 testada e aprovada no celular, com as imagens da loja trocadas pelas do Humano.</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero: texto dos itens dos atributos sai; formas anteriores por desafio ou ouro, aprovado; ícone do Clérigo mantido.</div></div>
+    <div class="row"><span class="dot o"></span><div>Imagens do Humano geradas no ChatGPT (item 5). Mais 3 pontos do teste enviados ao chat do app: atributos com "itens", coleção ao trocar de raça e roda da vida.</div></div>
+    <div class="row"><span class="dot o"></span><div>Humano novo completo no app: 40 imagens, sem óculos e com cenário. As capturas e o banner da loja estão sendo refeitos com ele.</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero vira freemium: grátis com o Humano e parte dos recursos; "Lenda" por R$ 49,90, compra única (R$ 29,90 no lançamento). O chat do app já está montando. A cobrança liga quando o perfil de pagamentos da Play estiver pronto.</div></div>
+    <div class="row"><span class="dot o"></span><div>Nota fiscal: caminho decidido. Emissor Nacional direto, sem custo; nota à mão até ficar pronto; só o certificado da FineApps por ora; rascunho para você conferir no 1º mês. O Stratum faz depois da campanha.</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero versão 68 no teste interno, com o travamento dos alarmes corrigido. No celular: atualize pela Play e teste de novo; bug novo, me manda.</div></div>
+    <div class="row"><span class="dot o"></span><div>Be Your Hero na Play: imagens da loja e teste interno no ar. Bugs levantados e o que te travou já corrigido (versão 68).</div></div>
+    <div class="row"><span class="dot o"></span><div>Plan2Travel: compra reembolsada aparece fechada (T161 conferida).</div></div>
+    <div class="row"><span class="dot o"></span><div>Plan2Travel no ar: "Entrar" no topo, plano atual ao lado do e-mail, avisos de reembolso mais claros e a instrução do Pix só na hora de pagar. Confira em <a href="https://plan2travel.com.br">plan2travel.com.br</a> quando quiser.</div></div>
+    <div class="row"><span class="dot o"></span><div>Stratum: Privacidade dos anúncios aprovada pelo advogado, incluindo a frase das páginas de confirmação (decisão A).</div></div>
+    <div class="row"><span class="dot o"></span><div>Contador respondeu: código do serviço 1.05, imposto pelo Simples, sem retenção e certificado A1 válido até 05/05/2027.</div></div>
+  </div>
+</div></details>
+
+  </main>
+<script>
+(function(){
+  function respostas(card){
+    var out=[];var r=card.querySelector('.resp');if(!r)return out;
+    r.querySelectorAll('b').forEach(function(b){var t=b.textContent.trim();var m=t.match(/^["“](.+)["”]$/);if(m)out.push(m[1]);});
+    return out;
+  }
+  var cards=[].slice.call(document.querySelectorAll('.card'));
+  var api=null, pode='off';
+  cards.forEach(function(card){
+    var rs=respostas(card); var box=document.createElement('div'); box.className='botoes';
+    rs.forEach(function(t){var b=document.createElement('button');b.type='button';b.textContent=t;b.dataset.texto=t;box.appendChild(b);});
+    var o=document.createElement('button');o.type='button';o.className='alt';o.textContent='Outra resposta…';o.dataset.outra='1';box.appendChild(o);
+    var msg=document.createElement('span');msg.className='msg';box.appendChild(msg);
+    card.appendChild(box);
+    box.addEventListener('click',function(ev){
+      var b=ev.target.closest('button');if(!b)return;
+      if(b.dataset.outra){ if(api){api.openComposer({element:card}).catch(function(){});} else {msg.textContent='Escreva a resposta no chat.';} return; }
+      enviar(card,b.dataset.texto,box,msg);
+    });
+  });
+  function enviar(card,texto,box,msg){
+    var bs=box.querySelectorAll('button');
+    if(api&&pode!=='available'){ api.canSendToClaude().then(function(v){pode=v; if(v==='available')enviar(card,texto,box,msg); else copiar(texto,msg);},function(){copiar(texto,msg);}); return; }
+    if(!api){
+      copiar(texto,msg); return;
+    }
+    bs.forEach(function(x){x.disabled=true;}); msg.textContent='Enviando…';
+    api.anchorFor(card).then(function(a){return api.sendToClaude({anchor:a,text:texto});})
+    .then(function(){msg.textContent='✓ Enviado ao Jarvis: '+texto;})
+    .catch(function(e){
+      bs.forEach(function(x){x.disabled=false;});
+      var c=e&&e.code;
+      if(c==='consent_required')msg.textContent='Não enviado: é preciso permitir que a página comente por você. Clique de novo.';
+      else if(c==='rate_limited')msg.textContent='Muitos envios seguidos; espere um pouco.';
+      else msg.textContent='Não enviado ('+(c||'erro')+'). Escreva no chat: '+texto;
+    });
+  }
+  function copiar(texto,msg){
+    try{navigator.clipboard.writeText(texto).then(function(){msg.textContent='Copiado: cole no chat do Jarvis.';},function(){msg.textContent='Escreva no chat: '+texto;});}catch(e){msg.textContent='Escreva no chat: '+texto;}
+  }
+  function checar(){ if(!api)return; api.canSendToClaude().then(function(v){pode=v;},function(){pode='off';}); }
+  if(window.claude&&window.claude.use){
+    window.claude.use('comments').then(function(c){api=c; if(api){checar(); document.addEventListener('visibilitychange',checar);}});
+  }
+})();
+</script>
+</body>
+</html>
