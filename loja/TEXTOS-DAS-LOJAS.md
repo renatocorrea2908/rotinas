@@ -1,6 +1,6 @@
 # Be Your Hero — textos para cadastro nas lojas
 
-> Versão para a ATUALIZAÇÃO 1.0.1 (avisos personalizados, F1–F3 do Mark, 23/11/2026). O texto que foi com a versão 1.0 está no histórico do git (commit 370f145).
+> Versão para a ATUALIZAÇÃO 1.0.1 (avisos personalizados, F1–F3 do Mark, 23/11/2026). O texto que foi com a versão 1.0 está no histórico do git (commit 370f145). Troca de "de Aprendiz a Lenda" (título e descrição curta) = proposta do Mark, aguarda ok do Renato.
 
 ## Comum às duas lojas
 - **Nome do app:** Be Your Hero: Hábitos RPG   (25 caracteres)
@@ -13,7 +13,7 @@
 
 ## Google Play
 **Descrição curta (até 80):**
-Transforme hábitos e metas em um RPG: evolua seu herói até virar Lenda.
+Transforme hábitos e metas em um RPG: evolua seu herói rumo à Lenda.
 
 **Descrição completa:**
 Sua vida é o jogo.
@@ -23,7 +23,7 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ⚔️ ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-🛡️ EVOLUA ATÉ VIRAR LENDA
+🛡️ EVOLUA ATÉ A LENDA
 8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 📜 HÁBITOS, MISSÕES E ÉPICOS
@@ -68,7 +68,7 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-EVOLUA ATÉ VIRAR LENDA
+EVOLUA ATÉ A LENDA
 8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 HÁBITOS, MISSÕES E ÉPICOS
