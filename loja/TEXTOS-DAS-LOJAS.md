@@ -1,5 +1,7 @@
 # Be Your Hero — textos para cadastro nas lojas
 
+> Versão para a ATUALIZAÇÃO 1.0.1 (avisos personalizados, F1–F3 do Mark, 23/11/2026). O texto que foi com a versão 1.0 está no histórico do git (commit 370f145).
+
 ## Comum às duas lojas
 - **Nome do app:** Be Your Hero: Hábitos RPG   (25 caracteres)
 - **Categoria:** Produtividade (secundária: Saúde e fitness)
@@ -42,16 +44,16 @@ Aderência em 7, 30 e 90 dias, desempenho por hábito, por área e por dia da se
 Um aviso no horário que você escolher para não perder a sequência.
 
 🔒 PRIVADO DE VERDADE
-Sem conta, sem anúncios, sem rastreamento. Tudo fica salvo só no seu aparelho e funciona offline.
+Sem conta, sem anúncios, sem rastreamento. Seus dados ficam no seu aparelho (e na cópia de segurança do próprio celular, se ela estiver ligada) e tudo funciona offline.
 
 👑 GRÁTIS PARA COMEÇAR, LENDA PARA IR ALÉM
 Grátis para sempre: raça Humano com a classe que você escolher no início (uma das 5), evolução até a forma 4, até 5 hábitos, 1 missão e 1 épico, chefão da semana, desafio do dia, Tesouro com 3 prêmios, lembrete diário e análise dos últimos 7 dias.
-Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos inteligentes, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
+Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos personalizados, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
 
 ## Apple App Store
 - **Subtítulo (até 30):** Hábitos e metas viram RPG
 - **Texto promocional (até 170):** Cada hábito cumprido vira XP. Escolha raça e classe, derrote o chefão da semana e evolua seu herói de Aprendiz a Lenda.
-- **Palavras-chave (até 100):** habitos,rotina,metas,produtividade,rpg,gamificacao,disciplina,tarefas,foco,lembrete,saude,evolucao
+- **Palavras-chave (até 100):** rotina,produtividade,gamificacao,disciplina,tarefas,foco,lembrete,jogo,heroi,motivacao,saude
 - **Descrição:** use a seção "Descrição App Store (sem emojis)" abaixo. A App Store recusa emojis.
 - **Notas para a revisão da Apple (em inglês):**
   Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional in-app purchase, "Be Your Hero Legend" (product ID beyourhero_legend), a one-time NON-CONSUMABLE purchase (not a subscription) that unlocks all races, all 8 forms and unlimited items. To open the purchase screen: tap the gear icon (Configurações) → "Be Your Hero Legend", or the "Be Your Hero Legend" card at the top of the "Herói" tab, or any item marked with a lock (🔒). On that screen, "Desbloquear por R$ 49,90" buys it and "Restaurar compra" (Restore Purchases) is right below it.
@@ -87,11 +89,11 @@ LEMBRETE DIÁRIO
 Um aviso no horário que você escolher para não perder a sequência.
 
 PRIVADO DE VERDADE
-Sem conta, sem anúncios, sem rastreamento. Tudo fica salvo só no seu aparelho e funciona offline.
+Sem conta, sem anúncios, sem rastreamento. Seus dados ficam no seu aparelho (e na cópia de segurança do próprio celular, se ela estiver ligada) e tudo funciona offline.
 
 GRÁTIS PARA COMEÇAR, LENDA PARA IR ALÉM
 Grátis para sempre: raça Humano com a classe que você escolher no início (uma das 5), evolução até a forma 4, até 5 hábitos, 1 missão e 1 épico, chefão da semana, desafio do dia, Tesouro com 3 prêmios, lembrete diário e análise dos últimos 7 dias.
-Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos inteligentes, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
+Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca de raça ou classe, as 8 formas até a Lenda, hábitos, missões, épicos e prêmios ilimitados, avisos personalizados, análise de 30 e 90 dias, até 3 escudos de sequência, galeria das 240 formas e compartilhar sem a marca do app.
 
 ## Imagens (nesta pasta)
 - ios-6.3/1..6.png — capturas 1179×2556 para o quadro "iPhone 6,1/6,3 pol." da App Store (o que ela pede hoje). As de ios-6.7/ (1290×2796) são recusadas nesse quadro.
