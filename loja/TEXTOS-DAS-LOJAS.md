@@ -1,6 +1,6 @@
 # Be Your Hero — textos para cadastro nas lojas
 
-> Versão para a ATUALIZAÇÃO 1.0.1 (avisos personalizados, F1–F3 do Mark, 23/11/2026). O texto que foi com a versão 1.0 está no histórico do git (commit 370f145). Troca de "de Aprendiz a Lenda" (título e descrição curta) = proposta do Mark, aguarda ok do Renato.
+> Versão para a ATUALIZAÇÃO 1.0.1 (avisos personalizados, F1–F3 do Mark, 23/11/2026). O texto que foi com a versão 1.0 está no histórico do git (commit 370f145). Troca de "de Aprendiz a Lenda" aprovada pelo Renato (item 177, 23/11).
 
 ## Comum às duas lojas
 - **Nome do app:** Be Your Hero: Hábitos RPG   (25 caracteres)
@@ -23,8 +23,8 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ⚔️ ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-🛡️ EVOLUA ATÉ A LENDA
-8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
+EVOLUA ATÉ VIRAR LENDA
+8 formas por classe, com armaduras, armas, asas e coroas. Na versão grátis, o herói evolui até a forma 4; as formas 5 a 8, até a Lenda, são do Be Your Hero Legend. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 📜 HÁBITOS, MISSÕES E ÉPICOS
 • Hábitos recorrentes com sequências que multiplicam o XP
@@ -68,8 +68,8 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-EVOLUA ATÉ A LENDA
-8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
+EVOLUA ATÉ VIRAR LENDA
+8 formas por classe, com armaduras, armas, asas e coroas. Na versão grátis, o herói evolui até a forma 4; as formas 5 a 8, até a Lenda, são do Be Your Hero Legend. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 HÁBITOS, MISSÕES E ÉPICOS
 - Hábitos recorrentes com sequências que multiplicam o XP
