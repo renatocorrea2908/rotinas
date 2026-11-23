@@ -733,11 +733,11 @@ function renderHeroi() {
 }
 
 /* ---------- Be Your Hero Legend ---------- */
-const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'No grátis, a classe escolhida no início fica fixa. Trocar de raça ou classe depois é do Legend.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos inteligentes e lembrete por hábito são do Legend.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
+const PREM_MOTIVO = { habito: `O grátis tem até ${LIM.habito} hábitos ativos.`, missao: `O grátis tem ${LIM.missao} missão aberta por vez.`, meta: `O grátis tem ${LIM.meta} épico em andamento.`, raca: 'No grátis, a raça é Humano.', troca: 'No grátis, a classe escolhida no início fica fixa. Trocar de raça ou classe depois é do Legend.', forma: `No grátis, o herói evolui até a forma ${LIM.forma + 1}.`, recompensa: `O grátis tem até ${LIM.recompensa} prêmios no Tesouro.`, escudo: `No grátis, você guarda ${LIM.escudo} escudo.`, aviso: 'Avisos personalizados e lembrete por hábito são do Legend.', analise: `No grátis, a análise mostra os últimos ${LIM.dias} dias.`, galeria: 'No grátis, a galeria mostra só o seu herói.' };
 let precoLoja = null;
 function premiumTela(motivo) {
   const nat = typeof NATIVE !== 'undefined' && NATIVE.on, tem = premium() && COBRANCA_ATIVA && nat;
-  const it = [['🧝', 'Todas as 6 raças', 'e trocar de raça ou classe quando quiser'], ['👑', 'As 8 formas', 'evolua até a Lenda'], ['♾️', 'Ilimitado', 'hábitos, missões, épicos e prêmios do Tesouro'], ['🔔', 'Avisos inteligentes', 'sequência em risco, chefão e horário por hábito'], ['📈', 'Análise completa', '30 e 90 dias, por hábito, área e dia da semana, roda da vida'], ['🛡️', 'Até 3 escudos', 'de sequência guardados'], ['🖼️', 'Galeria das 240 formas', 'e compartilhar sem a marca do app']];
+  const it = [['🧝', 'Todas as 6 raças', 'e trocar de raça ou classe quando quiser'], ['👑', 'As 8 formas', 'evolua até a Lenda'], ['♾️', 'Ilimitado', 'hábitos, missões, épicos e prêmios do Tesouro'], ['🔔', 'Avisos personalizados', 'sequência em risco, chefão e horário por hábito'], ['📈', 'Análise completa', '30 e 90 dias, por hábito, área e dia da semana, roda da vida'], ['🛡️', 'Até 3 escudos', 'de sequência guardados'], ['🖼️', 'Galeria das 240 formas', 'e compartilhar sem a marca do app']];
   const preco = precoLoja || 'R$ 49,90';
   let acao;
   if (tem) acao = `<div class="insight" style="text-align:center">✅ Você tem o Be Your Hero Legend. Obrigado!</div>`;
@@ -1124,7 +1124,7 @@ async function setLembrete(ativo, hora, quieto) {
   if (ativo) toast('🔔', `Avisos ligados. Resumo do dia às ${db.ui.lemHora || '20:00'}.`);
   if (!quieto) config();
 }
-/* Avisos inteligentes: agenda os próximos 7 dias e refaz a cada mudança.
+/* Avisos personalizados: agenda os próximos 7 dias e refaz a cada mudança.
    Só avisa o que ainda falta; o que já foi cumprido é cancelado. */
 let reagT = null;
 function reagendar(ja) {
@@ -1202,6 +1202,7 @@ function config() {
     <button class="btn danger full" style="margin-bottom:8px" onclick="zerarProgresso()">↺ Zerar progresso (mantém herói e itens)</button>
     <button class="btn danger full" onclick="zerar()">Apagar tudo e recomeçar</button>
     <div class="mut small" style="text-align:center;margin-top:14px"><span id="verApp">Be Your Hero 1.0</span> · <a href="https://fineapps.com.br/privacidade-be-your-hero" target="_blank" rel="noopener" style="color:#a78bfa">Política de privacidade</a></div>
+    <div class="mut small" style="text-align:center;margin-top:6px">Siga no Instagram: <a href="https://www.instagram.com/beyourhero.official/" target="_blank" rel="noopener" style="color:#a78bfa">@beyourhero.official</a></div>
     <a class="selo-fa" href="https://fineapps.com.br" target="_blank" rel="noopener"><img src="fineapps.svg" alt="">Powered by <b>FineApps Sistemas</b></a>
     <button class="btn ghost full" style="margin-top:14px" onclick="closeModal()">Fechar</button>`);
 }
