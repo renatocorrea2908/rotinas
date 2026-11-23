@@ -18,9 +18,9 @@ Antes de começar, o Herus informa no chat:
 3. Preço a partir de **hoje (D)**: país base **Brasil**, **R$ 29,90**.
 4. **Planejar mudança de preço**: a partir de **V**, **R$ 49,90**.
 5. Salvar. Conferir que aparecem as duas linhas (R$ 29,90 de D a F; R$ 49,90 a partir de V).
-6. Texto promocional (muda sem revisão), SÓ depois de conferir os passos 3–5: colar o texto do Mark (143 caracteres):
-   `Lançamento: Be Your Hero Legend por R$ 29,90 até 23/12 (depois, R$ 49,90). Cada hábito cumprido vira XP e evolui seu herói de Aprendiz a Lenda.`
-   Em 24/12 (V), voltar para: `Cada hábito cumprido vira XP. Escolha raça e classe, derrote o chefão da semana e evolua seu herói de Aprendiz a Lenda.`
+6. Texto promocional (muda sem revisão), SÓ depois de conferir os passos 3–5. Texto CORRIGIDO do Mark (136 caracteres):
+   `Lançamento: Be Your Hero Legend por R$ 29,90 até 23/12 (depois, R$ 49,90). Cada hábito cumprido vira XP, que leva seu herói até a Lenda.`
+   Em 24/12 (V), trocar para (109 caracteres): `Cada hábito cumprido vira XP. Escolha sua classe, derrote o chefão da semana e evolua seu herói rumo à Lenda.`
 
 ## 2. Preço de lançamento — Google Play
 1. Play Console → Be Your Hero → **Monetizar → Produtos → Produtos únicos (no app)** → `beyourhero_legend`.
