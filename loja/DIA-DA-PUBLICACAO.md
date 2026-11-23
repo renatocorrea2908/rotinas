@@ -23,7 +23,7 @@ Antes de começar, o Herus informa no chat:
 2. Na opção de compra **compra-unica** (preço base R$ 49,90, não mexer) → **Adicionar oferta** → tipo **desconto**.
 3. Preço da oferta: **R$ 29,90**. Início: **D**. Fim: **F, 23:59 (horário de Brasília)**. País: Brasil. Ativar a oferta.
 4. Se o Console **não** permitir data de fim na oferta: **não** criar a oferta e avisar o Herus (regra 109: sem fim cadastrado, sem promoção nesta loja).
-5. O app já está pronto: ele usa automaticamente a oferta mais barata e mostra "(preço de lançamento)" ao lado do preço.
+5. O app já está pronto: ele usa automaticamente a oferta mais barata e deve mostrar "(preço de lançamento)" ao lado do preço (conferir no passo 4).
 
 ## 3. Publicar
 1. **Apple**: App Store Connect → Be Your Hero → versão 1.0 (status "Aguardando liberação do desenvolvedor") → **Liberar esta versão**. Pode levar até 24 h para aparecer na loja.

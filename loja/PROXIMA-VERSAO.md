@@ -2,7 +2,7 @@
 
 Itens que NÃO entram nas versões em revisão (Android 1.0.88, iOS build 95). Aplicar no próximo build.
 
-1. **Privacidade dentro do app** (pedido do Judge, 19/11/2026): `jornada/privacidade.html` (10/11) está desatualizada em relação ao site
+1. ✅ FEITO 23/11 no branch (jornada/privacidade.html só redireciona para o site; o app já linkava o site em Configurações) — aguarda merge (item 149). **Privacidade dentro do app** (pedido do Judge, 19/11/2026): `jornada/privacidade.html` (10/11) está desatualizada em relação ao site
    (https://fineapps.com.br/privacidade-be-your-hero — "Vigente desde 13 de novembro de 2026 · Versão 2"). Faltam:
    (a) "Quem somos" com FineApps Sistemas Ltda., CNPJ e Jundiaí/SP (LGPD art. 9º, III);
    (b) cópia automática do aparelho no iCloud / conta Google.
