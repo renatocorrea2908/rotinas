@@ -8,7 +8,7 @@ Antes de começar, o Herus informa no chat:
 - **F** = D + 30 dias (último dia do preço de lançamento);
 - **V** = F + 1 (primeiro dia do preço cheio).
 
-> ⚠️ Atenção Google: se a "Publicação gerenciada" estiver **desligada** no Play Console, o Android vai ao ar sozinho assim que o Google aprovar. Para sair junto com o iPhone, confira hoje: Play Console → Be Your Hero → **Visão geral da publicação** → "Publicação gerenciada" deve estar **ativada**.
+> ✅ Google: "Publicação gerenciada" ATIVADA pelo Renato em 23/11/2026 (15h46 UTC). O Android NÃO vai ao ar sozinho quando o Google aprovar: fica aguardando o "Publicar alterações" do passo 3. Liberação manual nas duas lojas.
 
 ## 1. Preço de lançamento — Apple (antes de liberar o app)
 1. App Store Connect → Apps → Be Your Hero → **Monetização → Compras no app** → `beyourhero_legend`.
@@ -27,7 +27,7 @@ Antes de começar, o Herus informa no chat:
 
 ## 3. Publicar
 1. **Apple**: App Store Connect → Be Your Hero → versão 1.0 (status "Aguardando liberação do desenvolvedor") → **Liberar esta versão**. Pode levar até 24 h para aparecer na loja.
-2. **Google**: Play Console → **Visão geral da publicação** → **Publicar alterações** (se a publicação gerenciada estiver ativa). Pode levar algumas horas.
+2. **Google**: Play Console → **Visão geral da publicação** → **Publicar alterações** (publicação gerenciada ativa desde 23/11). Pode levar algumas horas.
 
 ## 4. Conferir (Renato, no celular, 1–24 h depois)
 - iPhone: https://apps.apple.com/app/be-your-hero/id6836347782 abre e mostra o app; tela Legend mostra R$ 29,90.
