@@ -3,7 +3,7 @@
 Quem executa: **Renato** (contas das lojas). Herus prepara, confere e avisa o time.
 Pré-requisitos: Android 1.0.88 aprovado pelo Google **e** iOS 1.0 (build 95) aprovado pela Apple (aprovado em 19/11). Preço de lançamento decidido (item 109): **R$ 29,90 até a data da publicação + 30 dias; depois R$ 49,90**.
 
-> 📅 Decisão 176 B (23/11/2026): iPhone liberado primeiro. **D = 23/11/2026 · F = 23/12/2026 · V = 24/12/2026.** Android entra quando o Google aprovar, com a oferta terminando na mesma F (23/12). Posts B1–B3 do Mark esperam o Android. Lembrete de V agendado pelo Herus.
+> 📅 Decisão 176 B (23/11/2026): iPhone liberado primeiro. **D = 23/11/2026 · F = 02/01/2027 · V = 03/01/2027** (Renato ajustou o fim para 02/01 ao cadastrar na Apple uma "Mudança temporária de preço" de R$ 29,90 até 02/01/2027; a Apple volta sozinha a R$ 49,90). Android entra quando o Google aprovar, com a oferta terminando na mesma F (02/01/2027, 23:59). Posts B1–B3 do Mark esperam o Android. Lembrete de V agendado pelo Herus.
 
 Antes de começar, o Herus informa no chat:
 - **D** = data da publicação (o dia em que você aperta os botões abaixo);
@@ -19,8 +19,8 @@ Antes de começar, o Herus informa no chat:
 4. **Planejar mudança de preço**: a partir de **V**, **R$ 49,90**.
 5. Salvar. Conferir que aparecem as duas linhas (R$ 29,90 de D a F; R$ 49,90 a partir de V).
 6. Texto promocional (muda sem revisão), SÓ depois de conferir os passos 3–5. Texto CORRIGIDO do Mark (136 caracteres):
-   `Lançamento: Be Your Hero Legend por R$ 29,90 até 23/12 (depois, R$ 49,90). Cada hábito cumprido vira XP, que leva seu herói até a Lenda.`
-   Em 24/12 (V), trocar para (109 caracteres): `Cada hábito cumprido vira XP. Escolha sua classe, derrote o chefão da semana e evolua seu herói rumo à Lenda.`
+   `Lançamento: Be Your Hero Legend por R$ 29,90 até 02/01 (depois, R$ 49,90). Cada hábito cumprido vira XP, que leva seu herói até a Lenda.`
+   Em 03/01/2027 (V), trocar para (109 caracteres): `Cada hábito cumprido vira XP. Escolha sua classe, derrote o chefão da semana e evolua seu herói rumo à Lenda.`
 
 ## 2. Preço de lançamento — Google Play
 1. Play Console → Be Your Hero → **Monetizar → Produtos → Produtos únicos (no app)** → `beyourhero_legend`.
