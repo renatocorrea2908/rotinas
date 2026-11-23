@@ -13,7 +13,7 @@
 
 ## Google Play
 **Descrição curta (até 80):**
-Transforme hábitos e metas em um RPG: evolua seu herói de Aprendiz a Lenda.
+Transforme hábitos e metas em um RPG: evolua seu herói até virar Lenda.
 
 **Descrição completa:**
 Sua vida é o jogo.
@@ -23,7 +23,7 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ⚔️ ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-🛡️ EVOLUA DE APRENDIZ A LENDA
+🛡️ EVOLUA ATÉ VIRAR LENDA
 8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 📜 HÁBITOS, MISSÕES E ÉPICOS
@@ -52,7 +52,7 @@ Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca d
 
 ## Apple App Store
 - **Subtítulo (até 30):** Hábitos e metas viram RPG
-- **Texto promocional (até 170):** Cada hábito cumprido vira XP. Escolha raça e classe, derrote o chefão da semana e evolua seu herói de Aprendiz a Lenda.
+- **Texto promocional (até 170):** Cada hábito cumprido vira XP. Escolha sua classe, derrote o chefão da semana e evolua seu herói rumo à Lenda.
 - **Palavras-chave (até 100):** rotina,produtividade,gamificacao,disciplina,tarefas,foco,lembrete,jogo,heroi,motivacao,saude
 - **Descrição:** use a seção "Descrição App Store (sem emojis)" abaixo. A App Store recusa emojis.
 - **Notas para a revisão da Apple (em inglês):**
@@ -68,7 +68,7 @@ O Be Your Hero transforma seus hábitos, tarefas e grandes metas num RPG de verd
 ESCOLHA RAÇA E CLASSE
 Humano, Elfo, Anão, Orc, Goblin ou Gigante. Guerreiro, Clérigo, Mago, Ladrão ou Druida. Cada combinação ganha mais XP em áreas diferentes da vida.
 
-EVOLUA DE APRENDIZ A LENDA
+EVOLUA ATÉ VIRAR LENDA
 8 formas por classe, com armaduras, armas, asas e coroas. Seu herói muda de visual conforme você sobe de nível, e cada área da vida que você desenvolve sobe de nível como um atributo do personagem.
 
 HÁBITOS, MISSÕES E ÉPICOS
