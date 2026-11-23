@@ -3,6 +3,8 @@
 Quem executa: **Renato** (contas das lojas). Herus prepara, confere e avisa o time.
 Pré-requisitos: Android 1.0.88 aprovado pelo Google **e** iOS 1.0 (build 95) aprovado pela Apple (aprovado em 19/11). Preço de lançamento decidido (item 109): **R$ 29,90 até a data da publicação + 30 dias; depois R$ 49,90**.
 
+> 📅 Decisão 176 B (23/11/2026): iPhone liberado primeiro. **D = 23/11/2026 · F = 23/12/2026 · V = 24/12/2026.** Android entra quando o Google aprovar, com a oferta terminando na mesma F (23/12). Posts B1–B3 do Mark esperam o Android. Lembrete de V agendado pelo Herus.
+
 Antes de começar, o Herus informa no chat:
 - **D** = data da publicação (o dia em que você aperta os botões abaixo);
 - **F** = D + 30 dias (último dia do preço de lançamento);
