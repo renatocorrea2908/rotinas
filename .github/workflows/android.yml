@@ -2,6 +2,11 @@ name: App Android e iOS (Be Your Hero)
 
 on:
   workflow_dispatch:
+    inputs:
+      play_internal:
+        description: 'Enviar o AAB para a faixa de TESTE INTERNO da Google Play'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['jornada/**', 'mobile/**', '.github/workflows/android.yml']
@@ -49,6 +54,18 @@ jobs:
             mobile/android/app/build/outputs/apk/debug/*.apk
             mobile/android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: ignore
+      - uses: actions/setup-python@v5
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.play_internal && env.KEYSTORE_B64 != '' }}
+        with:
+          python-version: '3.12'
+      - name: Enviar para o teste interno da Google Play (só se pedido)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.play_internal && env.KEYSTORE_B64 != '' }}
+        working-directory: .
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          pip install --quiet google-auth requests
+          python .github/scripts/play_internal.py mobile/android/app/build/outputs/bundle/release/app-release.aab
 
   ios-check:
     runs-on: macos-15
