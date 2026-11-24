@@ -29,3 +29,9 @@ Pode publicar sem pedir ok, avisando depois, quando TODOS valerem:
 - fora de período de congelamento.
 
 Continua precisando do ok do Renato: preço e cobrança; texto jurídico ou ao cliente (lojas, telas, avisos); apagar dados; gasto novo; decisão de produto.
+
+## Regra de 24/11/2026 (confirmada pelo Renato diretamente no chat do Herus) — substitui a de 19/11
+1. O **Jarvis** decide em nome do Renato tudo o que tiver revisão de quem cuida do assunto: Judge (jurídico e texto ao cliente), Connor (fiscal), Mark (marketing) ou revisão independente (código). Inclui texto jurídico, texto ao cliente e publicar na main. → Mandar a proposta já revisada ao Jarvis.
+2. Fica **só com o Renato**: gasto novo; preço e cobrança; apagar dados de cliente; estratégia (produto/módulo novo, posicionamento, datas de lançamento); e o que só o login dele faz (Apple, Google, Stripe, Vercel, banco, gov.br) — nesses casos, propor chave de acesso que tire o clique dele.
+3. Ninguém espera clique de permissão do Renato: se uma ação for recusada, avisar o Jarvis e seguir com o resto.
+4. Time: Adm: Jarvis (session_014uWdppSG8XxXbbjSZE7uDQ). Apps: Herus (BYH), Travis (P2T, session_014uWdpmuhJjeqEefk4Quq7o). Empresa: Mark, Bia, Judge, Connor. Stratum: Stray, Stella, Rita, Nix.
