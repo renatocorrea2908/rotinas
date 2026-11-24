@@ -1,0 +1,56 @@
+name: Google Play - conferir acesso (somente leitura)
+
+# Teste inofensivo da chave PLAY_SERVICE_ACCOUNT_JSON:
+# abre uma edição temporária, lista as faixas (tracks) do app e apaga a edição.
+# Não envia nem altera nada na Play.
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE: fineapps.beyourhero
+      PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar biblioteca do Google
+        run: pip install --quiet google-auth requests
+      - name: Listar faixas do app (leitura)
+        run: |
+          python - <<'EOF'
+          import json, os, sys, requests
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import Request
+          raw = os.environ.get('PLAY_JSON', '')
+          if not raw.strip():
+              sys.exit('Segredo PLAY_SERVICE_ACCOUNT_JSON vazio ou ausente.')
+          info = json.loads(raw)
+          print('Conta de serviço:', info.get('client_email'))
+          cred = service_account.Credentials.from_service_account_info(
+              info, scopes=['https://www.googleapis.com/auth/androidpublisher'])
+          cred.refresh(Request())
+          h = {'Authorization': 'Bearer ' + cred.token}
+          base = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/' + os.environ['PACKAGE']
+          r = requests.post(base + '/edits', headers=h, json={})
+          print('Abrir edição:', r.status_code)
+          if r.status_code != 200:
+              print(r.text[:1500]); sys.exit(1)
+          eid = r.json()['id']
+          try:
+              t = requests.get(f'{base}/edits/{eid}/tracks', headers=h)
+              print('Listar faixas:', t.status_code)
+              if t.status_code != 200:
+                  print(t.text[:1500]); sys.exit(1)
+              for tr in t.json().get('tracks', []):
+                  for rel in tr.get('releases', []):
+                      print(f"- faixa {tr['track']}: status={rel.get('status')} versionCodes={rel.get('versionCodes')} nome={rel.get('name')}")
+                  if not tr.get('releases'):
+                      print(f"- faixa {tr['track']}: (vazia)")
+          finally:
+              d = requests.delete(f'{base}/edits/{eid}', headers=h)
+              print('Apagar edição temporária:', d.status_code)
+          print('OK: a chave funciona (somente leitura).')
+          EOF
