@@ -12,6 +12,11 @@ Antes de começar, o Herus informa no chat:
 
 > ✅ Google: "Publicação gerenciada" ATIVADA pelo Renato em 23/11/2026 (15h46 UTC). O Android NÃO vai ao ar sozinho quando o Google aprovar: fica aguardando o "Publicar alterações" do passo 3. Liberação manual nas duas lojas.
 
+## 0. Conferir que o APP é grátis (lição de 24/11/2026)
+- **Apple:** App Store Connect → Monetização → **Preços e disponibilidade** → preço do app = **Gratuito (R$ 0,00)**, sem mudança de preço programada/temporária no app. Mudança de preço de lançamento é SÓ na compra `beyourhero_legend`, nunca no app. (Em 23–24/11 o app ficou pago por R$ 49,90 por algumas horas; zero vendas; corrigido.)
+- **Google:** Play Console → **Monetizar → Preço do app** = Gratuito.
+- Depois de liberar: a página da loja tem que mostrar **"Obter"/"Instalar"**, não um preço.
+
 ## 1. Preço de lançamento — Apple (antes de liberar o app)
 1. App Store Connect → Apps → Be Your Hero → **Monetização → Compras no app** → `beyourhero_legend`.
 2. Em **Programação de preços** (Price Schedule) → **Adicionar preço / Editar**.
