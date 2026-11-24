@@ -59,7 +59,7 @@ Be Your Hero Legend (compra única, sem assinatura): todas as 6 raças e troca d
   Be Your Hero is a habit tracker built as an RPG. No login is required: tap "Começar", enter any name, pick a race and class, and finish setup. Mark habits on the "Hoje" tab to earn XP and level up; Settings (gear icon) has the daily reminder. All data stays on device; no network access is needed. The app offers one optional in-app purchase, "Be Your Hero Legend" (product ID beyourhero_legend), a one-time NON-CONSUMABLE purchase (not a subscription) that unlocks all races, all 8 forms and unlimited items. To open the purchase screen: tap the gear icon (Configurações) → "Be Your Hero Legend", or the "Be Your Hero Legend" card at the top of the "Herói" tab, or any item marked with a lock (🔒). On that screen, "Desbloquear por R$ 49,90" buys it and "Restaurar compra" (Restore Purchases) is right below it.
 
 ### Descrição App Store (sem emojis)
-A App Store recusa emojis na descrição ("invalid characters"). Use este texto, igual ao da Google Play, só sem emojis e com "-" no lugar de "•":
+A App Store recusa emojis na descrição ("invalid characters"); em 24/11 recusou também os marcadores "•". Regra para BYH e Plan2Travel: sem emoji, marcadores com "-", e evitar "%" (escrever "porcentagem"). Use este texto, igual ao da Google Play, só sem emojis e com "-" no lugar de "•":
 
 Sua vida é o jogo.
 
@@ -74,7 +74,7 @@ EVOLUA ATÉ VIRAR LENDA
 HÁBITOS, MISSÕES E ÉPICOS
 - Hábitos recorrentes com sequências que multiplicam o XP
 - Missões únicas com prazo
-- Épicos: metas grandes divididas em marcos, com avanço em %
+- Épicos: metas grandes divididas em marcos, com avanço em porcentagem
 
 CHEFÃO DA SEMANA E DESAFIO DO DIA
 Todo XP da semana é dano no chefão. E o desafio do dia sempre puxa a área da vida que você mais está deixando de lado.
