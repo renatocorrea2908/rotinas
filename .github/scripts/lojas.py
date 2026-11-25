@@ -57,6 +57,22 @@ def busca_publica():
         print(f"- busca '{termo}': " + (f'posição {pos} de {len(ids)}' if pos else f'não está nos {len(ids)} primeiros'))
 
 
+def play_publica():
+    url = f'https://play.google.com/store/apps/details?id={PKG}&hl=pt_BR&gl=BR'
+    r = requests.get(url, timeout=60, headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'pt-BR'})
+    import re
+    m = re.search(r'<title[^>]*>([^<]*)</title>', r.text or '')
+    print(f"- Ficha pública Play: HTTP {r.status_code} título={m.group(1).strip() if m else None!r}")
+
+
+def play_oferta(H, base):
+    for u in [f'{base}/oneTimeProducts/beyourhero_legend',
+              f'{base}/oneTimeProducts/beyourhero_legend/purchaseOptions/-/offers']:
+        r = requests.get(u, headers=H, timeout=60)
+        print(f"- GET {u.split(PKG)[1]}: HTTP {r.status_code}")
+        print('  ' + (r.text or '')[:1500].replace('\n', ' '))
+
+
 def play():
     raw = os.environ.get('PLAY_JSON', '').strip()
     if not raw:
@@ -79,12 +95,14 @@ def play():
                 print(f"- Play {tr['track']}: status={rel.get('status')} versionCodes={rel.get('versionCodes')}")
     finally:
         requests.delete(f'{base}/edits/{eid}', headers=H, timeout=60)
+    play_oferta(H, base)
 
 
 H = asc_headers()
 vs = versoes_ios(H, os.environ.get('VERSAO_IOS', '').strip() if ACAO == 'liberar_ios' else None)
 if ACAO == 'consultar':
     busca_publica()
+    play_publica()
     play()
 elif ACAO == 'liberar_ios':
     alvo = os.environ.get('VERSAO_IOS', '').strip()
