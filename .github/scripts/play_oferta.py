@@ -10,8 +10,8 @@ from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
 PKG, PROD, OPT, OFFER = 'fineapps.beyourhero', 'beyourhero_legend', 'compra-unica', 'lancamento-2026'
-BASE_ESPERADO = (49, 900000000)          # R$ 49,90
-DESCONTO = {'currencyCode': 'BRL', 'units': '20', 'nanos': 0}   # 49,90 - 20,00 = 29,90
+ALVO_CENTAVOS = 2990                      # preço final da oferta: R$ 29,90
+BASE_ACEITO = range(4990, 5000)           # base aceito: R$ 49,90 a R$ 49,99 (a Play mostrou R$ 49,99)
 FIM = '2027-01-03T02:59:59Z'             # 02/01/2027 23:59:59 em Brasília (UTC-3)
 
 c = service_account.Credentials.from_service_account_info(
@@ -31,8 +31,12 @@ opt = next(o for o in prod['purchaseOptions'] if o['purchaseOptionId'] == OPT)
 br = next(x for x in opt['regionalPricingAndAvailabilityConfigs'] if x['regionCode'] == 'BR')
 p = br['price']
 print('Preço base BR:', p)
-if p.get('currencyCode') != 'BRL' or (int(p.get('units', 0)), int(p.get('nanos', 0))) != BASE_ESPERADO:
-    sys.exit('ABORTADO: preço base no Brasil não é R$ 49,90. Nada foi criado.')
+base_c = int(p.get('units', 0)) * 100 + int(p.get('nanos', 0)) // 10_000_000
+if p.get('currencyCode') != 'BRL' or base_c not in BASE_ACEITO:
+    sys.exit('ABORTADO: preço base no Brasil fora de R$ 49,90–49,99. Nada foi criado.')
+d = base_c - ALVO_CENTAVOS
+DESCONTO = {'currencyCode': 'BRL', 'units': str(d // 100), 'nanos': (d % 100) * 10_000_000}
+print(f'Desconto: R$ {d/100:.2f} -> preço final R$ {(base_c - d)/100:.2f}'.replace('.', ','))
 agora = dt.datetime.now(dt.timezone.utc)
 if agora >= dt.datetime(2027, 1, 3, 2, 59, 59, tzinfo=dt.timezone.utc):
     sys.exit('ABORTADO: a data de fim já passou.')
