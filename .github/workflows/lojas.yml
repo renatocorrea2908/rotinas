@@ -1,0 +1,36 @@
+name: Lojas - consultar ou liberar (Be Your Hero)
+
+on:
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: 'consultar (só leitura) ou liberar_ios'
+        type: choice
+        options: [consultar, liberar_ios]
+        default: consultar
+      versao_ios:
+        description: 'Versão iOS a liberar (ex.: 1.0.2). Só usada em liberar_ios.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  lojas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet "pyjwt[crypto]" requests google-auth
+      - name: Executar
+        env:
+          ACAO: ${{ inputs.acao }}
+          VERSAO_IOS: ${{ inputs.versao_ios }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: python .github/scripts/lojas.py
