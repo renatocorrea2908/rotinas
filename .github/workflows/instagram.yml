@@ -40,6 +40,7 @@ jobs:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           MODO: ${{ github.event_name == 'schedule' && 'agendado' || inputs.modo }}
           POST_ID: ${{ inputs.post_id }}
+          IMG_BASE: ${{ vars.IG_IMG_BASE }}
         run: python .github/scripts/instagram.py
       - name: Guardar link do post publicado
         if: always()

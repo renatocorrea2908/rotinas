@@ -40,7 +40,11 @@ def api(method, path, **params):
         log(f'ERRO {method} {path}: HTTP {r.status_code} {r.text[:800]}'); fim(1)
     return r.json()
 
+IMG_BASE = os.environ.get('IMG_BASE', '').strip().rstrip('/')  # hospedagem alternativa, se o repositório virar privado
+
 def url_img(nome):
+    if IMG_BASE:
+        return f'{IMG_BASE}/{nome}'
     return f'https://raw.githubusercontent.com/{REPO}/{SHA}/{DIR}/img/{nome}'
 
 def conferir_imagem(nome):
