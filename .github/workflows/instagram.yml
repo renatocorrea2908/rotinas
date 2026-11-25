@@ -1,0 +1,51 @@
+name: Instagram - publicar posts aprovados (Be Your Hero)
+
+# Todo dia às 8h40 (Brasília) confere a agenda (instagram/agenda.json) e publica o post do dia
+# às 8h45. Manual: "teste" (não publica nada) ou "forcar" (publica agora o post indicado).
+on:
+  schedule:
+    - cron: '40 11 * * *'   # 08:40 em Brasília (UTC-3)
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: 'teste (não publica) ou forcar (publica agora o post indicado)'
+        type: choice
+        options: [teste, forcar]
+        default: teste
+      post_id:
+        description: 'Só para forcar: B1, B2 ou B3'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram
+  cancel-in-progress: false
+
+jobs:
+  instagram:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet requests pillow
+      - name: Executar
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          MODO: ${{ github.event_name == 'schedule' && 'agendado' || inputs.modo }}
+          POST_ID: ${{ inputs.post_id }}
+        run: python .github/scripts/instagram.py
+      - name: Guardar link do post publicado
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain instagram/publicados.json)" ]; then
+            git config user.name "byh-robo"
+            git config user.email "byh-robo@users.noreply.github.com"
+            git add instagram/publicados.json
+            git commit -m "Instagram: registro de post publicado"
+            git push || echo "Aviso: não consegui gravar o registro (o link está no resumo do job)."
+          fi
