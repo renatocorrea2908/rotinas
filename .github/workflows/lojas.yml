@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       acao:
-        description: 'consultar (só leitura) ou liberar_ios'
+        description: 'consultar (só leitura), liberar_ios ou oferta_legend_play (cria a oferta R$ 29,90 na Play)'
         type: choice
         options: [consultar, liberar_ios, oferta_legend_play]
         default: consultar

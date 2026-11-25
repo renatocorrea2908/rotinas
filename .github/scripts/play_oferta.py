@@ -3,7 +3,7 @@
 Decisão do Renato (23/11/2026, decisão 176 B / item 109): R$ 29,90 até 02/01/2027 23:59 (Brasília),
 só Brasil, na opção 'compra-unica', sem mexer no preço base (R$ 49,90).
 Valores fixos no código de propósito: nada vem de entrada livre.
-Travas: aborta se o preço base no Brasil não for exatamente R$ 49,90 ou se o fim já passou.
+Travas: aborta se o preço base no Brasil não estiver entre R$ 49,90 e R$ 49,99 ou se o fim já passou.
 """
 import json, os, sys, datetime as dt, requests
 from google.oauth2 import service_account

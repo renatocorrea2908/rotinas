@@ -32,7 +32,10 @@ def fim(code=0):
 
 def api(method, path, **params):
     params['access_token'] = TOKEN
-    r = requests.request(method, f'{G}/{path}', params=params, timeout=120)
+    try:
+        r = requests.request(method, f'{G}/{path}', params=params, timeout=120)
+    except requests.RequestException as e:  # não imprimir a URL (tem o token)
+        log(f'ERRO de rede em {method} {path}: {type(e).__name__}'); fim(1)
     if r.status_code >= 300:
         log(f'ERRO {method} {path}: HTTP {r.status_code} {r.text[:800]}'); fim(1)
     return r.json()
@@ -78,16 +81,20 @@ try:
     else:
         log(f'- Renovação do token não feita agora (HTTP {rt.status_code}); normal no 1º dia.')
 except Exception as e:
-    log(f'- Renovação do token falhou: {e}')
+    log(f'- Renovação do token falhou: {type(e).__name__}')
 if problemas:
     log('PROBLEMAS: ' + ' | '.join(problemas)); fim(1)
 if MODO == 'teste':
     log('TESTE OK: nada foi publicado.'); fim(0)
+if MODO not in ('agendado', 'forcar'):
+    log(f'MODO inválido: {MODO!r}. Nada publicado.'); fim(1)
 
 # 2) O que publicar
 agora = dt.datetime.now(dt.timezone.utc)
 if MODO == 'forcar':
     alvo = [p for p in agenda if p['id'] == POST_ID]
+    if not alvo:
+        log(f'POST_ID inválido: {POST_ID!r}. Nada publicado.'); fim(1)
 else:
     alvo = [p for p in agenda
             if dt.timedelta(minutes=-20) <= agora - dt.datetime.fromisoformat(p['quando']) <= dt.timedelta(hours=6)]
@@ -104,11 +111,13 @@ for p in alvo:
     else:
         filhos = [api('POST', f'{uid}/media', image_url=url_img(n), is_carousel_item='true')['id'] for n in p['imagens']]
         cid = api('POST', f'{uid}/media', media_type='CAROUSEL', children=','.join(filhos), caption=c)['id']
-    for _ in range(30):
+    for _ in range(60):
         st = api('GET', cid, fields='status_code').get('status_code')
         if st == 'FINISHED': break
         if st in ('ERROR', 'EXPIRED'): log(f"{p['id']}: preparo falhou ({st})"); fim(1)
         time.sleep(5)
+    else:
+        log(f"{p['id']}: Instagram não terminou de preparar em 5 min ({st}). Nada publicado; próxima rodada tenta de novo."); fim(1)
     mid = api('POST', f'{uid}/media_publish', creation_id=cid)['id']
     link = api('GET', mid, fields='permalink').get('permalink')
     publicados[p['id']] = {'media_id': mid, 'link': link, 'publicado_em': dt.datetime.now(dt.timezone.utc).isoformat()}

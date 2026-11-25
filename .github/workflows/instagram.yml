@@ -5,6 +5,8 @@ name: Instagram - publicar posts aprovados (Be Your Hero)
 on:
   schedule:
     - cron: '40 11 * * *'   # 08:40 em Brasília (UTC-3)
+    - cron: '40 12 * * *'   # reserva 09:40, se a das 08:40 falhar (nunca publica duas vezes)
+    - cron: '40 14 * * *'   # reserva 11:40
   workflow_dispatch:
     inputs:
       modo:
