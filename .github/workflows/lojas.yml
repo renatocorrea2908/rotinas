@@ -6,7 +6,7 @@ on:
       acao:
         description: 'consultar (só leitura) ou liberar_ios'
         type: choice
-        options: [consultar, liberar_ios]
+        options: [consultar, liberar_ios, oferta_legend_play]
         default: consultar
       versao_ios:
         description: 'Versão iOS a liberar (ex.: 1.0.2). Só usada em liberar_ios.'
@@ -33,4 +33,5 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-        run: python .github/scripts/lojas.py
+        run: |
+          if [ "$ACAO" = oferta_legend_play ]; then python .github/scripts/play_oferta.py; else python .github/scripts/lojas.py; fi
