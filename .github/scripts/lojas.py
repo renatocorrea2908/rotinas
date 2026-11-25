@@ -63,9 +63,14 @@ def play_publica():
     import re
     m = re.search(r'<title[^>]*>([^<]*)</title>', r.text or '')
     print(f"- Ficha pública Play: HTTP {r.status_code} título={m.group(1).strip() if m else None!r}")
+    t = r.text or ''
+    for k in ['Instalar', 'Install', 'Compras no app', 'compras no app', 'In-app purchases', 'Contém anúncios', 'R$']:
+        print(f"  contém {k!r}: {k in t}")
 
 
 def play_oferta(H, base):
+    r = requests.get(f'{base}/purchases/voidedpurchases', headers=H, timeout=60)
+    print(f"- Compras canceladas/estornadas (voidedpurchases): HTTP {r.status_code} {(r.text or '')[:300]!r}")
     for u in [f'{base}/oneTimeProducts/beyourhero_legend',
               f'{base}/oneTimeProducts/beyourhero_legend/purchaseOptions/-/offers']:
         r = requests.get(u, headers=H, timeout=60)
